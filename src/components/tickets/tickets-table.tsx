@@ -1,0 +1,87 @@
+'use client'
+
+import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import { ColumnDef } from '@tanstack/react-table'
+import { DataTable } from '@/components/shared/data-table'
+import { StatusBadge } from '@/components/shared/status-badge'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { getInitials, formatRelativeDate } from '@/lib/utils'
+import { tickets } from '@/lib/demo-data'
+
+type Ticket = (typeof tickets)[number]
+
+export function TicketsTable() {
+  const router = useRouter()
+  const t = useTranslations('tickets')
+
+  const columns: ColumnDef<Ticket, unknown>[] = [
+    {
+      accessorKey: 'ticketNumber',
+      header: '#',
+      cell: ({ row }) => (
+        <span className="font-mono text-xs text-muted-foreground">{row.original.ticketNumber}</span>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: 'subject',
+      header: t('subject'),
+      cell: ({ row }) => (
+        <div>
+          <p className="font-medium">{row.original.subject}</p>
+          {row.original.client && (
+            <p className="text-xs text-muted-foreground">{row.original.client.name}</p>
+          )}
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'type',
+      header: t('type'),
+      cell: ({ row }) => <StatusBadge status={row.original.type.replace(/_/g, ' ')} />,
+    },
+    {
+      accessorKey: 'priority',
+      header: t('priority'),
+      cell: ({ row }) => <StatusBadge status={row.original.priority.replace(/_/g, ' ')} />,
+    },
+    {
+      accessorKey: 'assignedTo',
+      header: t('assignedTo'),
+      cell: ({ row }) => {
+        const user = row.original.assignedTo
+        if (!user) return <span className="text-xs text-muted-foreground italic">Unassigned</span>
+        return (
+          <div className="flex items-center gap-2">
+            <Avatar className="h-6 w-6">
+              <AvatarFallback className="text-[10px] bg-blue-100 text-blue-700">{getInitials(user.name)}</AvatarFallback>
+            </Avatar>
+            <span className="text-sm">{user.name}</span>
+          </div>
+        )
+      },
+    },
+    {
+      accessorKey: 'status',
+      header: t('status'),
+      cell: ({ row }) => <StatusBadge status={row.original.status.replace(/_/g, ' ')} />,
+    },
+    {
+      accessorKey: 'createdAt',
+      header: t('createdAt'),
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground">{formatRelativeDate(row.original.createdAt)}</span>
+      ),
+    },
+  ]
+
+  return (
+    <DataTable
+      columns={columns}
+      data={tickets}
+      searchPlaceholder={`${t('title')}...`}
+      onRowClick={(ticket) => router.push(`/tickets/${ticket.id}`)}
+    />
+  )
+}
