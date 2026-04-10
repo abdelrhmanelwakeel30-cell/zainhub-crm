@@ -397,6 +397,22 @@ model Tenant {
   payments           Payment[]
   timeEntries        TimeEntry[]
   onboardingTemplates OnboardingTemplate[]
+  // New module back-relations
+  approvalWorkflows    ApprovalWorkflow[]
+  approvalRequests     ApprovalRequest[]
+  subscriptions        Subscription[]
+  billingRecords       BillingRecord[]
+  changeRequests       ChangeRequest[]
+  clientOnboardings    ClientOnboarding[]
+  clientPortalUsers    ClientPortalUser[]
+  clientServices       ClientService[]
+  communicationLogs    CommunicationLog[]
+  deliverables         Deliverable[]
+  leadCaptureForms     LeadCaptureForm[]
+  leadCaptureSubmissions LeadCaptureSubmission[]
+  previewLinks         PreviewLink[]
+  serviceBundles       ServiceBundle[]
+  accountHealthRecords AccountHealth[]
 }
 
 // ============================================================================
@@ -457,6 +473,21 @@ model User {
   createdDocuments     Document[]
   campaignsOwned       Campaign[]
   createdPayments      Payment[]
+  // New module back-relations
+  approvalRequestsRequested ApprovalRequest[]     @relation("ApprovalRequestedBy")
+  approvalSteps             ApprovalStep[]        @relation("ApprovalStepApprover")
+  createdSubscriptions      Subscription[]        @relation("SubscriptionCreator")
+  assignedSubscriptions     Subscription[]        @relation("SubscriptionAssignee")
+  changeRequestsRequested   ChangeRequest[]       @relation("ChangeRequestRequestedBy")
+  changeRequestComments     ChangeRequestComment[]
+  onboardingItemsCompleted  ClientOnboardingItem[]
+  clientServicesAssigned    ClientService[]       @relation("ClientServiceAssignee")
+  communicationLogsLogged   CommunicationLog[]    @relation("CommunicationLoggedBy")
+  deliverablesUploaded      Deliverable[]         @relation("DeliverableUploadedBy")
+  leadCaptureFormsAssigned  LeadCaptureForm[]     @relation("FormAssignedTo")
+  previewLinksShared        PreviewLink[]         @relation("PreviewLinkSharedBy")
+  previewFeedbacksAuthored  PreviewFeedback[]     @relation("PreviewFeedbackAuthor")
+  clientServiceTeamMembers  ClientServiceTeamMember[]
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -476,6 +507,7 @@ model Role {
 
   userRoles       UserRole[]
   rolePermissions RolePermission[]
+  approvalSteps   ApprovalStep[]  @relation("ApprovalStepRole")
 
   @@unique([tenantId, name])
   @@index([tenantId])
@@ -559,6 +591,14 @@ model Company {
   tickets         Ticket[]
   socialAccounts  SocialAccount[]
   payments        Payment[]       @relation("PaymentClient")
+  subscriptions        Subscription[]
+  changeRequests       ChangeRequest[]
+  clientOnboardings    ClientOnboarding[]
+  clientPortalUsers    ClientPortalUser[]
+  clientServices       ClientService[]
+  communicationLogs    CommunicationLog[]
+  previewLinksShared   PreviewLink[]        @relation("PreviewLinkSharedWith")
+  accountHealth        AccountHealth?
 
   @@unique([tenantId, companyNumber])
   @@index([tenantId])
@@ -600,6 +640,9 @@ model Contact {
   contracts            Contract[]
   invoiceContacts      Invoice[]
   socialApprovalContact SocialAccount[] @relation("SocialApprovalContact")
+  communicationLogs    CommunicationLog[]
+  subscriptions        Subscription[]
+  clientServices       ClientService[]   @relation("ClientServiceContact")
 
   @@unique([tenantId, contactNumber])
   @@index([tenantId])
@@ -685,6 +728,9 @@ model Lead {
   createdAt              DateTime    @default(now())
   updatedAt              DateTime    @updatedAt
   archivedAt             DateTime?
+
+  communicationLogs  CommunicationLog[]
+  leadCaptureSubmissions LeadCaptureSubmission[]
 
   @@unique([tenantId, leadNumber])
   @@index([tenantId])
@@ -825,6 +871,7 @@ model Opportunity {
   proposals           Proposal[]
   projects            Project[]
   invoices            Invoice[]
+  communicationLogs   CommunicationLog[]
 
   @@unique([tenantId, opportunityNumber])
   @@index([tenantId])
@@ -895,6 +942,9 @@ model Service {
   quotationItems      QuotationItem[]
   proposalItems       ProposalItem[]
   invoiceItems        InvoiceItem[]
+  subscriptions       Subscription[]
+  clientServices      ClientService[]
+  serviceBundleItems  ServiceBundleItem[]
 
   @@unique([tenantId, categoryId, name])
   @@index([tenantId])
@@ -921,6 +971,9 @@ model ServicePackage {
   projects            Project[]
   quotationItems      QuotationItem[]
   proposalItems       ProposalItem[]
+  subscriptions       Subscription[]
+  clientServices      ClientService[]
+  serviceBundleItems  ServiceBundleItem[]
 
   @@index([serviceId])
   @@index([tenantId])
@@ -963,13 +1016,18 @@ model Project {
   archivedAt            DateTime?
 
   // Relations
-  members    ProjectMember[]
-  milestones ProjectMilestone[]
-  tasks      Task[]
-  invoices   Invoice[]
-  tickets    Ticket[]
-  expenses   Expense[]
-  timeEntries TimeEntry[]
+  members          ProjectMember[]
+  milestones       ProjectMilestone[]
+  tasks            Task[]
+  invoices         Invoice[]
+  tickets          Ticket[]
+  expenses         Expense[]
+  timeEntries      TimeEntry[]
+  clientOnboardings ClientOnboarding[]
+  changeRequests   ChangeRequest[]
+  communicationLogs CommunicationLog[]
+  deliverables     Deliverable[]
+  previewLinks     PreviewLink[]
 
   @@unique([tenantId, projectNumber])
   @@index([tenantId])
@@ -1353,8 +1411,11 @@ model Invoice {
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
 
-  items    InvoiceItem[]
-  payments Payment[]
+  items          InvoiceItem[]
+  payments       Payment[]
+  subscriptionId String?
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
+  billingRecords BillingRecord[]
 
   @@unique([tenantId, invoiceNumber])
   @@index([tenantId])
@@ -1865,6 +1926,586 @@ model OnboardingTemplate {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  clientOnboardings ClientOnboarding[]
+
+  @@index([tenantId])
+}
+
+// ============================================================================
+// APPROVAL WORKFLOWS
+// ============================================================================
+
+model ApprovalWorkflow {
+  id         String   @id @default(cuid())
+  tenantId   String
+  tenant     Tenant   @relation(fields: [tenantId], references: [id])
+  name       String
+  entityType String
+  steps      Json
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  requests ApprovalRequest[]
+
+  @@index([tenantId])
+}
+
+model ApprovalRequest {
+  id               String    @id @default(cuid())
+  tenantId         String
+  tenant           Tenant    @relation(fields: [tenantId], references: [id])
+  workflowId       String?
+  workflow         ApprovalWorkflow? @relation(fields: [workflowId], references: [id])
+  entityType       String
+  entityId         String
+  entityTitle      String?
+  requestedById    String?
+  requestedBy      User?     @relation("ApprovalRequestedBy", fields: [requestedById], references: [id])
+  changeRequestId  String?
+  changeRequest    ChangeRequest? @relation("ChangeRequestApprovals", fields: [changeRequestId], references: [id])
+  currentStep      Int       @default(1)
+  totalSteps       Int       @default(1)
+  status           String    @default("IN_PROGRESS")
+  dueDate          DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  steps ApprovalStep[]
+
+  @@index([tenantId])
+  @@index([tenantId, entityType, entityId])
+  @@index([tenantId, status])
+}
+
+model ApprovalStep {
+  id                   String    @id @default(cuid())
+  approvalRequestId    String
+  approvalRequest      ApprovalRequest @relation(fields: [approvalRequestId], references: [id], onDelete: Cascade)
+  stepNumber           Int
+  approverType         String
+  approverId           String?
+  approver             User?     @relation("ApprovalStepApprover", fields: [approverId], references: [id])
+  approverRoleId       String?
+  approverRole         Role?     @relation("ApprovalStepRole", fields: [approverRoleId], references: [id])
+  approverClientUserId String?
+  approverClientUser   ClientPortalUser? @relation(fields: [approverClientUserId], references: [id])
+  status               String    @default("PENDING")
+  comments             String?   @db.Text
+  decidedAt            DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@index([approvalRequestId])
+}
+
+// ============================================================================
+// SUBSCRIPTIONS & BILLING RECORDS
+// ============================================================================
+
+model Subscription {
+  id              String    @id @default(cuid())
+  tenantId        String
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  companyId       String
+  company         Company   @relation(fields: [companyId], references: [id])
+  contactId       String?
+  contact         Contact?  @relation(fields: [contactId], references: [id])
+  serviceId       String?
+  service         Service?  @relation(fields: [serviceId], references: [id])
+  packageId       String?
+  package         ServicePackage? @relation(fields: [packageId], references: [id])
+  assignedToId    String?
+  assignedTo      User?     @relation("SubscriptionAssignee", fields: [assignedToId], references: [id])
+  createdById     String?
+  createdBy       User?     @relation("SubscriptionCreator", fields: [createdById], references: [id])
+  name            String
+  description     String?   @db.Text
+  amount          Decimal
+  currency        Currency  @default(AED)
+  interval        String
+  startDate       DateTime
+  endDate         DateTime?
+  nextBillingDate DateTime?
+  status          String    @default("ACTIVE")
+  autoRenew       Boolean   @default(true)
+  notes           String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  billingHistory BillingRecord[]
+  invoices       Invoice[]
+
+  @@index([tenantId])
+  @@index([tenantId, companyId])
+  @@index([tenantId, status])
+}
+
+model BillingRecord {
+  id             String    @id @default(cuid())
+  tenantId       String
+  tenant         Tenant    @relation(fields: [tenantId], references: [id])
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  invoiceId      String?
+  invoice        Invoice?  @relation(fields: [invoiceId], references: [id])
+  amount         Decimal
+  currency       Currency  @default(AED)
+  billingDate    DateTime
+  status         String    @default("PENDING")
+  notes          String?   @db.Text
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([tenantId])
+  @@index([subscriptionId])
+}
+
+// ============================================================================
+// CHANGE REQUESTS
+// ============================================================================
+
+model ChangeRequest {
+  id                 String    @id @default(cuid())
+  tenantId           String
+  tenant             Tenant    @relation(fields: [tenantId], references: [id])
+  crNumber           String
+  title              String
+  description        String?   @db.Text
+  companyId          String?
+  company            Company?  @relation(fields: [companyId], references: [id])
+  projectId          String?
+  project            Project?  @relation(fields: [projectId], references: [id])
+  clientServiceId    String?
+  clientService      ClientService? @relation(fields: [clientServiceId], references: [id])
+  requestedById      String?
+  requestedBy        User?     @relation("ChangeRequestRequestedBy", fields: [requestedById], references: [id])
+  type               String    @default("OTHER")
+  priority           String    @default("MEDIUM")
+  status             String    @default("DRAFT")
+  impactDescription  String?   @db.Text
+  impactedAreas      String?
+  estimatedHours     Decimal?
+  estimatedCost      Decimal?
+  currency           Currency  @default(AED)
+  approvalRequired   Boolean   @default(false)
+  dueDate            DateTime?
+  completedAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  comments         ChangeRequestComment[]
+  approvalRequests ApprovalRequest[]      @relation("ChangeRequestApprovals")
+
+  @@unique([tenantId, crNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, companyId])
+}
+
+model ChangeRequestComment {
+  id              String    @id @default(cuid())
+  changeRequestId String
+  changeRequest   ChangeRequest @relation(fields: [changeRequestId], references: [id], onDelete: Cascade)
+  authorId        String
+  author          User      @relation(fields: [authorId], references: [id])
+  authorType      String    @default("INTERNAL")
+  content         String    @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([changeRequestId])
+}
+
+// ============================================================================
+// CLIENT ONBOARDING
+// ============================================================================
+
+model ClientOnboarding {
+  id          String    @id @default(cuid())
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id])
+  companyId   String
+  company     Company   @relation(fields: [companyId], references: [id])
+  projectId   String?
+  project     Project?  @relation(fields: [projectId], references: [id])
+  templateId  String?
+  template    OnboardingTemplate? @relation(fields: [templateId], references: [id])
+  status      String    @default("IN_PROGRESS")
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  items ClientOnboardingItem[]
+
+  @@index([tenantId])
+  @@index([tenantId, companyId])
+}
+
+model ClientOnboardingItem {
+  id            String    @id @default(cuid())
+  onboardingId  String
+  onboarding    ClientOnboarding @relation(fields: [onboardingId], references: [id], onDelete: Cascade)
+  title         String
+  description   String?   @db.Text
+  isRequired    Boolean   @default(true)
+  order         Int       @default(0)
+  completedAt   DateTime?
+  completedById String?
+  completedBy   User?     @relation(fields: [completedById], references: [id])
+  notes         String?   @db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([onboardingId])
+}
+
+// ============================================================================
+// CLIENT PORTAL
+// ============================================================================
+
+model ClientPortalUser {
+  id                      String    @id @default(cuid())
+  tenantId                String
+  tenant                  Tenant    @relation(fields: [tenantId], references: [id])
+  email                   String
+  passwordHash            String?
+  firstName               String
+  lastName                String
+  phone                   String?
+  avatar                  String?
+  companyId               String?
+  company                 Company?  @relation(fields: [companyId], references: [id])
+  contactId               String?
+  status                  String    @default("PENDING_VERIFICATION")
+  emailVerified           Boolean   @default(false)
+  emailVerificationToken  String?
+  emailVerificationExpiry DateTime?
+  otpCode                 String?
+  otpExpiry               DateTime?
+  mfaEnabled              Boolean   @default(false)
+  lastLoginAt             DateTime?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  sessions       ClientPortalSession[]
+  approvalSteps  ApprovalStep[]
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+}
+
+model ClientPortalSession {
+  id           String    @id @default(cuid())
+  clientUserId String
+  clientUser   ClientPortalUser @relation(fields: [clientUserId], references: [id], onDelete: Cascade)
+  ipAddress    String?
+  userAgent    String?   @db.Text
+  isRevoked    Boolean   @default(false)
+  expiresAt    DateTime
+  lastActiveAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([clientUserId])
+}
+
+// ============================================================================
+// CLIENT SERVICES
+// ============================================================================
+
+model ClientService {
+  id                  String    @id @default(cuid())
+  tenantId            String
+  tenant              Tenant    @relation(fields: [tenantId], references: [id])
+  clientServiceNumber String
+  companyId           String?
+  company             Company?  @relation(fields: [companyId], references: [id])
+  contactId           String?
+  contact             Contact?  @relation("ClientServiceContact", fields: [contactId], references: [id])
+  serviceId           String?
+  service             Service?  @relation(fields: [serviceId], references: [id])
+  packageId           String?
+  package             ServicePackage? @relation(fields: [packageId], references: [id])
+  assignedToId        String?
+  assignedTo          User?     @relation("ClientServiceAssignee", fields: [assignedToId], references: [id])
+  serviceName         String
+  status              String    @default("ACTIVE")
+  startDate           DateTime?
+  endDate             DateTime?
+  renewalDate         DateTime?
+  supportEndDate      DateTime?
+  environment         String    @default("PRODUCTION")
+  version             String?
+  monthlyValue        Decimal?
+  totalContractValue  Decimal?
+  currency            Currency  @default(AED)
+  notes               String?   @db.Text
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  milestones     ClientServiceMilestone[]
+  teamMembers    ClientServiceTeamMember[]
+  previewLinks   PreviewLink[]
+  deliverables   Deliverable[]
+  changeRequests ChangeRequest[]
+
+  @@unique([tenantId, clientServiceNumber])
+  @@index([tenantId])
+  @@index([tenantId, companyId])
+  @@index([tenantId, status])
+}
+
+model ClientServiceMilestone {
+  id              String    @id @default(cuid())
+  clientServiceId String
+  clientService   ClientService @relation(fields: [clientServiceId], references: [id], onDelete: Cascade)
+  name            String
+  description     String?   @db.Text
+  dueDate         DateTime?
+  completedAt     DateTime?
+  status          String    @default("PENDING")
+  order           Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([clientServiceId])
+}
+
+model ClientServiceTeamMember {
+  id              String    @id @default(cuid())
+  clientServiceId String
+  clientService   ClientService @relation(fields: [clientServiceId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  role            String    @default("SUPPORT")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([clientServiceId, userId])
+  @@index([clientServiceId])
+}
+
+// ============================================================================
+// COMMUNICATION LOGS
+// ============================================================================
+
+model CommunicationLog {
+  id              String    @id @default(cuid())
+  tenantId        String
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  type            String
+  direction       String
+  subject         String?
+  body            String?   @db.Text
+  companyId       String?
+  company         Company?  @relation(fields: [companyId], references: [id])
+  contactId       String?
+  contact         Contact?  @relation(fields: [contactId], references: [id])
+  leadId          String?
+  lead            Lead?     @relation(fields: [leadId], references: [id])
+  opportunityId   String?
+  opportunity     Opportunity? @relation(fields: [opportunityId], references: [id])
+  projectId       String?
+  project         Project?  @relation(fields: [projectId], references: [id])
+  durationSeconds Int?
+  loggedById      String?
+  loggedBy        User?     @relation("CommunicationLoggedBy", fields: [loggedById], references: [id])
+  loggedAt        DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, companyId])
+  @@index([tenantId, type])
+  @@index([tenantId, loggedAt])
+}
+
+// ============================================================================
+// DELIVERABLES
+// ============================================================================
+
+model Deliverable {
+  id              String    @id @default(cuid())
+  tenantId        String
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  name            String
+  fileUrl         String
+  type            String
+  visibility      String
+  projectId       String?
+  project         Project?  @relation(fields: [projectId], references: [id])
+  clientServiceId String?
+  clientService   ClientService? @relation(fields: [clientServiceId], references: [id])
+  description     String?   @db.Text
+  fileName        String?
+  fileSize        Int?
+  mimeType        String?
+  uploadedById    String?
+  uploadedBy      User?     @relation("DeliverableUploadedBy", fields: [uploadedById], references: [id])
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, projectId])
+  @@index([tenantId, visibility])
+}
+
+// ============================================================================
+// LEAD CAPTURE FORMS
+// ============================================================================
+
+model LeadCaptureForm {
+  id          String    @id @default(cuid())
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id])
+  name        String
+  slug        String
+  description String?   @db.Text
+  fields      String    @db.Text
+  sourceTag   String?
+  assignToId  String?
+  assignTo    User?     @relation("FormAssignedTo", fields: [assignToId], references: [id])
+  isActive    Boolean   @default(true)
+  redirectUrl String?
+  thankYouMsg String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  submissions LeadCaptureSubmission[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+}
+
+model LeadCaptureSubmission {
+  id        String    @id @default(cuid())
+  tenantId  String
+  tenant    Tenant    @relation(fields: [tenantId], references: [id])
+  formId    String
+  form      LeadCaptureForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  data      String    @db.Text
+  ipAddress String?
+  userAgent String?   @db.Text
+  leadId    String?
+  lead      Lead?     @relation(fields: [leadId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([tenantId])
+  @@index([formId])
+}
+
+// ============================================================================
+// PREVIEW LINKS & FEEDBACK
+// ============================================================================
+
+model PreviewLink {
+  id                  String    @id @default(cuid())
+  tenantId            String
+  tenant              Tenant    @relation(fields: [tenantId], references: [id])
+  title               String
+  url                 String
+  type                String
+  projectId           String?
+  project             Project?  @relation(fields: [projectId], references: [id])
+  clientServiceId     String?
+  clientService       ClientService? @relation(fields: [clientServiceId], references: [id])
+  sharedByUserId      String?
+  sharedByUser        User?     @relation("PreviewLinkSharedBy", fields: [sharedByUserId], references: [id])
+  sharedWithCompanyId String?
+  sharedWithCompany   Company?  @relation("PreviewLinkSharedWith", fields: [sharedWithCompanyId], references: [id])
+  password            String?
+  expiresAt           DateTime?
+  status              String    @default("ACTIVE")
+  notes               String?   @db.Text
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  feedbacks PreviewFeedback[]
+
+  @@index([tenantId])
+  @@index([tenantId, projectId])
+}
+
+model PreviewFeedback {
+  id            String    @id @default(cuid())
+  previewLinkId String
+  previewLink   PreviewLink @relation(fields: [previewLinkId], references: [id], onDelete: Cascade)
+  authorId      String?
+  author        User?     @relation("PreviewFeedbackAuthor", fields: [authorId], references: [id])
+  authorType    String    @default("INTERNAL")
+  content       String    @db.Text
+  status        String    @default("OPEN")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([previewLinkId])
+}
+
+// ============================================================================
+// SERVICE BUNDLES
+// ============================================================================
+
+model ServiceBundle {
+  id          String    @id @default(cuid())
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id])
+  name        String
+  description String?   @db.Text
+  category    String?
+  price       Decimal?
+  currency    Currency  @default(AED)
+  isActive    Boolean   @default(true)
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  items ServiceBundleItem[]
+
+  @@index([tenantId])
+}
+
+model ServiceBundleItem {
+  id        String    @id @default(cuid())
+  bundleId  String
+  bundle    ServiceBundle @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  serviceId String?
+  service   Service?  @relation(fields: [serviceId], references: [id])
+  packageId String?
+  package   ServicePackage? @relation(fields: [packageId], references: [id])
+  quantity  Int       @default(1)
+  discount  Decimal?
+  notes     String?   @db.Text
+  sortOrder Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([bundleId])
+}
+
+// ============================================================================
+// ACCOUNT HEALTH
+// ============================================================================
+
+model AccountHealth {
+  id                    String    @id @default(cuid())
+  tenantId              String
+  tenant                Tenant    @relation(fields: [tenantId], references: [id])
+  companyId             String    @unique
+  company               Company   @relation(fields: [companyId], references: [id])
+  healthScore           Int       @default(0)
+  activeServicesCount   Int       @default(0)
+  overdueInvoicesCount  Int       @default(0)
+  openTicketsCount      Int       @default(0)
+  delayedProjectsCount  Int       @default(0)
+  upsellReadiness       String    @default("LOW")
+  riskLevel             String    @default("LOW")
+  lastCalculatedAt      DateTime  @default(now())
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   @@index([tenantId])
 }
