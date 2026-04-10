@@ -3,10 +3,11 @@
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { contacts, companies, opportunities } from '@/lib/demo-data'
+import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Skeleton } from '@/components/ui/skeleton'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { ScoreIndicator } from '@/components/shared/score-indicator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -14,11 +15,31 @@ import { getInitials, formatDate } from '@/lib/utils'
 import { toast } from 'sonner'
 import {
   ArrowLeft, Edit, Phone, Mail, Building2, Briefcase,
-  UserCircle, MapPin, Globe
+  UserCircle, Globe
 } from 'lucide-react'
 
 interface ContactDetailProps {
   contactId: string
+}
+
+type ContactDetail = {
+  id: string
+  contactNumber: string
+  firstName: string
+  lastName: string
+  email?: string
+  phone?: string
+  jobTitle?: string
+  department?: string
+  linkedinUrl?: string
+  leadScore?: number
+  decisionRole?: string
+  lastContactedAt?: string
+  createdAt?: string
+  companyContacts?: {
+    company: { id: string; displayName: string; industry?: string }
+    role?: string
+  }[]
 }
 
 export function ContactDetail({ contactId }: ContactDetailProps) {
@@ -26,9 +47,38 @@ export function ContactDetail({ contactId }: ContactDetailProps) {
   const tc = useTranslations('common')
   const router = useRouter()
 
-  const contact = contacts.find(c => c.id === contactId)
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['contacts', contactId],
+    queryFn: () => fetch('/api/contacts/' + contactId).then(r => r.json()),
+  })
 
-  if (!contact) {
+  const contact: ContactDetail | undefined = data?.data
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => router.push('/contacts')}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <Skeleton className="h-12 w-12 rounded-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="h-4 w-36" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Skeleton className="lg:col-span-2 h-64" />
+          <div className="space-y-4">
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (isError || !contact) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
         <p className="text-lg font-medium">Contact not found</p>
@@ -39,8 +89,7 @@ export function ContactDetail({ contactId }: ContactDetailProps) {
     )
   }
 
-  const company = contact.company ? companies.find(c => c.id === contact.company?.id) : null
-  const contactOpps = opportunities.filter(o => o.contact?.id === contactId)
+  const primaryCompany = contact.companyContacts?.[0]?.company ?? null
 
   return (
     <div className="space-y-6 animate-slide-in">
@@ -58,10 +107,10 @@ export function ContactDetail({ contactId }: ContactDetailProps) {
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold">{contact.firstName} {contact.lastName}</h1>
-              <StatusBadge status={contact.decisionRole.replace('_', ' ')} />
+              {contact.decisionRole && <StatusBadge status={contact.decisionRole.replace('_', ' ')} />}
             </div>
             <p className="text-sm text-muted-foreground mt-0.5">
-              {contact.contactNumber} · {contact.jobTitle} at {contact.company?.name || 'No company'}
+              {contact.contactNumber} · {contact.jobTitle || '-'} {primaryCompany ? `at ${primaryCompany.displayName}` : ''}
             </p>
           </div>
         </div>
@@ -84,8 +133,7 @@ export function ContactDetail({ contactId }: ContactDetailProps) {
           <Tabs defaultValue="overview">
             <TabsList>
               <TabsTrigger value="overview">{tc('overview')}</TabsTrigger>
-              <TabsTrigger value="deals">Deals ({contactOpps.length})</TabsTrigger>
-              <TabsTrigger value="timeline">{tc('timeline')}</TabsTrigger>
+              <TabsTrigger value="companies">Companies ({contact.companyContacts?.length ?? 0})</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="mt-4">
@@ -96,59 +144,35 @@ export function ContactDetail({ contactId }: ContactDetailProps) {
                     <InfoRow icon={<Phone className="h-4 w-4" />} label="Phone" value={contact.phone} />
                     <InfoRow icon={<Briefcase className="h-4 w-4" />} label={t('jobTitle')} value={contact.jobTitle} />
                     <InfoRow icon={<Building2 className="h-4 w-4" />} label={t('department')} value={contact.department} />
-                    <InfoRow icon={<UserCircle className="h-4 w-4" />} label={t('decisionRole')} value={contact.decisionRole.replace('_', ' ')} />
+                    {contact.decisionRole && (
+                      <InfoRow icon={<UserCircle className="h-4 w-4" />} label={t('decisionRole')} value={contact.decisionRole.replace('_', ' ')} />
+                    )}
                     <InfoRow icon={<Globe className="h-4 w-4" />} label={t('lastContacted')} value={contact.lastContactedAt ? formatDate(contact.lastContactedAt) : 'Never'} />
                   </div>
                 </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="deals" className="mt-4">
+            <TabsContent value="companies" className="mt-4">
               <Card>
                 <CardContent className="p-6">
-                  {contactOpps.length > 0 ? (
+                  {contact.companyContacts && contact.companyContacts.length > 0 ? (
                     <div className="space-y-3">
-                      {contactOpps.map(opp => (
-                        <Link key={opp.id} href={`/opportunities/${opp.id}`} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
-                          <div>
-                            <p className="text-sm font-medium">{opp.title}</p>
-                            <p className="text-xs text-muted-foreground">{opp.opportunityNumber} · {opp.service}</p>
+                      {contact.companyContacts.map((cc, i) => (
+                        <Link key={i} href={`/companies/${cc.company.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
+                            <Building2 className="h-5 w-5 text-gray-500" />
                           </div>
-                          <div className="text-end">
-                            <p className="text-sm font-semibold">AED {opp.value.toLocaleString()}</p>
-                            <StatusBadge status={opp.stage} />
+                          <div>
+                            <p className="font-medium text-sm">{cc.company.displayName}</p>
+                            <p className="text-xs text-muted-foreground">{cc.company.industry}{cc.role ? ` · ${cc.role}` : ''}</p>
                           </div>
                         </Link>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground text-center py-4">No deals linked</p>
+                    <p className="text-sm text-muted-foreground text-center py-4">No companies linked</p>
                   )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="timeline" className="mt-4">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    {[
-                      { action: 'Contact created', detail: `Added from ${contact.company?.name || 'direct'}`, time: contact.createdAt },
-                      ...(contact.lastContactedAt ? [{ action: 'Last contacted', detail: 'Phone call', time: contact.lastContactedAt }] : []),
-                    ].reverse().map((event, i) => (
-                      <div key={i} className="flex gap-3">
-                        <div className="flex flex-col items-center">
-                          <div className="h-2 w-2 rounded-full bg-blue-600 mt-2" />
-                          {i < 1 && <div className="w-px flex-1 bg-gray-200 dark:bg-gray-700 mt-1" />}
-                        </div>
-                        <div className="pb-4">
-                          <p className="text-sm font-medium">{event.action}</p>
-                          <p className="text-xs text-muted-foreground">{event.detail}</p>
-                          <p className="text-xs text-muted-foreground mt-1">{formatDate(event.time)}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -157,42 +181,46 @@ export function ContactDetail({ contactId }: ContactDetailProps) {
 
         {/* Right Column */}
         <div className="space-y-6">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">{t('leadScore')}</CardTitle>
-            </CardHeader>
-            <CardContent className="flex justify-center py-4">
-              <ScoreIndicator score={contact.leadScore} size="lg" />
-            </CardContent>
-          </Card>
+          {contact.leadScore != null && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">{t('leadScore')}</CardTitle>
+              </CardHeader>
+              <CardContent className="flex justify-center py-4">
+                <ScoreIndicator score={contact.leadScore} size="lg" />
+              </CardContent>
+            </Card>
+          )}
 
-          {company && (
+          {primaryCompany && (
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Company</CardTitle>
               </CardHeader>
               <CardContent>
-                <Link href={`/companies/${company.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                <Link href={`/companies/${primaryCompany.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
                     <Building2 className="h-5 w-5 text-gray-500" />
                   </div>
                   <div>
-                    <p className="font-medium text-sm">{company.displayName}</p>
-                    <p className="text-xs text-muted-foreground">{company.industry}</p>
+                    <p className="font-medium text-sm">{primaryCompany.displayName}</p>
+                    <p className="text-xs text-muted-foreground">{primaryCompany.industry}</p>
                   </div>
                 </Link>
               </CardContent>
             </Card>
           )}
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">{t('decisionRole')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <StatusBadge status={contact.decisionRole.replace('_', ' ')} />
-            </CardContent>
-          </Card>
+          {contact.decisionRole && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">{t('decisionRole')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <StatusBadge status={contact.decisionRole.replace('_', ' ')} />
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

@@ -2,17 +2,45 @@
 
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { useQuery } from '@tanstack/react-query'
 import { ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '@/components/shared/data-table'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { formatDate } from '@/lib/utils'
-import { campaigns } from '@/lib/demo-data'
 
-type Campaign = (typeof campaigns)[number]
+interface Campaign {
+  id: string
+  name: string
+  description?: string
+  type: string
+  status: string
+  budget: number
+  actualSpend: number
+  platform: string | null
+  leads: number
+  startDate: string | null
+  endDate: string | null
+}
+
+interface CampaignsApiResponse {
+  success: boolean
+  data: Campaign[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
 
 export function CampaignsTable() {
   const router = useRouter()
   const t = useTranslations('campaigns')
+
+  const { data: response } = useQuery<CampaignsApiResponse>({
+    queryKey: ['campaigns'],
+    queryFn: () => fetch('/api/campaigns').then(r => r.json()),
+  })
+
+  const campaigns = response?.data ?? []
 
   const columns: ColumnDef<Campaign, unknown>[] = [
     {
@@ -40,7 +68,7 @@ export function CampaignsTable() {
       header: t('budget'),
       cell: ({ row }) => (
         <span className="text-sm font-semibold">
-          AED {row.original.budget.toLocaleString()}
+          AED {(row.original.budget ?? 0).toLocaleString()}
         </span>
       ),
     },
@@ -49,7 +77,7 @@ export function CampaignsTable() {
       header: t('actualSpend'),
       cell: ({ row }) => (
         <span className="text-sm text-muted-foreground">
-          AED {row.original.actualSpend.toLocaleString()}
+          AED {(row.original.actualSpend ?? 0).toLocaleString()}
         </span>
       ),
     },
@@ -63,10 +91,10 @@ export function CampaignsTable() {
       ),
     },
     {
-      accessorKey: 'leadsGenerated',
+      accessorKey: 'leads',
       header: t('leadsGenerated'),
       cell: ({ row }) => (
-        <span className="text-sm font-semibold">{row.original.leadsGenerated}</span>
+        <span className="text-sm font-semibold">{row.original.leads ?? 0}</span>
       ),
     },
     {
@@ -74,7 +102,8 @@ export function CampaignsTable() {
       header: t('dates'),
       cell: ({ row }) => (
         <span className="text-xs text-muted-foreground">
-          {formatDate(row.original.startDate)} - {row.original.endDate ? formatDate(row.original.endDate) : '-'}
+          {row.original.startDate ? formatDate(row.original.startDate) : '-'} -{' '}
+          {row.original.endDate ? formatDate(row.original.endDate) : '-'}
         </span>
       ),
     },

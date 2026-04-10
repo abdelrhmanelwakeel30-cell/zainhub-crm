@@ -1,25 +1,53 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { leads, leadStages } from '@/lib/demo-data'
+import { useQuery } from '@tanstack/react-query'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { ScoreIndicator } from '@/components/shared/score-indicator'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { getInitials } from '@/lib/utils'
 import Link from 'next/link'
 
 export function LeadsKanban() {
   const t = useTranslations('leads')
 
-  // Only show active stages (not Won/Lost)
-  const activeStages = leadStages.filter(s => !['Won', 'Lost'].includes(s.name))
+  const { data: leadsData, isLoading: leadsLoading } = useQuery({
+    queryKey: ['leads'],
+    queryFn: () => fetch('/api/leads?pageSize=200').then(r => r.json()),
+  })
+
+  const { data: pipelinesData, isLoading: pipelinesLoading } = useQuery({
+    queryKey: ['pipelines', 'lead'],
+    queryFn: () => fetch('/api/pipelines?type=LEAD').then(r => r.json()),
+    staleTime: 300_000,
+  })
+
+  const leads = leadsData?.data ?? []
+  const stages = (pipelinesData?.data?.[0]?.stages ?? []).filter(
+    (s: { isClosed?: boolean; isWon?: boolean }) => !s.isClosed && !s.isWon
+  )
+
+  if (leadsLoading || pipelinesLoading) {
+    return (
+      <div className="flex gap-4 overflow-x-auto pb-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="flex-shrink-0 w-72 space-y-2">
+            <Skeleton className="h-7 w-32" />
+            <Skeleton className="h-24" />
+            <Skeleton className="h-24" />
+          </div>
+        ))}
+      </div>
+    )
+  }
 
   return (
     <div className="flex gap-4 overflow-x-auto pb-4">
-      {activeStages.map((stage) => {
-        const stageLeads = leads.filter(l => l.stageId === stage.id)
+      {stages.map((stage: { id: string; name: string; color: string }) => {
+        const stageLeads = leads.filter((l: { stage?: { id: string } }) => l.stage?.id === stage.id)
 
         return (
           <div key={stage.id} className="flex-shrink-0 w-72">
@@ -34,7 +62,11 @@ export function LeadsKanban() {
 
             {/* Cards */}
             <div className="space-y-2">
-              {stageLeads.map((lead) => (
+              {stageLeads.map((lead: {
+                id: string; fullName: string; companyName?: string; score?: number;
+                interestedService?: { name: string }; urgency: string;
+                assignedTo?: { firstName: string; lastName: string }; budgetRange?: string;
+              }) => (
                 <Link key={lead.id} href={`/leads/${lead.id}`}>
                   <Card className="p-3 hover:shadow-md transition-shadow cursor-pointer border-s-4" style={{ borderInlineStartColor: stage.color }}>
                     <div className="space-y-2">
@@ -46,11 +78,13 @@ export function LeadsKanban() {
                             <p className="text-xs text-muted-foreground">{lead.companyName}</p>
                           )}
                         </div>
-                        <ScoreIndicator score={lead.score} size="sm" showLabel={false} />
+                        <ScoreIndicator score={lead.score ?? 0} size="sm" showLabel={false} />
                       </div>
 
                       {/* Service */}
-                      <p className="text-xs text-muted-foreground">{lead.interestedService}</p>
+                      {lead.interestedService && (
+                        <p className="text-xs text-muted-foreground">{lead.interestedService.name}</p>
+                      )}
 
                       {/* Meta */}
                       <div className="flex items-center justify-between">
@@ -58,7 +92,7 @@ export function LeadsKanban() {
                         {lead.assignedTo ? (
                           <Avatar className="h-6 w-6">
                             <AvatarFallback className="text-[10px] bg-blue-100 text-blue-700">
-                              {getInitials(lead.assignedTo.name)}
+                              {getInitials(`${lead.assignedTo.firstName} ${lead.assignedTo.lastName}`)}
                             </AvatarFallback>
                           </Avatar>
                         ) : (

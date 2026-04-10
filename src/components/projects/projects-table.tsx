@@ -2,19 +2,38 @@
 
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { useQuery } from '@tanstack/react-query'
 import { ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '@/components/shared/data-table'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Progress } from '@/components/ui/progress'
+import { Skeleton } from '@/components/ui/skeleton'
 import { getInitials, formatDate, formatCurrency } from '@/lib/utils'
-import { projects } from '@/lib/demo-data'
 
-type Project = (typeof projects)[number]
+type Project = {
+  id: string
+  projectNumber: string
+  name: string
+  client: { displayName: string }
+  owner: { firstName: string; lastName: string }
+  status: string
+  startDate?: string
+  endDate?: string
+  budget: number
+  currency: string
+}
 
 export function ProjectsTable() {
   const router = useRouter()
   const t = useTranslations('projects')
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => fetch('/api/projects').then(r => r.json()),
+  })
+
+  const projects: Project[] = data?.data ?? []
 
   const columns: ColumnDef<Project, unknown>[] = [
     {
@@ -31,7 +50,7 @@ export function ProjectsTable() {
       cell: ({ row }) => (
         <div>
           <p className="font-medium">{row.original.name}</p>
-          <p className="text-xs text-muted-foreground">{row.original.client.name}</p>
+          <p className="text-xs text-muted-foreground">{row.original.client?.displayName}</p>
         </div>
       ),
     },
@@ -41,36 +60,19 @@ export function ProjectsTable() {
       cell: ({ row }) => <StatusBadge status={row.original.status.replace(/_/g, ' ')} />,
     },
     {
-      accessorKey: 'healthStatus',
-      header: t('health'),
-      cell: ({ row }) => <StatusBadge status={row.original.healthStatus.replace(/_/g, ' ')} />,
-    },
-    {
-      accessorKey: 'progressPercent',
-      header: t('progress'),
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2 min-w-[120px]">
-          <Progress value={row.original.progressPercent} className="flex-1" />
-          <span className="text-xs text-muted-foreground tabular-nums w-8 text-end">
-            {row.original.progressPercent}%
-          </span>
-        </div>
-      ),
-      size: 160,
-    },
-    {
       accessorKey: 'owner',
       header: t('owner'),
       cell: ({ row }) => {
         const owner = row.original.owner
+        const name = owner ? `${owner.firstName} ${owner.lastName}` : '-'
         return (
           <div className="flex items-center gap-2">
             <Avatar className="h-6 w-6">
               <AvatarFallback className="text-[10px] bg-blue-100 text-blue-700">
-                {getInitials(owner.name)}
+                {getInitials(name)}
               </AvatarFallback>
             </Avatar>
-            <span className="text-sm">{owner.name}</span>
+            <span className="text-sm">{name}</span>
           </div>
         )
       },
@@ -83,15 +85,29 @@ export function ProjectsTable() {
       ),
     },
     {
-      accessorKey: 'targetEndDate',
+      accessorKey: 'endDate',
       header: t('targetEndDate'),
       cell: ({ row }) => (
         <span className="text-xs text-muted-foreground">
-          {row.original.targetEndDate ? formatDate(row.original.targetEndDate) : '-'}
+          {row.original.endDate ? formatDate(row.original.endDate) : '-'}
         </span>
       ),
     },
   ]
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-12 w-full" />
+        ))}
+      </div>
+    )
+  }
+
+  if (isError) {
+    return <p className="text-sm text-red-500 py-8 text-center">Failed to load projects.</p>
+  }
 
   return (
     <DataTable

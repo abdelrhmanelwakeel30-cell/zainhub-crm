@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog'
@@ -12,9 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { projects, users } from '@/lib/demo-data'
 import { Loader2 } from 'lucide-react'
-import { useState } from 'react'
 import { toast } from 'sonner'
 
 const taskSchema = z.object({
@@ -38,7 +37,22 @@ interface TaskFormDialogProps {
 export function TaskFormDialog({ open, onOpenChange, defaultValues }: TaskFormDialogProps) {
   const t = useTranslations('tasks')
   const tc = useTranslations('common')
-  const [saving, setSaving] = useState(false)
+  const queryClient = useQueryClient()
+
+  const { data: usersData } = useQuery({
+    queryKey: ['users', 'minimal'],
+    queryFn: () => fetch('/api/users?minimal=true').then(r => r.json()),
+    staleTime: 300_000,
+  })
+
+  const { data: projectsData } = useQuery({
+    queryKey: ['projects', 'list'],
+    queryFn: () => fetch('/api/projects?pageSize=100').then(r => r.json()),
+    staleTime: 300_000,
+  })
+
+  const users: { id: string; firstName: string; lastName: string }[] = usersData?.data ?? []
+  const projects: { id: string; name: string }[] = projectsData?.data ?? []
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
@@ -49,14 +63,34 @@ export function TaskFormDialog({ open, onOpenChange, defaultValues }: TaskFormDi
     },
   })
 
-  const onSubmit = async (data: TaskFormData) => {
-    setSaving(true)
-    // Simulate save
-    await new Promise(r => setTimeout(r, 800))
-    setSaving(false)
-    toast.success('Task created successfully')
-    reset()
-    onOpenChange(false)
+  const mutation = useMutation({
+    mutationFn: (data: TaskFormData) =>
+      fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: data.title,
+          description: data.description,
+          priority: data.priority,
+          status: data.status,
+          dueDate: data.dueDate,
+          assignedToId: data.assignedToId || undefined,
+          projectId: data.projectId || undefined,
+        }),
+      }).then(r => r.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      toast.success('Task created successfully')
+      reset()
+      onOpenChange(false)
+    },
+    onError: () => {
+      toast.error('Failed to create task')
+    },
+  })
+
+  const onSubmit = (data: TaskFormData) => {
+    mutation.mutate(data)
   }
 
   return (
@@ -130,8 +164,8 @@ export function TaskFormDialog({ open, onOpenChange, defaultValues }: TaskFormDi
             <DialogClose render={<Button type="button" variant="outline" />}>
               {tc('cancel')}
             </DialogClose>
-            <Button type="submit" disabled={saving}>
-              {saving && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
+            <Button type="submit" disabled={mutation.isPending}>
+              {mutation.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
               {tc('save')}
             </Button>
           </DialogFooter>

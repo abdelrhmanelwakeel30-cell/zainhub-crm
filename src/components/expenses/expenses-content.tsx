@@ -2,27 +2,35 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { useQuery } from '@tanstack/react-query'
 import { PageHeader } from '@/components/shared/page-header'
 import { KPICard } from '@/components/shared/kpi-card'
 import { ExpensesTable } from './expenses-table'
 import { ExpenseFormDialog } from './expense-form-dialog'
 import { Button } from '@/components/ui/button'
 import { Plus, Download, DollarSign, Clock, CheckCircle, BarChart3 } from 'lucide-react'
-import { expenses } from '@/lib/demo-data'
 
 export function ExpensesContent() {
   const t = useTranslations('expenses')
   const [showCreateForm, setShowCreateForm] = useState(false)
 
+  const { data: expensesResponse } = useQuery({
+    queryKey: ['expenses'],
+    queryFn: () => fetch('/api/expenses').then(r => r.json()),
+  })
+
+  interface Expense { totalAmount: number; status: string; category?: { name: string } }
+  const expenses: Expense[] = expensesResponse?.data ?? []
+
   const totalExpenses = expenses.reduce((sum, e) => sum + e.totalAmount, 0)
-  const pendingExpenses = expenses.filter(e => e.status === 'PENDING')
+  const pendingExpenses = expenses.filter((e) => e.status === 'PENDING')
   const pendingTotal = pendingExpenses.reduce((sum, e) => sum + e.totalAmount, 0)
-  const approvedExpenses = expenses.filter(e => e.status === 'APPROVED')
+  const approvedExpenses = expenses.filter((e) => e.status === 'APPROVED')
   const approvedTotal = approvedExpenses.reduce((sum, e) => sum + e.totalAmount, 0)
 
   // Find top spending category
   const categoryTotals = expenses.reduce<Record<string, number>>((acc, e) => {
-    const cat = e.category.name
+    const cat = e.category?.name ?? 'Uncategorized'
     acc[cat] = (acc[cat] || 0) + e.totalAmount
     return acc
   }, {})

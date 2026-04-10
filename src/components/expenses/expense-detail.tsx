@@ -3,10 +3,11 @@
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { expenses } from '@/lib/demo-data'
+import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Skeleton } from '@/components/ui/skeleton'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { getInitials, formatDate, formatRelativeDate } from '@/lib/utils'
 import {
@@ -18,12 +19,42 @@ interface ExpenseDetailProps {
   expenseId: string
 }
 
+interface Expense {
+  id: string
+  expenseNumber: string
+  description: string
+  amount: number
+  currency: string
+  category: { name: string }
+  expenseDate: string
+  status: string
+  paidBy: { firstName: string; lastName: string }
+  project: { id: string; name: string } | null
+  receiptUrl?: string | null
+  notes?: string | null
+}
+
 export function ExpenseDetail({ expenseId }: ExpenseDetailProps) {
   const t = useTranslations('expenses')
   const tc = useTranslations('common')
   const router = useRouter()
 
-  const expense = expenses.find(e => e.id === expenseId)
+  const { data, isLoading } = useQuery({
+    queryKey: ['expenses', expenseId],
+    queryFn: () => fetch('/api/expenses/' + expenseId).then(r => r.json()),
+  })
+
+  const expense: Expense | undefined = data?.data
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    )
+  }
 
   if (!expense) {
     return (
@@ -37,13 +68,7 @@ export function ExpenseDetail({ expenseId }: ExpenseDetailProps) {
   }
 
   const isPending = expense.status === 'PENDING'
-
-  const paymentMethodLabels: Record<string, string> = {
-    CREDIT_CARD: 'Credit Card',
-    BANK_TRANSFER: 'Bank Transfer',
-    CASH: 'Cash',
-    PETTY_CASH: 'Petty Cash',
-  }
+  const paidByName = `${expense.paidBy.firstName} ${expense.paidBy.lastName}`
 
   return (
     <div className="space-y-6 animate-slide-in">
@@ -55,11 +80,11 @@ export function ExpenseDetail({ expenseId }: ExpenseDetailProps) {
           </Button>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold">{expense.vendorName}</h1>
+              <h1 className="text-2xl font-bold">{expense.description}</h1>
               <StatusBadge status={expense.status} />
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-              {expense.expenseNumber} · {expense.category.name} · Created {formatRelativeDate(expense.createdAt)}
+              {expense.expenseNumber} · {expense.category.name} · Created {formatRelativeDate(expense.expenseDate)}
             </p>
           </div>
         </div>
@@ -86,22 +111,18 @@ export function ExpenseDetail({ expenseId }: ExpenseDetailProps) {
           {/* Amount Summary Card */}
           <Card>
             <CardContent className="p-6">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
                 <div>
                   <p className="text-xs text-muted-foreground">{t('amount')}</p>
-                  <p className="text-xl font-bold mt-1">AED {expense.amount.toLocaleString()}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{t('tax')}</p>
-                  <p className="text-xl font-bold mt-1">AED {expense.taxAmount.toLocaleString()}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{t('totalAmount')}</p>
-                  <p className="text-xl font-bold mt-1">AED {expense.totalAmount.toLocaleString()}</p>
+                  <p className="text-xl font-bold mt-1">{expense.currency} {expense.amount.toLocaleString()}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">{t('expenseDate')}</p>
                   <p className="text-sm font-medium mt-1">{formatDate(expense.expenseDate)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Currency</p>
+                  <p className="text-sm font-medium mt-1">{expense.currency}</p>
                 </div>
               </div>
             </CardContent>
@@ -114,11 +135,9 @@ export function ExpenseDetail({ expenseId }: ExpenseDetailProps) {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
-                <InfoRow icon={<Store className="h-4 w-4" />} label={t('vendor')} value={expense.vendorName} />
                 <InfoRow icon={<Tag className="h-4 w-4" />} label={t('category')} value={expense.category.name} />
-                <InfoRow icon={<DollarSign className="h-4 w-4" />} label={t('amount')} value={`AED ${expense.totalAmount.toLocaleString()}`} />
+                <InfoRow icon={<DollarSign className="h-4 w-4" />} label={t('amount')} value={`${expense.currency} ${expense.amount.toLocaleString()}`} />
                 <InfoRow icon={<CalendarDays className="h-4 w-4" />} label={t('expenseDate')} value={formatDate(expense.expenseDate)} />
-                <InfoRow icon={<CreditCard className="h-4 w-4" />} label={t('paymentMethod')} value={paymentMethodLabels[expense.paymentMethod] || expense.paymentMethod} />
                 <InfoRow
                   icon={<FolderKanban className="h-4 w-4" />}
                   label={t('project')}
@@ -130,6 +149,20 @@ export function ExpenseDetail({ expenseId }: ExpenseDetailProps) {
                 <div className="mt-4 pt-4 border-t">
                   <p className="text-xs text-muted-foreground mb-1">{t('description')}</p>
                   <p className="text-sm">{expense.description}</p>
+                </div>
+              )}
+              {expense.notes && (
+                <div className="mt-4 pt-4 border-t">
+                  <p className="text-xs text-muted-foreground mb-1">Notes</p>
+                  <p className="text-sm">{expense.notes}</p>
+                </div>
+              )}
+              {expense.receiptUrl && (
+                <div className="mt-4 pt-4 border-t">
+                  <p className="text-xs text-muted-foreground mb-1">Receipt</p>
+                  <Link href={expense.receiptUrl} target="_blank" className="text-sm text-blue-600 hover:underline">
+                    View Receipt
+                  </Link>
                 </div>
               )}
             </CardContent>
@@ -165,11 +198,11 @@ export function ExpenseDetail({ expenseId }: ExpenseDetailProps) {
             <CardContent>
               <div className="space-y-4">
                 {[
-                  { action: 'Expense created', detail: `${expense.vendorName} · AED ${expense.totalAmount.toLocaleString()}`, time: expense.createdAt },
-                  ...(expense.status === 'APPROVED' ? [{ action: 'Expense approved', detail: `Approved for AED ${expense.totalAmount.toLocaleString()}`, time: expense.createdAt }] : []),
+                  { action: 'Expense created', detail: `${expense.description} · ${expense.currency} ${expense.amount.toLocaleString()}`, time: expense.expenseDate },
+                  ...(expense.status === 'APPROVED' ? [{ action: 'Expense approved', detail: `Approved for ${expense.currency} ${expense.amount.toLocaleString()}`, time: expense.expenseDate }] : []),
                   ...(expense.status === 'PAID' ? [
-                    { action: 'Expense approved', detail: `Approved for AED ${expense.totalAmount.toLocaleString()}`, time: expense.createdAt },
-                    { action: 'Payment processed', detail: `Paid via ${paymentMethodLabels[expense.paymentMethod] || expense.paymentMethod}`, time: expense.createdAt },
+                    { action: 'Expense approved', detail: `Approved for ${expense.currency} ${expense.amount.toLocaleString()}`, time: expense.expenseDate },
+                    { action: 'Payment processed', detail: `Paid by ${paidByName}`, time: expense.expenseDate },
                   ] : []),
                 ].reverse().map((event, i, arr) => (
                   <div key={i} className="flex gap-3">
@@ -191,7 +224,7 @@ export function ExpenseDetail({ expenseId }: ExpenseDetailProps) {
 
         {/* Right Column */}
         <div className="space-y-6">
-          {/* Created By */}
+          {/* Paid By */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">{t('createdBy')}</CardTitle>
@@ -200,11 +233,11 @@ export function ExpenseDetail({ expenseId }: ExpenseDetailProps) {
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
                   <AvatarFallback className="bg-blue-100 text-blue-700">
-                    {getInitials(expense.createdBy.name)}
+                    {getInitials(paidByName)}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-medium text-sm">{expense.createdBy.name}</p>
+                  <p className="font-medium text-sm">{paidByName}</p>
                   <p className="text-xs text-muted-foreground">Submitted by</p>
                 </div>
               </div>
@@ -229,15 +262,11 @@ export function ExpenseDetail({ expenseId }: ExpenseDetailProps) {
             <CardContent className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">{t('amount')}</span>
-                <span className="text-sm font-semibold">AED {expense.amount.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">{t('tax')}</span>
-                <span className="text-sm font-semibold">AED {expense.taxAmount.toLocaleString()}</span>
+                <span className="text-sm font-semibold">{expense.currency} {expense.amount.toLocaleString()}</span>
               </div>
               <div className="border-t pt-3 flex justify-between">
                 <span className="text-sm font-medium">{t('totalAmount')}</span>
-                <span className="text-sm font-bold">AED {expense.totalAmount.toLocaleString()}</span>
+                <span className="text-sm font-bold">{expense.currency} {expense.amount.toLocaleString()}</span>
               </div>
             </CardContent>
           </Card>

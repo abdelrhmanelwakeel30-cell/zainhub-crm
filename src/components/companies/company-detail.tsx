@@ -4,10 +4,11 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { companies, contacts, opportunities, projects, invoices } from '@/lib/demo-data'
+import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Skeleton } from '@/components/ui/skeleton'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { ScoreIndicator } from '@/components/shared/score-indicator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -15,11 +16,35 @@ import { getInitials, formatDate } from '@/lib/utils'
 import { toast } from 'sonner'
 import {
   ArrowLeft, Edit, Building2, Globe, Phone, Mail, MapPin,
-  Users, Handshake, Briefcase, ExternalLink, Receipt, FolderOpen
+  Users, ExternalLink, Receipt, FolderOpen
 } from 'lucide-react'
 
 interface CompanyDetailProps {
   companyId: string
+}
+
+type CompanyDetail = {
+  id: string
+  companyNumber: string
+  displayName: string
+  legalName?: string
+  industry?: string
+  lifecycleStage: string
+  country?: string
+  city?: string
+  phone?: string
+  website?: string
+  email?: string
+  linkedinUrl?: string
+  employeeCount?: number
+  annualRevenue?: number
+  healthScore?: number
+  accountOwner?: { firstName: string; lastName: string }
+  contacts?: { id: string; firstName: string; lastName: string; jobTitle?: string; decisionRole?: string }[]
+  leads?: { id: string; title?: string; firstName?: string; lastName?: string; status?: string }[]
+  opportunities?: { id: string; opportunityNumber?: string; title: string; value?: number; stage?: string }[]
+  invoices?: { id: string; invoiceNumber: string; dueDate: string; totalAmount: number; status: string }[]
+  projects?: { id: string; projectNumber: string; name: string; status: string; startDate?: string }[]
 }
 
 export function CompanyDetail({ companyId }: CompanyDetailProps) {
@@ -28,9 +53,38 @@ export function CompanyDetail({ companyId }: CompanyDetailProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('overview')
 
-  const company = companies.find(c => c.id === companyId)
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['companies', companyId],
+    queryFn: () => fetch('/api/companies/' + companyId).then(r => r.json()),
+  })
 
-  if (!company) {
+  const company: CompanyDetail | undefined = data?.data
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => router.push('/companies')}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <Skeleton className="h-12 w-12 rounded-xl" />
+          <div className="space-y-2">
+            <Skeleton className="h-7 w-64" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Skeleton className="lg:col-span-2 h-64" />
+          <div className="space-y-4">
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (isError || !company) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
         <p className="text-lg font-medium">Company not found</p>
@@ -41,10 +95,14 @@ export function CompanyDetail({ companyId }: CompanyDetailProps) {
     )
   }
 
-  const companyContacts = contacts.filter(c => c.company?.id === companyId)
-  const companyOpportunities = opportunities.filter(o => o.company?.id === companyId)
-  const companyProjects = projects.filter(p => p.client?.id === companyId)
-  const companyInvoices = invoices.filter(i => i.client?.id === companyId)
+  const ownerName = company.accountOwner
+    ? `${company.accountOwner.firstName} ${company.accountOwner.lastName}`
+    : '-'
+
+  const companyContacts = company.contacts ?? []
+  const companyOpportunities = company.opportunities ?? []
+  const companyProjects = company.projects ?? []
+  const companyInvoices = company.invoices ?? []
 
   return (
     <div className="space-y-6 animate-slide-in">
@@ -92,7 +150,7 @@ export function CompanyDetail({ companyId }: CompanyDetailProps) {
                     <InfoRow icon={<Globe className="h-4 w-4" />} label={t('website')} value={company.website} isLink />
                     <InfoRow icon={<Mail className="h-4 w-4" />} label="Email" value={company.email} />
                     <InfoRow icon={<Phone className="h-4 w-4" />} label="Phone" value={company.phone} />
-                    <InfoRow icon={<MapPin className="h-4 w-4" />} label={t('address')} value={`${company.city}, ${company.country}`} />
+                    <InfoRow icon={<MapPin className="h-4 w-4" />} label={t('address')} value={company.city && company.country ? `${company.city}, ${company.country}` : undefined} />
                     <InfoRow icon={<Users className="h-4 w-4" />} label={t('employeeCount')} value={company.employeeCount?.toLocaleString()} />
                   </div>
                 </CardContent>
@@ -115,7 +173,7 @@ export function CompanyDetail({ companyId }: CompanyDetailProps) {
                             <p className="text-sm font-medium">{contact.firstName} {contact.lastName}</p>
                             <p className="text-xs text-muted-foreground">{contact.jobTitle}</p>
                           </div>
-                          <StatusBadge status={contact.decisionRole} />
+                          {contact.decisionRole && <StatusBadge status={contact.decisionRole} />}
                         </Link>
                       ))}
                     </div>
@@ -135,11 +193,11 @@ export function CompanyDetail({ companyId }: CompanyDetailProps) {
                         <Link key={opp.id} href={`/opportunities/${opp.id}`} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
                           <div>
                             <p className="text-sm font-medium">{opp.title}</p>
-                            <p className="text-xs text-muted-foreground">{opp.opportunityNumber} · {opp.service}</p>
+                            {opp.opportunityNumber && <p className="text-xs text-muted-foreground">{opp.opportunityNumber}</p>}
                           </div>
                           <div className="text-end">
-                            <p className="text-sm font-semibold">AED {opp.value.toLocaleString()}</p>
-                            <StatusBadge status={opp.stage} />
+                            {opp.value != null && <p className="text-sm font-semibold">AED {opp.value.toLocaleString()}</p>}
+                            {opp.stage && <StatusBadge status={opp.stage} />}
                           </div>
                         </Link>
                       ))}
@@ -210,14 +268,16 @@ export function CompanyDetail({ companyId }: CompanyDetailProps) {
 
         {/* Right Sidebar */}
         <div className="space-y-6">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">{t('healthScore')}</CardTitle>
-            </CardHeader>
-            <CardContent className="flex justify-center py-4">
-              <ScoreIndicator score={company.healthScore} size="lg" />
-            </CardContent>
-          </Card>
+          {company.healthScore != null && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">{t('healthScore')}</CardTitle>
+              </CardHeader>
+              <CardContent className="flex justify-center py-4">
+                <ScoreIndicator score={company.healthScore} size="lg" />
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader className="pb-3">
@@ -227,11 +287,11 @@ export function CompanyDetail({ companyId }: CompanyDetailProps) {
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
                   <AvatarFallback className="bg-blue-100 text-blue-700">
-                    {getInitials(company.accountOwner.name)}
+                    {getInitials(ownerName)}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-medium text-sm">{company.accountOwner.name}</p>
+                  <p className="font-medium text-sm">{ownerName}</p>
                   <p className="text-xs text-muted-foreground">Account Owner</p>
                 </div>
               </div>

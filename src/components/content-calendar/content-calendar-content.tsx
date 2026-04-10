@@ -1,18 +1,45 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import { useQuery } from '@tanstack/react-query'
 import { PageHeader } from '@/components/shared/page-header'
 import { KPICard } from '@/components/shared/kpi-card'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { StatusBadge } from '@/components/shared/status-badge'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { getInitials, formatDate } from '@/lib/utils'
+import { formatDate } from '@/lib/utils'
 import { Plus, Download, Calendar, CheckCircle, Clock, Eye } from 'lucide-react'
-import { contentItems } from '@/lib/demo-data'
+
+interface ContentItem {
+  id: string
+  platform: string
+  contentType: string
+  approvalStatus: string
+  plannedPublishDate: string | null
+  caption: string | null
+  socialAccount: { accountName: string; platform: string } | null
+  campaign: { name: string } | null
+}
+
+interface ContentItemsApiResponse {
+  success: boolean
+  data: ContentItem[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
 
 export function ContentCalendarContent() {
   const t = useTranslations('common')
+
+  const { data: response } = useQuery<ContentItemsApiResponse>({
+    queryKey: ['content-items'],
+    queryFn: () => fetch('/api/content-items').then(r => r.json()),
+  })
+
+  const contentItems = response?.data ?? []
+
   const published = contentItems.filter(c => c.approvalStatus === 'PUBLISHED')
   const pending = contentItems.filter(c => ['DRAFT', 'INTERNAL_REVIEW', 'CLIENT_REVIEW'].includes(c.approvalStatus))
   const approved = contentItems.filter(c => ['APPROVED', 'SCHEDULED'].includes(c.approvalStatus))
@@ -45,23 +72,8 @@ export function ContentCalendarContent() {
               <p className="text-sm font-medium line-clamp-2 mb-2">{item.caption || 'No caption'}</p>
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>{item.plannedPublishDate ? formatDate(item.plannedPublishDate) : 'No date'}</span>
-                <span>{item.client}</span>
+                <span>{item.socialAccount?.accountName ?? item.campaign?.name ?? '-'}</span>
               </div>
-              {item.designer && (
-                <div className="flex items-center gap-2 mt-3 pt-3 border-t">
-                  <Avatar className="h-5 w-5">
-                    <AvatarFallback className="text-[8px] bg-blue-100 text-blue-700">{getInitials(item.designer.name)}</AvatarFallback>
-                  </Avatar>
-                  <span className="text-xs text-muted-foreground">{item.designer.name}</span>
-                </div>
-              )}
-              {item.likes != null && (
-                <div className="flex gap-4 mt-3 pt-3 border-t text-xs text-muted-foreground">
-                  <span>{item.likes?.toLocaleString()} likes</span>
-                  <span>{item.comments ?? 0} comments</span>
-                  <span>{item.reach?.toLocaleString()} reach</span>
-                </div>
-              )}
             </CardContent>
           </Card>
         ))}

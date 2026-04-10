@@ -2,31 +2,92 @@
 
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { proposals } from '@/lib/demo-data'
+import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { formatDate } from '@/lib/utils'
 import { ArrowLeft, Edit, Building2, UserCircle, CalendarDays, DollarSign } from 'lucide-react'
 
 interface ProposalDetailProps { proposalId: string }
 
+type ProposalDetail = {
+  id: string
+  proposalNumber: string
+  title: string
+  client?: { id: string; displayName: string }
+  totalAmount: number
+  status: string
+  createdAt: string
+  expiryDate?: string
+  subtotal?: number
+  currency?: string
+  version?: number
+  opportunity?: { id: string; title: string }
+  contact?: { id: string; firstName: string; lastName: string }
+  items?: { description: string; quantity: number; unitPrice: number; total: number }[]
+  notes?: string
+  terms?: string
+}
+
 export function ProposalDetail({ proposalId }: ProposalDetailProps) {
   const router = useRouter()
-  const prp = proposals.find(p => p.id === proposalId)
 
-  if (!prp) {
-    return (<div className="flex flex-col items-center justify-center py-16"><p className="text-lg font-medium">Proposal not found</p><Button variant="outline" className="mt-4" onClick={() => router.push('/proposals')}><ArrowLeft className="h-4 w-4 me-2" /> Back</Button></div>)
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['proposals', proposalId],
+    queryFn: () => fetch('/api/proposals/' + proposalId).then(r => r.json()),
+  })
+
+  const prp: ProposalDetail | undefined = data?.data
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => router.push('/proposals')}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="space-y-2">
+            <Skeleton className="h-7 w-64" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+        </div>
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    )
   }
+
+  if (isError || !prp) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16">
+        <p className="text-lg font-medium">Proposal not found</p>
+        <Button variant="outline" className="mt-4" onClick={() => router.push('/proposals')}>
+          <ArrowLeft className="h-4 w-4 me-2" /> Back
+        </Button>
+      </div>
+    )
+  }
+
+  const currency = prp.currency ?? 'AED'
+  const contactName = prp.contact ? `${prp.contact.firstName} ${prp.contact.lastName}` : null
 
   return (
     <div className="space-y-6 animate-slide-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.push('/proposals')}><ArrowLeft className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="icon" onClick={() => router.push('/proposals')}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
           <div>
-            <div className="flex items-center gap-3"><h1 className="text-2xl font-bold">{prp.title}</h1><StatusBadge status={prp.status} /></div>
-            <p className="text-sm text-muted-foreground mt-1">{prp.proposalNumber} · {prp.company?.name} · v{prp.version}</p>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold">{prp.title}</h1>
+              <StatusBadge status={prp.status} />
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">
+              {prp.proposalNumber} · {prp.client?.displayName}{prp.version != null ? ` · v${prp.version}` : ''}
+            </p>
           </div>
         </div>
         <Button variant="outline" size="sm"><Edit className="h-4 w-4 me-2" /> Edit</Button>
@@ -37,29 +98,99 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
           <Card>
             <CardContent className="p-6">
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
-                <div><p className="text-xs text-muted-foreground">Subtotal</p><p className="text-xl font-bold mt-1">AED {prp.subtotal.toLocaleString()}</p></div>
-                <div><p className="text-xs text-muted-foreground">Total</p><p className="text-xl font-bold mt-1 text-blue-600">AED {prp.totalAmount.toLocaleString()}</p></div>
-                <div><p className="text-xs text-muted-foreground">Currency</p><p className="text-xl font-bold mt-1">{prp.currency}</p></div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Subtotal</p>
+                  <p className="text-xl font-bold mt-1">{currency} {(prp.subtotal ?? 0).toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Total</p>
+                  <p className="text-xl font-bold mt-1 text-blue-600">{currency} {prp.totalAmount.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Currency</p>
+                  <p className="text-xl font-bold mt-1">{currency}</p>
+                </div>
               </div>
             </CardContent>
           </Card>
+
           <Card>
             <CardHeader className="pb-3"><CardTitle className="text-base">Details</CardTitle></CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-start gap-2"><div className="text-muted-foreground mt-0.5"><Building2 className="h-4 w-4" /></div><div><p className="text-xs text-muted-foreground">Company</p>{prp.company ? <Link href={`/companies/${prp.company.id}`} className="text-sm font-medium text-blue-600 hover:underline">{prp.company.name}</Link> : <p className="text-sm font-medium">-</p>}</div></div>
-                <div className="flex items-start gap-2"><div className="text-muted-foreground mt-0.5"><UserCircle className="h-4 w-4" /></div><div><p className="text-xs text-muted-foreground">Contact</p><p className="text-sm font-medium">{prp.contact?.name || '-'}</p></div></div>
-                <div className="flex items-start gap-2"><div className="text-muted-foreground mt-0.5"><CalendarDays className="h-4 w-4" /></div><div><p className="text-xs text-muted-foreground">Issue Date</p><p className="text-sm font-medium">{formatDate(prp.issueDate)}</p></div></div>
-                <div className="flex items-start gap-2"><div className="text-muted-foreground mt-0.5"><CalendarDays className="h-4 w-4" /></div><div><p className="text-xs text-muted-foreground">Valid Until</p><p className="text-sm font-medium">{prp.validUntil ? formatDate(prp.validUntil) : '-'}</p></div></div>
+                <div className="flex items-start gap-2">
+                  <div className="text-muted-foreground mt-0.5"><Building2 className="h-4 w-4" /></div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Client</p>
+                    {prp.client ? (
+                      <Link href={`/companies/${prp.client.id}`} className="text-sm font-medium text-blue-600 hover:underline">{prp.client.displayName}</Link>
+                    ) : (
+                      <p className="text-sm font-medium">-</p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="text-muted-foreground mt-0.5"><UserCircle className="h-4 w-4" /></div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Contact</p>
+                    <p className="text-sm font-medium">{contactName || '-'}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="text-muted-foreground mt-0.5"><CalendarDays className="h-4 w-4" /></div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Created</p>
+                    <p className="text-sm font-medium">{formatDate(prp.createdAt)}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="text-muted-foreground mt-0.5"><CalendarDays className="h-4 w-4" /></div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Expiry Date</p>
+                    <p className="text-sm font-medium">{prp.expiryDate ? formatDate(prp.expiryDate) : '-'}</p>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
+
+          {prp.items && prp.items.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3"><CardTitle className="text-base">Line Items</CardTitle></CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {prp.items.map((item, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 rounded-lg border">
+                      <div>
+                        <p className="text-sm font-medium">{item.description}</p>
+                        <p className="text-xs text-muted-foreground">Qty: {item.quantity} × {currency} {item.unitPrice.toLocaleString()}</p>
+                      </div>
+                      <p className="text-sm font-semibold">{currency} {item.total.toLocaleString()}</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {(prp.notes || prp.terms) && (
+            <Card>
+              <CardHeader className="pb-3"><CardTitle className="text-base">Notes & Terms</CardTitle></CardHeader>
+              <CardContent className="space-y-3">
+                {prp.notes && <div><p className="text-xs text-muted-foreground mb-1">Notes</p><p className="text-sm">{prp.notes}</p></div>}
+                {prp.terms && <div><p className="text-xs text-muted-foreground mb-1">Terms</p><p className="text-sm">{prp.terms}</p></div>}
+              </CardContent>
+            </Card>
+          )}
         </div>
+
         <div className="space-y-6">
           {prp.opportunity && (
             <Card>
               <CardHeader className="pb-3"><CardTitle className="text-base">Linked Opportunity</CardTitle></CardHeader>
-              <CardContent><Link href={`/opportunities/${prp.opportunity.id}`} className="text-sm text-blue-600 hover:underline font-medium">{prp.opportunity.title}</Link></CardContent>
+              <CardContent>
+                <Link href={`/opportunities/${prp.opportunity.id}`} className="text-sm text-blue-600 hover:underline font-medium">{prp.opportunity.title}</Link>
+              </CardContent>
             </Card>
           )}
           <Card>

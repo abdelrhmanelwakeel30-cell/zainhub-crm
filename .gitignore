@@ -31,10 +31,23 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
+.env
+.env.local
+.env.production
 .env*
+
+# sqlite database files
+prisma/dev.db
+prisma/dev.db-journal
+*.db
+*.db-journal
 
 # vercel
 .vercel
+
+# local dev artifacts
+CRM-dev/
+tmux.tar.gz
 
 # typescript
 *.tsbuildinfo

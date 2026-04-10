@@ -3,16 +3,35 @@
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { ColumnDef } from '@tanstack/react-table'
+import { useQuery } from '@tanstack/react-query'
 import { DataTable } from '@/components/shared/data-table'
 import { StatusBadge } from '@/components/shared/status-badge'
+import { Skeleton } from '@/components/ui/skeleton'
 import { formatDate } from '@/lib/utils'
-import { invoices } from '@/lib/demo-data'
 
-type Invoice = (typeof invoices)[number]
+interface Invoice {
+  id: string
+  invoiceNumber: string
+  client: { displayName: string }
+  issueDate: string
+  dueDate: string
+  totalAmount: number
+  amountPaid: number
+  balanceDue: number
+  status: string
+  currency: string
+}
 
 export function InvoicesTable() {
   const router = useRouter()
   const t = useTranslations('invoices')
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['invoices'],
+    queryFn: () => fetch('/api/invoices').then(r => r.json()),
+  })
+
+  const invoices: Invoice[] = data?.data ?? []
 
   const columns: ColumnDef<Invoice, unknown>[] = [
     {
@@ -24,17 +43,10 @@ export function InvoicesTable() {
       size: 100,
     },
     {
-      accessorKey: 'client.name',
+      accessorKey: 'client.displayName',
       header: t('client'),
       cell: ({ row }) => (
-        <p className="font-medium">{row.original.client.name}</p>
-      ),
-    },
-    {
-      accessorKey: 'project.name',
-      header: t('project'),
-      cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground">{row.original.project.name}</span>
+        <p className="font-medium">{row.original.client.displayName}</p>
       ),
     },
     {
@@ -60,7 +72,7 @@ export function InvoicesTable() {
       header: t('totalAmount'),
       cell: ({ row }) => (
         <span className="text-sm font-semibold">
-          AED {row.original.totalAmount.toLocaleString()}
+          {row.original.currency} {row.original.totalAmount.toLocaleString()}
         </span>
       ),
     },
@@ -74,11 +86,21 @@ export function InvoicesTable() {
       header: t('balanceDue'),
       cell: ({ row }) => (
         <span className={`text-sm font-semibold ${row.original.balanceDue > 0 ? 'text-red-600' : 'text-green-600'}`}>
-          AED {row.original.balanceDue.toLocaleString()}
+          {row.original.currency} {row.original.balanceDue.toLocaleString()}
         </span>
       ),
     },
   ]
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-12 w-full" />
+        ))}
+      </div>
+    )
+  }
 
   return (
     <DataTable

@@ -2,28 +2,37 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { useQuery } from '@tanstack/react-query'
 import { PageHeader } from '@/components/shared/page-header'
 import { KPICard } from '@/components/shared/kpi-card'
 import { InvoicesTable } from './invoices-table'
 import { InvoiceFormDialog } from './invoice-form-dialog'
 import { Button } from '@/components/ui/button'
 import { Plus, Download, DollarSign, CheckCircle, Clock, AlertTriangle } from 'lucide-react'
-import { invoices } from '@/lib/demo-data'
 
 export function InvoicesContent() {
   const t = useTranslations('invoices')
   const [showCreateForm, setShowCreateForm] = useState(false)
 
-  const totalInvoiced = invoices.reduce((sum, inv) => sum + inv.totalAmount, 0)
-  const paidAmount = invoices.reduce((sum, inv) => sum + inv.amountPaid, 0)
-  const outstanding = invoices.reduce((sum, inv) => sum + inv.balanceDue, 0)
+  const { data } = useQuery({
+    queryKey: ['invoices'],
+    queryFn: () => fetch('/api/invoices').then(r => r.json()),
+  })
+
+  const invoices: Array<{ totalAmount: number; amountPaid: number; balanceDue: number; status: string }> = data?.data ?? []
+
+  const totalInvoiced = invoices.reduce((sum, inv) => sum + (inv.totalAmount ?? 0), 0)
+  const paidAmount = invoices.reduce((sum, inv) => sum + (inv.amountPaid ?? 0), 0)
+  const outstanding = invoices.reduce((sum, inv) => sum + (inv.balanceDue ?? 0), 0)
   const overdueAmount = invoices
     .filter(inv => inv.status === 'OVERDUE')
-    .reduce((sum, inv) => sum + inv.balanceDue, 0)
+    .reduce((sum, inv) => sum + (inv.balanceDue ?? 0), 0)
+
+  const totalCount = data?.total ?? 0
 
   return (
     <div className="space-y-6 animate-slide-in">
-      <PageHeader title={t('title')} description={`${invoices.length} invoices`}>
+      <PageHeader title={t('title')} description={`${totalCount} invoices`}>
         <Button variant="outline" size="sm">
           <Download className="h-4 w-4 me-2" /> Export
         </Button>

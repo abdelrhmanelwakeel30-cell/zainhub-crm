@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { opportunities, quotations, proposals, contracts } from '@/lib/demo-data'
+import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -29,6 +29,28 @@ interface OpportunityDetailProps {
   opportunityId: string
 }
 
+interface Opportunity {
+  id: string
+  opportunityNumber: string
+  name: string
+  company?: { id: string; displayName: string } | null
+  contact?: { id: string; firstName: string; lastName: string } | null
+  stage?: { name: string; color?: string } | null
+  expectedValue: number
+  weightedValue: number
+  probability: number
+  expectedCloseDate?: string | null
+  owner: { firstName: string; lastName: string }
+  description?: string | null
+  createdAt: string
+  wonAt?: string | null
+  lostAt?: string | null
+  lostReason?: string | null
+  services?: { id: string; name: string }[]
+  quotations?: { id: string; quotationNumber: string; title: string; totalAmount: number; status: string; issueDate: string; version?: number }[]
+  projects?: { id: string; name: string; status: string }[]
+}
+
 const lostReasonOptions = [
   'Went with competitor',
   'Budget constraints',
@@ -49,7 +71,32 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
   const [lostReason, setLostReason] = useState('')
   const [lostNotes, setLostNotes] = useState('')
 
-  const opp = opportunities.find(o => o.id === opportunityId)
+  const { data, isLoading } = useQuery({
+    queryKey: ['opportunities', opportunityId],
+    queryFn: () => fetch(`/api/opportunities/${opportunityId}`).then(r => r.json()),
+  })
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="h-10 bg-muted rounded w-1/3" />
+        <div className="h-28 bg-muted rounded" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-4">
+            <div className="h-40 bg-muted rounded" />
+            <div className="h-48 bg-muted rounded" />
+          </div>
+          <div className="space-y-4">
+            <div className="h-24 bg-muted rounded" />
+            <div className="h-28 bg-muted rounded" />
+            <div className="h-32 bg-muted rounded" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const opp: Opportunity | undefined = data?.data
 
   if (!opp) {
     return (
@@ -62,14 +109,16 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
     )
   }
 
-  const isWon = opp.stage === 'Closed Won'
-  const isLost = opp.stage === 'Closed Lost'
+  const stageName = opp.stage?.name ?? ''
+  const isWon = stageName === 'Closed Won'
+  const isLost = stageName === 'Closed Lost'
   const isClosed = isWon || isLost
 
-  // Find related quotations and proposals
-  const relatedQuotations = quotations.filter(q => q.opportunity?.id === opp.id)
-  const relatedProposals = proposals.filter(p => p.opportunity?.id === opp.id)
-  const relatedContracts = contracts.filter(c => c.client?.id === opp.company?.id)
+  const ownerName = `${opp.owner.firstName} ${opp.owner.lastName}`
+  const contactName = opp.contact ? `${opp.contact.firstName} ${opp.contact.lastName}` : null
+
+  const relatedQuotations = opp.quotations ?? []
+  const relatedProjects = opp.projects ?? []
 
   const handleMarkWon = async () => {
     toast.success('Deal marked as Won! Contract and Project will be created.')
@@ -97,11 +146,11 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
           </Button>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold">{opp.title}</h1>
-              <StatusBadge status={opp.stage} />
+              <h1 className="text-2xl font-bold">{opp.name}</h1>
+              {stageName && <StatusBadge status={stageName} />}
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-              {opp.opportunityNumber} · {opp.company?.name} · Created {formatRelativeDate(opp.createdAt)}
+              {opp.opportunityNumber} · {opp.company?.displayName} · Created {formatRelativeDate(opp.createdAt)}
             </p>
           </div>
         </div>
@@ -135,14 +184,11 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
       </div>
 
       {/* Lost Reason Banner */}
-      {isLost && 'lostReason' in opp && (
+      {isLost && opp.lostReason && (
         <div className="flex items-center gap-3 p-3 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800">
           <AlertTriangle className="h-4 w-4 text-red-600" />
           <div>
-            <p className="text-sm font-medium text-red-700 dark:text-red-300">Lost Reason: {String((opp as unknown as Record<string, string>).lostReason)}</p>
-            {'lostCompetitor' in opp && (
-              <p className="text-xs text-red-600 dark:text-red-400">Competitor: {String((opp as unknown as Record<string, string>).lostCompetitor)}</p>
-            )}
+            <p className="text-sm font-medium text-red-700 dark:text-red-300">Lost Reason: {opp.lostReason}</p>
           </div>
         </div>
       )}
@@ -156,7 +202,7 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                 <div>
                   <p className="text-xs text-muted-foreground">{t('value')}</p>
-                  <p className="text-xl font-bold mt-1">AED {opp.value.toLocaleString()}</p>
+                  <p className="text-xl font-bold mt-1">AED {opp.expectedValue.toLocaleString()}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Weighted Value</p>
@@ -183,7 +229,7 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
           <Tabs defaultValue="details">
             <TabsList>
               <TabsTrigger value="details">{tc('details')}</TabsTrigger>
-              <TabsTrigger value="related">Related ({relatedQuotations.length + relatedProposals.length})</TabsTrigger>
+              <TabsTrigger value="related">Related ({relatedQuotations.length + relatedProjects.length})</TabsTrigger>
               <TabsTrigger value="timeline">{tc('timeline')}</TabsTrigger>
             </TabsList>
 
@@ -191,15 +237,20 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
               <Card>
                 <CardContent className="p-6">
                   <div className="grid grid-cols-2 gap-4">
-                    <InfoRow icon={<Building2 className="h-4 w-4" />} label={t('company')} value={opp.company?.name} href={`/companies/${opp.company?.id}`} />
-                    <InfoRow icon={<UserCircle className="h-4 w-4" />} label={t('contact')} value={opp.contact?.name} href={`/contacts/${opp.contact?.id}`} />
-                    <InfoRow icon={<Briefcase className="h-4 w-4" />} label={t('services')} value={opp.service} />
-                    <InfoRow icon={<DollarSign className="h-4 w-4" />} label="Currency" value={opp.currency} />
-                    <InfoRow icon={<Target className="h-4 w-4" />} label={t('stage')} value={opp.stage} />
+                    <InfoRow icon={<Building2 className="h-4 w-4" />} label={t('company')} value={opp.company?.displayName} href={opp.company ? `/companies/${opp.company.id}` : undefined} />
+                    <InfoRow icon={<UserCircle className="h-4 w-4" />} label={t('contact')} value={contactName} href={opp.contact ? `/contacts/${opp.contact.id}` : undefined} />
+                    <InfoRow icon={<Briefcase className="h-4 w-4" />} label={t('services')} value={opp.services?.map(s => s.name).join(', ') ?? '-'} />
+                    <InfoRow icon={<Target className="h-4 w-4" />} label={t('stage')} value={stageName} />
                     <InfoRow icon={<CalendarDays className="h-4 w-4" />} label="Created" value={formatDate(opp.createdAt)} />
                     {opp.wonAt && <InfoRow icon={<TrendingUp className="h-4 w-4" />} label={t('wonDate')} value={formatDate(opp.wonAt)} />}
                     {opp.lostAt && <InfoRow icon={<TrendingUp className="h-4 w-4" />} label={t('lostDate')} value={formatDate(opp.lostAt)} />}
                   </div>
+                  {opp.description && (
+                    <div className="mt-4 pt-4 border-t">
+                      <p className="text-xs text-muted-foreground mb-1">Description</p>
+                      <p className="text-sm">{opp.description}</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -221,7 +272,7 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
                           <div>
                             <p className="text-sm font-medium">{q.quotationNumber} - {q.title}</p>
                             <p className="text-xs text-muted-foreground">
-                              v{q.version} · AED {q.totalAmount.toLocaleString()} · {formatDate(q.issueDate)}
+                              {q.version !== undefined ? `v${q.version} · ` : ''}AED {q.totalAmount.toLocaleString()} · {formatDate(q.issueDate)}
                             </p>
                           </div>
                           <StatusBadge status={q.status} />
@@ -234,31 +285,28 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
                 </CardContent>
               </Card>
 
-              {/* Related Proposals */}
+              {/* Related Projects */}
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <FileText className="h-4 w-4" />
-                    Proposals ({relatedProposals.length})
+                    Projects ({relatedProjects.length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {relatedProposals.length > 0 ? (
+                  {relatedProjects.length > 0 ? (
                     <div className="space-y-3">
-                      {relatedProposals.map(p => (
+                      {relatedProjects.map(p => (
                         <div key={p.id} className="flex items-center justify-between p-3 rounded-lg border">
                           <div>
-                            <p className="text-sm font-medium">{p.proposalNumber} - {p.title}</p>
-                            <p className="text-xs text-muted-foreground">
-                              AED {p.totalAmount.toLocaleString()} · {formatDate(p.issueDate)}
-                            </p>
+                            <p className="text-sm font-medium">{p.name}</p>
                           </div>
                           <StatusBadge status={p.status} />
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground">No proposals linked to this opportunity.</p>
+                    <p className="text-sm text-muted-foreground">No projects linked to this opportunity.</p>
                   )}
                 </CardContent>
               </Card>
@@ -269,9 +317,9 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     {[
-                      { action: 'Opportunity created', detail: `${opp.service} · AED ${opp.value.toLocaleString()}`, time: opp.createdAt },
-                      ...(opp.wonAt ? [{ action: 'Deal won!', detail: `Closed at AED ${opp.value.toLocaleString()}`, time: opp.wonAt }] : []),
-                      ...(opp.lostAt ? [{ action: 'Deal lost', detail: 'lostReason' in opp ? `Reason: ${String((opp as unknown as Record<string, string>).lostReason)}` : 'Opportunity closed', time: opp.lostAt }] : []),
+                      { action: 'Opportunity created', detail: `AED ${opp.expectedValue.toLocaleString()}`, time: opp.createdAt },
+                      ...(opp.wonAt ? [{ action: 'Deal won!', detail: `Closed at AED ${opp.expectedValue.toLocaleString()}`, time: opp.wonAt }] : []),
+                      ...(opp.lostAt ? [{ action: 'Deal lost', detail: opp.lostReason ? `Reason: ${opp.lostReason}` : 'Opportunity closed', time: opp.lostAt }] : []),
                     ].reverse().map((event, i, arr) => (
                       <div key={i} className="flex gap-3">
                         <div className="flex flex-col items-center">
@@ -303,11 +351,11 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
                   <AvatarFallback className="bg-blue-100 text-blue-700">
-                    {getInitials(opp.owner.name)}
+                    {getInitials(ownerName)}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-medium text-sm">{opp.owner.name}</p>
+                  <p className="font-medium text-sm">{ownerName}</p>
                   <p className="text-xs text-muted-foreground">Deal Owner</p>
                 </div>
               </div>
@@ -321,7 +369,7 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <StatusBadge status={opp.stage} />
+                {stageName && <StatusBadge status={stageName} />}
                 <div className="flex items-center gap-2 mt-2">
                   <Progress value={opp.probability} className="h-2" />
                   <span className="text-sm font-medium">{opp.probability}%</span>
@@ -338,7 +386,7 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
             <CardContent className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">Expected</span>
-                <span className="text-sm font-semibold">AED {opp.value.toLocaleString()}</span>
+                <span className="text-sm font-semibold">AED {opp.expectedValue.toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">Weighted</span>
@@ -350,23 +398,6 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
               </div>
             </CardContent>
           </Card>
-
-          {/* Related Contracts */}
-          {relatedContracts.length > 0 && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Contracts</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {relatedContracts.map(c => (
-                  <div key={c.id} className="flex items-center justify-between">
-                    <span className="text-sm">{c.contractNumber}</span>
-                    <StatusBadge status={c.status} />
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
 
@@ -381,14 +412,14 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <p className="text-sm text-muted-foreground">
-              Closing <strong>{opp.title}</strong> for <strong>AED {opp.value.toLocaleString()}</strong>.
+              Closing <strong>{opp.name}</strong> for <strong>AED {opp.expectedValue.toLocaleString()}</strong>.
             </p>
             <p className="text-sm text-muted-foreground">
               This will:
             </p>
             <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
               <li>Mark this opportunity as Closed Won</li>
-              <li>Create a contract for {opp.company?.name}</li>
+              <li>Create a contract for {opp.company?.displayName}</li>
               <li>Initiate project kickoff</li>
               <li>Generate the first invoice</li>
             </ul>
@@ -413,7 +444,7 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <p className="text-sm text-muted-foreground">
-              Losing <strong>{opp.title}</strong> ({opp.company?.name}).
+              Losing <strong>{opp.name}</strong> ({opp.company?.displayName}).
             </p>
             <div className="space-y-2">
               <Label>Lost Reason *</Label>

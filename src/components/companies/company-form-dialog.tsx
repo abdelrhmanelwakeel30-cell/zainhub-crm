@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog'
@@ -12,9 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { users } from '@/lib/demo-data'
 import { Loader2 } from 'lucide-react'
-import { useState } from 'react'
 import { toast } from 'sonner'
 
 const companySchema = z.object({
@@ -42,20 +41,41 @@ interface CompanyFormDialogProps {
 export function CompanyFormDialog({ open, onOpenChange, defaultValues }: CompanyFormDialogProps) {
   const t = useTranslations('companies')
   const tc = useTranslations('common')
-  const [saving, setSaving] = useState(false)
+  const queryClient = useQueryClient()
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<CompanyFormData>({
     resolver: zodResolver(companySchema),
     defaultValues: { lifecycleStage: 'LEAD', ...defaultValues },
   })
 
-  const onSubmit = async (data: CompanyFormData) => {
-    setSaving(true)
-    await new Promise(r => setTimeout(r, 800))
-    setSaving(false)
-    toast.success('Company created successfully')
-    reset()
-    onOpenChange(false)
+  const mutation = useMutation({
+    mutationFn: (data: CompanyFormData) =>
+      fetch('/api/companies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          displayName: data.displayName,
+          industry: data.industry,
+          country: data.country,
+          city: data.city,
+          phone: data.phone,
+          website: data.website,
+          notes: data.address,
+        }),
+      }).then(r => r.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['companies'] })
+      toast.success('Company created successfully')
+      reset()
+      onOpenChange(false)
+    },
+    onError: () => {
+      toast.error('Failed to create company')
+    },
+  })
+
+  const onSubmit = (data: CompanyFormData) => {
+    mutation.mutate(data)
   }
 
   return (
@@ -111,12 +131,7 @@ export function CompanyFormDialog({ open, onOpenChange, defaultValues }: Company
             </div>
             <div>
               <Label>{t('accountOwner')}</Label>
-              <select {...register('accountOwnerId')} className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                <option value="">Select...</option>
-                {users.map(u => (
-                  <option key={u.id} value={u.id}>{u.firstName} {u.lastName}</option>
-                ))}
-              </select>
+              <Input {...register('accountOwnerId')} className="mt-1" placeholder="Owner ID" />
             </div>
             <div className="col-span-2">
               <Label>Address</Label>
@@ -127,8 +142,8 @@ export function CompanyFormDialog({ open, onOpenChange, defaultValues }: Company
             <DialogClose render={<Button type="button" variant="outline" />}>
               {tc('cancel')}
             </DialogClose>
-            <Button type="submit" disabled={saving}>
-              {saving && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
+            <Button type="submit" disabled={mutation.isPending}>
+              {mutation.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
               {tc('save')}
             </Button>
           </DialogFooter>

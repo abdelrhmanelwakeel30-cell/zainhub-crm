@@ -2,19 +2,38 @@
 
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { useQuery } from '@tanstack/react-query'
 import { ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '@/components/shared/data-table'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { ScoreIndicator } from '@/components/shared/score-indicator'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { getInitials, formatRelativeDate } from '@/lib/utils'
-import { leads } from '@/lib/demo-data'
 
-type Lead = (typeof leads)[number]
+type Lead = {
+  id: string
+  leadNumber: string
+  fullName: string
+  companyName?: string
+  stage?: { name: string }
+  source?: { name: string }
+  urgency: string
+  score: number
+  assignedTo?: { firstName: string; lastName: string }
+  interestedService?: { name: string }
+  createdAt: string
+}
 
 export function LeadsTable() {
   const router = useRouter()
   const t = useTranslations('leads')
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['leads'],
+    queryFn: () => fetch('/api/leads').then(r => r.json()),
+  })
+
+  const leads: Lead[] = data?.data ?? []
 
   const columns: ColumnDef<Lead, unknown>[] = [
     {
@@ -40,13 +59,13 @@ export function LeadsTable() {
     {
       accessorKey: 'stage',
       header: t('stage'),
-      cell: ({ row }) => <StatusBadge status={row.original.stage} />,
+      cell: ({ row }) => <StatusBadge status={row.original.stage?.name ?? ''} />,
     },
     {
       accessorKey: 'source',
       header: t('source'),
       cell: ({ row }) => (
-        <span className="text-sm">{row.original.source}</span>
+        <span className="text-sm">{row.original.source?.name}</span>
       ),
     },
     {
@@ -65,12 +84,13 @@ export function LeadsTable() {
       cell: ({ row }) => {
         const user = row.original.assignedTo
         if (!user) return <span className="text-xs text-muted-foreground italic">Unassigned</span>
+        const fullName = `${user.firstName} ${user.lastName}`
         return (
           <div className="flex items-center gap-2">
             <Avatar className="h-6 w-6">
-              <AvatarFallback className="text-[10px] bg-blue-100 text-blue-700">{getInitials(user.name)}</AvatarFallback>
+              <AvatarFallback className="text-[10px] bg-blue-100 text-blue-700">{getInitials(fullName)}</AvatarFallback>
             </Avatar>
-            <span className="text-sm">{user.name}</span>
+            <span className="text-sm">{fullName}</span>
           </div>
         )
       },
@@ -79,7 +99,7 @@ export function LeadsTable() {
       accessorKey: 'interestedService',
       header: t('interestedService'),
       cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground">{row.original.interestedService}</span>
+        <span className="text-sm text-muted-foreground">{row.original.interestedService?.name}</span>
       ),
     },
     {
@@ -95,6 +115,7 @@ export function LeadsTable() {
     <DataTable
       columns={columns}
       data={leads}
+      isLoading={isLoading}
       searchPlaceholder={`${t('title')}...`}
       onRowClick={(lead) => router.push(`/leads/${lead.id}`)}
     />

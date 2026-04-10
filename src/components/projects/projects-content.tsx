@@ -2,13 +2,13 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { useQuery } from '@tanstack/react-query'
 import { PageHeader } from '@/components/shared/page-header'
 import { ProjectsTable } from './projects-table'
 import { ProjectFormDialog } from './project-form-dialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Plus, Download, FolderKanban, Play, CheckCircle2, DollarSign } from 'lucide-react'
-import { projects } from '@/lib/demo-data'
 import { formatCurrency } from '@/lib/utils'
 
 export function ProjectsContent() {
@@ -16,10 +16,17 @@ export function ProjectsContent() {
   const tc = useTranslations('common')
   const [showCreateForm, setShowCreateForm] = useState(false)
 
-  const totalProjects = projects.length
+  const { data } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => fetch('/api/projects').then(r => r.json()),
+  })
+
+  const projects: Array<{ status: string; budget: number }> = data?.data ?? []
+
+  const totalProjects = data?.total ?? 0
   const inProgress = projects.filter(p => p.status === 'IN_PROGRESS').length
   const completed = projects.filter(p => p.status === 'COMPLETED').length
-  const totalBudget = projects.reduce((sum, p) => sum + p.budget, 0)
+  const totalBudget = projects.reduce((sum, p) => sum + (p.budget ?? 0), 0)
 
   const kpis = [
     { label: t('totalProjects'), value: totalProjects, icon: FolderKanban, color: 'text-blue-600' },

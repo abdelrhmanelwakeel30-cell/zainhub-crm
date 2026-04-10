@@ -1,19 +1,51 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import { useQuery } from '@tanstack/react-query'
 import { PageHeader } from '@/components/shared/page-header'
 import { KPICard } from '@/components/shared/kpi-card'
 import { CampaignsTable } from './campaigns-table'
 import { Button } from '@/components/ui/button'
 import { Plus, Download, Megaphone, Zap, DollarSign, Users } from 'lucide-react'
-import { campaigns } from '@/lib/demo-data'
+
+interface Campaign {
+  id: string
+  name: string
+  type: string
+  platform: string | null
+  status: string
+  startDate: string | null
+  endDate: string | null
+  budget: number
+  actualSpend: number
+  leads: number
+  impressions: number
+  clicks: number
+  conversions: number
+}
+
+interface CampaignsApiResponse {
+  success: boolean
+  data: Campaign[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
 
 export function CampaignsContent() {
   const t = useTranslations('campaigns')
 
+  const { data: response } = useQuery<CampaignsApiResponse>({
+    queryKey: ['campaigns'],
+    queryFn: () => fetch('/api/campaigns').then(r => r.json()),
+  })
+
+  const campaigns = response?.data ?? []
+
   const activeCampaigns = campaigns.filter(c => c.status === 'ACTIVE')
-  const totalBudget = campaigns.reduce((sum, c) => sum + c.budget, 0)
-  const totalLeads = campaigns.reduce((sum, c) => sum + c.leadsGenerated, 0)
+  const totalBudget = campaigns.reduce((sum, c) => sum + (c.budget ?? 0), 0)
+  const totalLeads = campaigns.reduce((sum, c) => sum + (c.leads ?? 0), 0)
 
   return (
     <div className="space-y-6 animate-slide-in">

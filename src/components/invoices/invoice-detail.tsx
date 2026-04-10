@@ -3,15 +3,16 @@
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { invoices, payments } from '@/lib/demo-data'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatDate, formatRelativeDate } from '@/lib/utils'
 import {
-  ArrowLeft, Edit, Building2, Briefcase, DollarSign,
+  ArrowLeft, Edit, Building2, DollarSign,
   CalendarDays, CreditCard, FileText
 } from 'lucide-react'
 
@@ -19,12 +20,76 @@ interface InvoiceDetailProps {
   invoiceId: string
 }
 
+interface InvoiceItem {
+  id: string
+  service: { name: string }
+  description: string
+  quantity: number
+  unitPrice: number
+  taxRate: number
+  discountPercent: number
+  lineTotal: number
+}
+
+interface Payment {
+  id: string
+  paymentNumber: string
+  amount: number
+  method: string
+  paymentDate: string
+}
+
+interface Invoice {
+  id: string
+  invoiceNumber: string
+  client: { displayName: string; taxRegistrationNumber?: string }
+  issueDate: string
+  dueDate: string
+  totalAmount: number
+  amountPaid: number
+  balanceDue: number
+  status: string
+  currency: string
+  taxRate?: { name: string; rate: number }
+  items: InvoiceItem[]
+  payments: Payment[]
+}
+
 export function InvoiceDetail({ invoiceId }: InvoiceDetailProps) {
   const t = useTranslations('invoices')
   const tc = useTranslations('common')
   const router = useRouter()
+  const queryClient = useQueryClient()
 
-  const invoice = invoices.find(inv => inv.id === invoiceId)
+  const { data, isLoading } = useQuery({
+    queryKey: ['invoices', invoiceId],
+    queryFn: () => fetch('/api/invoices/' + invoiceId).then(r => r.json()),
+  })
+
+  const invoice: Invoice | undefined = data?.data
+
+  const recordPaymentMutation = useMutation({
+    mutationFn: (body: { amount: number; method: string; paymentDate: string; reference?: string; notes?: string }) =>
+      fetch(`/api/invoices/${invoiceId}/payments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      }).then(r => r.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invoices', invoiceId] })
+      queryClient.invalidateQueries({ queryKey: ['invoices'] })
+    },
+  })
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    )
+  }
 
   if (!invoice) {
     return (
@@ -37,7 +102,7 @@ export function InvoiceDetail({ invoiceId }: InvoiceDetailProps) {
     )
   }
 
-  const invoicePayments = payments.filter(p => p.invoice.id === invoice.id)
+  const invoicePayments = invoice.payments ?? []
 
   return (
     <div className="space-y-6 animate-slide-in">
@@ -53,7 +118,7 @@ export function InvoiceDetail({ invoiceId }: InvoiceDetailProps) {
               <StatusBadge status={invoice.status} />
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-              {invoice.client.name} · {invoice.project.name} · Created {formatRelativeDate(invoice.createdAt)}
+              {invoice.client.displayName} · Created {formatRelativeDate(invoice.issueDate)}
             </p>
           </div>
         </div>
@@ -73,16 +138,16 @@ export function InvoiceDetail({ invoiceId }: InvoiceDetailProps) {
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                 <div>
                   <p className="text-xs text-muted-foreground">{t('totalAmount')}</p>
-                  <p className="text-xl font-bold mt-1">AED {invoice.totalAmount.toLocaleString()}</p>
+                  <p className="text-xl font-bold mt-1">{invoice.currency} {invoice.totalAmount.toLocaleString()}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">{t('paidAmount')}</p>
-                  <p className="text-xl font-bold mt-1 text-green-600">AED {invoice.amountPaid.toLocaleString()}</p>
+                  <p className="text-xl font-bold mt-1 text-green-600">{invoice.currency} {invoice.amountPaid.toLocaleString()}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">{t('balanceDue')}</p>
                   <p className={`text-xl font-bold mt-1 ${invoice.balanceDue > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                    AED {invoice.balanceDue.toLocaleString()}
+                    {invoice.currency} {invoice.balanceDue.toLocaleString()}
                   </p>
                 </div>
                 <div>
@@ -114,25 +179,20 @@ export function InvoiceDetail({ invoiceId }: InvoiceDetailProps) {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {invoice.items.map((item, i) => (
-                        <TableRow key={i}>
-                          <TableCell className="text-sm">{item.description}</TableCell>
+                      {(invoice.items ?? []).map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="text-sm">
+                            <p className="font-medium">{item.service?.name}</p>
+                            {item.description && <p className="text-xs text-muted-foreground">{item.description}</p>}
+                          </TableCell>
                           <TableCell className="text-sm text-end">{item.quantity}</TableCell>
-                          <TableCell className="text-sm text-end">AED {item.unitPrice.toLocaleString()}</TableCell>
-                          <TableCell className="text-sm font-medium text-end">AED {item.totalPrice.toLocaleString()}</TableCell>
+                          <TableCell className="text-sm text-end">{invoice.currency} {item.unitPrice.toLocaleString()}</TableCell>
+                          <TableCell className="text-sm font-medium text-end">{invoice.currency} {item.lineTotal.toLocaleString()}</TableCell>
                         </TableRow>
                       ))}
                       <TableRow className="border-t-2">
-                        <TableCell colSpan={3} className="text-sm font-medium text-end">Subtotal</TableCell>
-                        <TableCell className="text-sm font-medium text-end">AED {invoice.subtotal.toLocaleString()}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell colSpan={3} className="text-sm text-muted-foreground text-end">Tax (5%)</TableCell>
-                        <TableCell className="text-sm text-muted-foreground text-end">AED {invoice.taxAmount.toLocaleString()}</TableCell>
-                      </TableRow>
-                      <TableRow>
                         <TableCell colSpan={3} className="text-sm font-bold text-end">Total</TableCell>
-                        <TableCell className="text-sm font-bold text-end">AED {invoice.totalAmount.toLocaleString()}</TableCell>
+                        <TableCell className="text-sm font-bold text-end">{invoice.currency} {invoice.totalAmount.toLocaleString()}</TableCell>
                       </TableRow>
                     </TableBody>
                   </Table>
@@ -143,6 +203,24 @@ export function InvoiceDetail({ invoiceId }: InvoiceDetailProps) {
             <TabsContent value="payments" className="mt-4">
               <Card>
                 <CardContent className="p-6">
+                  {invoice.balanceDue > 0 && (
+                    <div className="mb-4">
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          // Record payment with balance due as default amount
+                          recordPaymentMutation.mutate({
+                            amount: invoice.balanceDue,
+                            method: 'BANK_TRANSFER',
+                            paymentDate: new Date().toISOString().split('T')[0],
+                          })
+                        }}
+                        disabled={recordPaymentMutation.isPending}
+                      >
+                        <CreditCard className="h-4 w-4 me-2" /> Record Payment
+                      </Button>
+                    </div>
+                  )}
                   {invoicePayments.length === 0 ? (
                     <div className="flex flex-col items-center gap-2 py-8 text-muted-foreground">
                       <CreditCard className="h-8 w-8" />
@@ -159,12 +237,12 @@ export function InvoiceDetail({ invoiceId }: InvoiceDetailProps) {
                             <div>
                               <p className="text-sm font-medium">{payment.paymentNumber}</p>
                               <p className="text-xs text-muted-foreground">
-                                {payment.paymentMethod.replace('_', ' ')} · {payment.reference}
+                                {payment.method.replace(/_/g, ' ')}
                               </p>
                             </div>
                           </div>
                           <div className="text-end">
-                            <p className="text-sm font-semibold text-green-600">AED {payment.amount.toLocaleString()}</p>
+                            <p className="text-sm font-semibold text-green-600">{invoice.currency} {payment.amount.toLocaleString()}</p>
                             <p className="text-xs text-muted-foreground">{formatDate(payment.paymentDate)}</p>
                           </div>
                         </div>
@@ -180,17 +258,17 @@ export function InvoiceDetail({ invoiceId }: InvoiceDetailProps) {
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     {[
-                      { action: 'Invoice created', detail: `${invoice.invoiceNumber} · AED ${invoice.totalAmount.toLocaleString()}`, time: invoice.createdAt },
+                      { action: 'Invoice created', detail: `${invoice.invoiceNumber} · ${invoice.currency} ${invoice.totalAmount.toLocaleString()}`, time: invoice.issueDate },
                       ...(invoice.status === 'SENT' || invoice.status === 'PAID' || invoice.status === 'OVERDUE'
-                        ? [{ action: 'Invoice sent to client', detail: `Sent to ${invoice.client.name}`, time: invoice.issueDate }]
+                        ? [{ action: 'Invoice sent to client', detail: `Sent to ${invoice.client.displayName}`, time: invoice.issueDate }]
                         : []),
                       ...invoicePayments.map(p => ({
                         action: 'Payment received',
-                        detail: `AED ${p.amount.toLocaleString()} via ${p.paymentMethod.replace('_', ' ')}`,
+                        detail: `${invoice.currency} ${p.amount.toLocaleString()} via ${p.method.replace(/_/g, ' ')}`,
                         time: p.paymentDate,
                       })),
                       ...(invoice.status === 'PAID'
-                        ? [{ action: 'Invoice fully paid', detail: `Balance cleared`, time: invoicePayments[invoicePayments.length - 1]?.paymentDate || invoice.createdAt }]
+                        ? [{ action: 'Invoice fully paid', detail: `Balance cleared`, time: invoicePayments[invoicePayments.length - 1]?.paymentDate || invoice.issueDate }]
                         : []),
                     ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).map((event, i, arr) => (
                       <div key={i} className="flex gap-3">
@@ -225,30 +303,10 @@ export function InvoiceDetail({ invoiceId }: InvoiceDetailProps) {
                   <Building2 className="h-5 w-5" />
                 </div>
                 <div>
-                  <Link href={`/companies/${invoice.client.id}`} className="font-medium text-sm text-blue-600 hover:underline">
-                    {invoice.client.name}
-                  </Link>
-                  <p className="text-xs text-muted-foreground">Client</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Project Link */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">{t('project')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950 dark:text-purple-400">
-                  <Briefcase className="h-5 w-5" />
-                </div>
-                <div>
-                  <Link href={`/projects/${invoice.project.id}`} className="font-medium text-sm text-blue-600 hover:underline">
-                    {invoice.project.name}
-                  </Link>
-                  <p className="text-xs text-muted-foreground">Linked Project</p>
+                  <p className="font-medium text-sm">{invoice.client.displayName}</p>
+                  {invoice.client.taxRegistrationNumber && (
+                    <p className="text-xs text-muted-foreground">TRN: {invoice.client.taxRegistrationNumber}</p>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -276,10 +334,12 @@ export function InvoiceDetail({ invoiceId }: InvoiceDetailProps) {
                 <span className="text-sm text-muted-foreground">Currency</span>
                 <span className="text-sm font-medium">{invoice.currency}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Created By</span>
-                <span className="text-sm font-medium">{invoice.createdBy.name}</span>
-              </div>
+              {invoice.taxRate && (
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Tax Rate</span>
+                  <span className="text-sm font-medium">{invoice.taxRate.name} ({invoice.taxRate.rate}%)</span>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

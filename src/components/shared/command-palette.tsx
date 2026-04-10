@@ -3,12 +3,12 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { useQuery } from '@tanstack/react-query'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
-import { leads, companies, contacts, opportunities, projects, invoices, tickets } from '@/lib/demo-data'
 import {
   Search, Users, Building2, UserCircle, Briefcase,
-  LayoutDashboard, Settings, FileText, ArrowRight,
-  FolderOpen, Receipt, HeadphonesIcon
+  LayoutDashboard, FileText, ArrowRight,
+  FolderOpen, Receipt, HeadphonesIcon, Loader2
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -79,67 +79,65 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const router = useRouter()
   const t = useTranslations('common')
   const [query, setQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
   const [activeIndex, setActiveIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
 
-  const results = useMemo(() => {
-    const q = query.toLowerCase().trim()
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(query.trim()), 300)
+    return () => clearTimeout(timer)
+  }, [query])
+
+  const enabled = open && debouncedQuery.length >= 2
+
+  const { data: leadsData, isFetching: leadsFetching } = useQuery({
+    queryKey: ['cmd-search', 'leads', debouncedQuery],
+    queryFn: () => fetch(`/api/leads?search=${encodeURIComponent(debouncedQuery)}&pageSize=5`).then(r => r.json()),
+    enabled,
+    staleTime: 30_000,
+  })
+  const { data: companiesData, isFetching: companiesFetching } = useQuery({
+    queryKey: ['cmd-search', 'companies', debouncedQuery],
+    queryFn: () => fetch(`/api/companies?search=${encodeURIComponent(debouncedQuery)}&pageSize=5`).then(r => r.json()),
+    enabled,
+    staleTime: 30_000,
+  })
+  const { data: contactsData, isFetching: contactsFetching } = useQuery({
+    queryKey: ['cmd-search', 'contacts', debouncedQuery],
+    queryFn: () => fetch(`/api/contacts?search=${encodeURIComponent(debouncedQuery)}&pageSize=5`).then(r => r.json()),
+    enabled,
+    staleTime: 30_000,
+  })
+
+  const isFetching = leadsFetching || companiesFetching || contactsFetching
+
+  const results = useMemo((): SearchResult[] => {
+    const q = debouncedQuery.toLowerCase()
     if (!q) return pages
 
     const matched: SearchResult[] = []
 
-    // Search leads
-    leads.forEach(l => {
-      if (l.fullName.toLowerCase().includes(q) || (l.companyName ?? '').toLowerCase().includes(q) || l.leadNumber.toLowerCase().includes(q)) {
-        matched.push({ id: l.id, type: 'lead', title: l.fullName, subtitle: `${l.leadNumber} · ${l.companyName || ''} · ${l.stage}`, href: `/leads/${l.id}` })
-      }
+    // Leads from API
+    const leadsArr: Array<{ id: string; leadNumber: string; fullName: string; companyName?: string; stage?: { name: string } }> = leadsData?.data ?? []
+    leadsArr.forEach(l => {
+      matched.push({ id: l.id, type: 'lead', title: l.fullName, subtitle: `${l.leadNumber} · ${l.companyName || ''} · ${l.stage?.name ?? ''}`, href: `/leads/${l.id}` })
     })
 
-    // Search companies
-    companies.forEach(c => {
-      if (c.displayName.toLowerCase().includes(q) || c.legalName.toLowerCase().includes(q) || c.companyNumber.toLowerCase().includes(q) || c.industry.toLowerCase().includes(q)) {
-        matched.push({ id: c.id, type: 'company', title: c.displayName, subtitle: `${c.companyNumber} · ${c.industry}`, href: `/companies/${c.id}` })
-      }
+    // Companies from API
+    const companiesArr: Array<{ id: string; companyNumber: string; displayName: string; industry?: string }> = companiesData?.data ?? []
+    companiesArr.forEach(c => {
+      matched.push({ id: c.id, type: 'company', title: c.displayName, subtitle: `${c.companyNumber} · ${c.industry ?? ''}`, href: `/companies/${c.id}` })
     })
 
-    // Search contacts
-    contacts.forEach(c => {
-      const fullName = `${c.firstName} ${c.lastName}`
-      if (fullName.toLowerCase().includes(q) || c.email.toLowerCase().includes(q) || c.contactNumber.toLowerCase().includes(q)) {
-        matched.push({ id: c.id, type: 'contact', title: fullName, subtitle: `${c.contactNumber} · ${c.jobTitle} · ${c.company?.name || ''}`, href: `/contacts/${c.id}` })
-      }
+    // Contacts from API
+    const contactsArr: Array<{ id: string; contactNumber?: string; firstName: string; lastName: string; email?: string; jobTitle?: string }> = contactsData?.data ?? []
+    contactsArr.forEach(c => {
+      matched.push({ id: c.id, type: 'contact', title: `${c.firstName} ${c.lastName}`, subtitle: `${c.email ?? ''} · ${c.jobTitle ?? ''}`, href: `/contacts/${c.id}` })
     })
 
-    // Search opportunities
-    opportunities.forEach(o => {
-      if (o.title.toLowerCase().includes(q) || o.opportunityNumber.toLowerCase().includes(q) || o.company?.name?.toLowerCase().includes(q)) {
-        matched.push({ id: o.id, type: 'opportunity', title: o.title, subtitle: `${o.opportunityNumber} · AED ${o.value.toLocaleString()} · ${o.stage}`, href: `/opportunities/${o.id}` })
-      }
-    })
-
-    // Search projects
-    projects.forEach(p => {
-      if (p.name.toLowerCase().includes(q) || p.projectNumber.toLowerCase().includes(q) || p.client.name.toLowerCase().includes(q)) {
-        matched.push({ id: p.id, type: 'project', title: p.name, subtitle: `${p.projectNumber} · ${p.client.name} · ${p.status}`, href: `/projects/${p.id}` })
-      }
-    })
-
-    // Search invoices
-    invoices.forEach(inv => {
-      if (inv.invoiceNumber.toLowerCase().includes(q) || inv.client.name.toLowerCase().includes(q)) {
-        matched.push({ id: inv.id, type: 'invoice', title: `${inv.invoiceNumber} - ${inv.client.name}`, subtitle: `AED ${inv.totalAmount.toLocaleString()} · ${inv.status}`, href: `/invoices/${inv.id}` })
-      }
-    })
-
-    // Search tickets
-    tickets.forEach(t => {
-      if (t.subject.toLowerCase().includes(q) || t.ticketNumber.toLowerCase().includes(q) || (t.client?.name ?? '').toLowerCase().includes(q)) {
-        matched.push({ id: t.id, type: 'ticket', title: t.subject, subtitle: `${t.ticketNumber} · ${t.client?.name || ''} · ${t.status}`, href: `/tickets/${t.id}` })
-      }
-    })
-
-    // Search pages
+    // Pages (static filter)
     pages.forEach(p => {
       if (p.title.toLowerCase().includes(q) || p.subtitle.toLowerCase().includes(q)) {
         matched.push(p)
@@ -147,9 +145,8 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     })
 
     return matched
-  }, [query])
+  }, [debouncedQuery, leadsData, companiesData, contactsData])
 
-  // Group results by type
   const grouped = useMemo(() => {
     const groups: Record<string, SearchResult[]> = {}
     results.forEach(r => {
@@ -168,7 +165,6 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     setActiveIndex(0)
   }, [router, onOpenChange])
 
-  // Keyboard navigation
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault()
@@ -182,16 +178,15 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     }
   }, [flatResults, activeIndex, navigate])
 
-  // Reset on open
   useEffect(() => {
     if (open) {
       setQuery('')
+      setDebouncedQuery('')
       setActiveIndex(0)
       setTimeout(() => inputRef.current?.focus(), 50)
     }
   }, [open])
 
-  // Scroll active item into view
   useEffect(() => {
     const active = listRef.current?.querySelector('[data-active="true"]')
     active?.scrollIntoView({ block: 'nearest' })
@@ -203,7 +198,11 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl p-0 gap-0 overflow-hidden" showCloseButton={false}>
         <div className="flex items-center border-b px-4" onKeyDown={handleKeyDown}>
-          <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+          {isFetching ? (
+            <Loader2 className="h-4 w-4 text-muted-foreground shrink-0 animate-spin" />
+          ) : (
+            <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+          )}
           <input
             ref={inputRef}
             value={query}
@@ -215,9 +214,9 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         </div>
 
         <div ref={listRef} className="max-h-80 overflow-y-auto p-2">
-          {flatResults.length === 0 ? (
+          {flatResults.length === 0 && debouncedQuery ? (
             <div className="py-8 text-center text-sm text-muted-foreground">
-              No results found for &ldquo;{query}&rdquo;
+              No results found for &ldquo;{debouncedQuery}&rdquo;
             </div>
           ) : (
             Object.entries(grouped).map(([type, items]) => (

@@ -1,17 +1,27 @@
 'use client'
 
-import { useTranslations } from 'next-intl'
+import { useQuery } from '@tanstack/react-query'
 import { PageHeader } from '@/components/shared/page-header'
 import { KPICard } from '@/components/shared/kpi-card'
 import { ContractsTable } from './contracts-table'
 import { Button } from '@/components/ui/button'
-import { Plus, Download, FileText, CheckCircle, AlertTriangle, Clock } from 'lucide-react'
-import { contracts } from '@/lib/demo-data'
+import { Plus, Download, FileText, CheckCircle, AlertTriangle } from 'lucide-react'
 
 export function ContractsContent() {
-  const totalValue = contracts.filter(c => c.value).reduce((s, c) => s + (c.value || 0), 0)
-  const active = contracts.filter(c => c.status === 'ACTIVE')
-  const expiringSoon = contracts.filter(c => c.renewalDate && new Date(c.renewalDate) < new Date(Date.now() + 90 * 86400000))
+  const { data: contractsResponse } = useQuery({
+    queryKey: ['contracts'],
+    queryFn: () => fetch('/api/contracts').then(r => r.json()),
+  })
+  const contracts = contractsResponse?.data ?? []
+
+  const totalValue = contracts
+    .filter((c: { totalValue?: number }) => c.totalValue)
+    .reduce((s: number, c: { totalValue: number }) => s + c.totalValue, 0)
+  const active = contracts.filter((c: { status: string }) => c.status === 'ACTIVE')
+  const expiringSoon = contracts.filter(
+    (c: { endDate?: string }) =>
+      c.endDate && new Date(c.endDate) < new Date(Date.now() + 90 * 86400000)
+  )
 
   return (
     <div className="space-y-6 animate-slide-in">

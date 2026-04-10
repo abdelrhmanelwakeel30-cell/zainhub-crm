@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog'
@@ -12,20 +13,18 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { companies, services, users } from '@/lib/demo-data'
 import { Loader2 } from 'lucide-react'
-import { useState } from 'react'
 import { toast } from 'sonner'
 
 const projectSchema = z.object({
   name: z.string().min(2, 'Project name is required'),
   description: z.string().optional(),
   clientId: z.string().min(1, 'Client is required'),
-  service: z.string().optional(),
   ownerId: z.string().optional(),
   startDate: z.string().optional(),
-  targetEndDate: z.string().optional(),
+  endDate: z.string().optional(),
   budget: z.string().optional(),
+  currency: z.string().optional(),
   status: z.enum(['NOT_STARTED', 'DISCOVERY', 'PLANNING', 'IN_PROGRESS', 'ON_HOLD', 'COMPLETED', 'CANCELLED']),
 })
 
@@ -40,25 +39,64 @@ interface ProjectFormDialogProps {
 export function ProjectFormDialog({ open, onOpenChange, defaultValues }: ProjectFormDialogProps) {
   const t = useTranslations('projects')
   const tc = useTranslations('common')
-  const [saving, setSaving] = useState(false)
+  const queryClient = useQueryClient()
+
+  const { data: usersData } = useQuery({
+    queryKey: ['users', 'minimal'],
+    queryFn: () => fetch('/api/users?minimal=true').then(r => r.json()),
+    staleTime: 300_000,
+  })
+
+  const { data: companiesData } = useQuery({
+    queryKey: ['companies', 'list'],
+    queryFn: () => fetch('/api/companies?pageSize=100').then(r => r.json()),
+    staleTime: 300_000,
+  })
+
+  const users: { id: string; firstName: string; lastName: string }[] = usersData?.data ?? []
+  const companies: { id: string; displayName: string }[] = companiesData?.data ?? []
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<ProjectFormData>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
       status: 'NOT_STARTED',
+      currency: 'AED',
       ...defaultValues,
     },
   })
 
-  const onSubmit = async (data: ProjectFormData) => {
-    setSaving(true)
-    // Simulate save
-    await new Promise(r => setTimeout(r, 800))
-    setSaving(false)
-    toast.success('Project created successfully')
-    reset()
-    onOpenChange(false)
-  }
+  const mutation = useMutation({
+    mutationFn: (data: ProjectFormData) =>
+      fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: data.name,
+          clientId: data.clientId,
+          ownerId: data.ownerId || undefined,
+          status: data.status,
+          startDate: data.startDate || undefined,
+          endDate: data.endDate || undefined,
+          budget: data.budget ? Number(data.budget) : undefined,
+          currency: data.currency || 'AED',
+          description: data.description || undefined,
+        }),
+      }).then(r => {
+        if (!r.ok) throw new Error('Failed to create project')
+        return r.json()
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+      toast.success('Project created successfully')
+      reset()
+      onOpenChange(false)
+    },
+    onError: () => {
+      toast.error('Failed to create project')
+    },
+  })
+
+  const onSubmit = (data: ProjectFormData) => mutation.mutate(data)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -92,16 +130,6 @@ export function ProjectFormDialog({ open, onOpenChange, defaultValues }: Project
             </div>
 
             <div>
-              <Label>{t('service')}</Label>
-              <select {...register('service')} className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                <option value="">{tc('select')}...</option>
-                {services.map(s => (
-                  <option key={s.id} value={s.name}>{s.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
               <Label>{t('owner')}</Label>
               <select {...register('ownerId')} className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                 <option value="">{tc('select')}...</option>
@@ -125,13 +153,24 @@ export function ProjectFormDialog({ open, onOpenChange, defaultValues }: Project
             </div>
 
             <div>
+              <Label htmlFor="currency">Currency</Label>
+              <select {...register('currency')} className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                <option value="AED">AED</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
+                <option value="SAR">SAR</option>
+              </select>
+            </div>
+
+            <div>
               <Label htmlFor="startDate">{t('startDate')}</Label>
               <Input id="startDate" type="date" {...register('startDate')} className="mt-1" />
             </div>
 
             <div>
-              <Label htmlFor="targetEndDate">{t('targetEndDate')}</Label>
-              <Input id="targetEndDate" type="date" {...register('targetEndDate')} className="mt-1" />
+              <Label htmlFor="endDate">{t('targetEndDate')}</Label>
+              <Input id="endDate" type="date" {...register('endDate')} className="mt-1" />
             </div>
 
             <div>
@@ -144,8 +183,8 @@ export function ProjectFormDialog({ open, onOpenChange, defaultValues }: Project
             <DialogClose render={<Button type="button" variant="outline" />}>
               {tc('cancel')}
             </DialogClose>
-            <Button type="submit" disabled={saving}>
-              {saving && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
+            <Button type="submit" disabled={mutation.isPending}>
+              {mutation.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
               {tc('save')}
             </Button>
           </DialogFooter>

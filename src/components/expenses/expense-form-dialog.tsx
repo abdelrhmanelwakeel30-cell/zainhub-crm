@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose,
 } from '@/components/ui/dialog'
@@ -11,9 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { expenseCategories, projects } from '@/lib/demo-data'
 import { Loader2, Upload } from 'lucide-react'
-import { useState } from 'react'
 import { toast } from 'sonner'
 
 const expenseSchema = z.object({
@@ -34,24 +33,67 @@ interface ExpenseFormDialogProps {
   defaultValues?: Partial<ExpenseFormData>
 }
 
+// Static expense categories — no dedicated API endpoint exists
+const EXPENSE_CATEGORIES = [
+  { id: 'travel', name: 'Travel' },
+  { id: 'software', name: 'Software & Tools' },
+  { id: 'hardware', name: 'Hardware' },
+  { id: 'office', name: 'Office Supplies' },
+  { id: 'marketing', name: 'Marketing' },
+  { id: 'utilities', name: 'Utilities' },
+  { id: 'meals', name: 'Meals & Entertainment' },
+  { id: 'professional', name: 'Professional Services' },
+  { id: 'other', name: 'Other' },
+]
+
 export function ExpenseFormDialog({ open, onOpenChange, defaultValues }: ExpenseFormDialogProps) {
   const t = useTranslations('expenses')
   const tc = useTranslations('common')
-  const [saving, setSaving] = useState(false)
+  const queryClient = useQueryClient()
+
+  const { data: projectsResponse } = useQuery({
+    queryKey: ['projects', 'minimal'],
+    queryFn: () => fetch('/api/projects?minimal=true').then(r => r.json()),
+    enabled: open,
+  })
+  const projects = projectsResponse?.data ?? []
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
     defaultValues: { paymentMethod: 'CREDIT_CARD', ...defaultValues },
   })
 
-  const onSubmit = async (data: ExpenseFormData) => {
-    setSaving(true)
-    await new Promise(r => setTimeout(r, 800))
-    setSaving(false)
-    toast.success('Expense created successfully')
-    reset()
-    onOpenChange(false)
-  }
+  const mutation = useMutation({
+    mutationFn: (data: ExpenseFormData) => {
+      const amountNum = parseFloat(data.amount)
+      return fetch('/api/expenses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vendorName: data.vendorName,
+          categoryId: data.categoryId,
+          amount: amountNum,
+          totalAmount: amountNum,
+          expenseDate: data.expenseDate,
+          paymentMethod: data.paymentMethod,
+          description: data.description,
+          linkedProjectId: data.projectId || undefined,
+        }),
+      }).then(async (r) => {
+        if (!r.ok) { const e = await r.json(); throw new Error(e.error || 'Failed') }
+        return r.json()
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['expenses'] })
+      toast.success('Expense created successfully')
+      reset()
+      onOpenChange(false)
+    },
+    onError: (err: Error) => toast.error(err.message),
+  })
+
+  const onSubmit = (data: ExpenseFormData) => mutation.mutate(data)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -70,7 +112,7 @@ export function ExpenseFormDialog({ open, onOpenChange, defaultValues }: Expense
               <Label>{t('category')} *</Label>
               <select {...register('categoryId')} className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                 <option value="">Select category...</option>
-                {expenseCategories.map(c => (
+                {EXPENSE_CATEGORIES.map(c => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
@@ -99,7 +141,7 @@ export function ExpenseFormDialog({ open, onOpenChange, defaultValues }: Expense
               <Label>{t('project')}</Label>
               <select {...register('projectId')} className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                 <option value="">No project</option>
-                {projects.map(p => (
+                {projects.map((p: { id: string; name: string }) => (
                   <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
               </select>
@@ -123,8 +165,8 @@ export function ExpenseFormDialog({ open, onOpenChange, defaultValues }: Expense
             <DialogClose render={<Button type="button" variant="outline" />}>
               {tc('cancel')}
             </DialogClose>
-            <Button type="submit" disabled={saving}>
-              {saving && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
+            <Button type="submit" disabled={mutation.isPending}>
+              {mutation.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
               {tc('save')}
             </Button>
           </DialogFooter>

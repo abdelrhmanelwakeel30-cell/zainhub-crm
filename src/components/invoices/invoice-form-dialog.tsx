@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose,
 } from '@/components/ui/dialog'
@@ -11,9 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { companies, projects } from '@/lib/demo-data'
 import { Loader2, Plus, Trash2 } from 'lucide-react'
-import { useState } from 'react'
 import { toast } from 'sonner'
 
 const lineItemSchema = z.object({
@@ -41,7 +40,15 @@ interface InvoiceFormDialogProps {
 export function InvoiceFormDialog({ open, onOpenChange, defaultValues }: InvoiceFormDialogProps) {
   const t = useTranslations('invoices')
   const tc = useTranslations('common')
-  const [saving, setSaving] = useState(false)
+  const queryClient = useQueryClient()
+
+  const { data: companiesData } = useQuery({
+    queryKey: ['companies'],
+    queryFn: () => fetch('/api/companies?pageSize=100').then(r => r.json()),
+    enabled: open,
+  })
+
+  const companies: Array<{ id: string; displayName: string }> = companiesData?.data ?? []
 
   const { register, handleSubmit, formState: { errors }, reset, control, watch } = useForm<InvoiceFormData>({
     resolver: zodResolver(invoiceSchema),
@@ -57,15 +64,30 @@ export function InvoiceFormDialog({ open, onOpenChange, defaultValues }: Invoice
   })
 
   const selectedClientId = watch('clientId')
-  const clientProjects = projects.filter(p => p.client.id === selectedClientId)
 
-  const onSubmit = async (data: InvoiceFormData) => {
-    setSaving(true)
-    await new Promise(r => setTimeout(r, 800))
-    setSaving(false)
-    toast.success('Invoice created successfully')
-    reset()
-    onOpenChange(false)
+  const mutation = useMutation({
+    mutationFn: (data: InvoiceFormData) =>
+      fetch('/api/invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      }).then(r => {
+        if (!r.ok) throw new Error('Failed to create invoice')
+        return r.json()
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invoices'] })
+      toast.success('Invoice created successfully')
+      reset()
+      onOpenChange(false)
+    },
+    onError: () => {
+      toast.error('Failed to create invoice')
+    },
+  })
+
+  const onSubmit = (data: InvoiceFormData) => {
+    mutation.mutate(data)
   }
 
   return (
@@ -88,11 +110,8 @@ export function InvoiceFormDialog({ open, onOpenChange, defaultValues }: Invoice
             </div>
             <div>
               <Label>{t('project')}</Label>
-              <select {...register('projectId')} className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+              <select {...register('projectId')} className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" disabled={!selectedClientId}>
                 <option value="">Select project...</option>
-                {clientProjects.map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
               </select>
             </div>
             <div>
@@ -172,8 +191,8 @@ export function InvoiceFormDialog({ open, onOpenChange, defaultValues }: Invoice
             <DialogClose render={<Button type="button" variant="outline" />}>
               {tc('cancel')}
             </DialogClose>
-            <Button type="submit" disabled={saving}>
-              {saving && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
+            <Button type="submit" disabled={mutation.isPending}>
+              {mutation.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
               {tc('save')}
             </Button>
           </DialogFooter>

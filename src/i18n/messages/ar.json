@@ -99,6 +99,10 @@
     "delivery": "التسليم",
     "projects": "المشاريع",
     "tasks": "المهام",
+    "clientServices": "خدمات العملاء",
+    "deliverables": "المخرجات",
+    "previewLinks": "روابط المعاينة",
+    "communicationLog": "سجل التواصل",
     "timeTracking": "تتبع الوقت",
     "finance": "الشؤون المالية",
     "quotations": "عروض الأسعار",
@@ -114,13 +118,22 @@
     "marketing": "التسويق",
     "support": "الدعم الفني",
     "tickets": "التذاكر",
+    "changeRequests": "طلبات التغيير",
+    "approvals": "الموافقات",
     "knowledgeBase": "قاعدة المعرفة",
     "admin": "الإدارة",
     "users": "المستخدمون",
     "roles": "الأدوار والصلاحيات",
     "settings": "الإعدادات",
     "auditLog": "سجل المراجعة",
-    "reports": "التقارير"
+    "reports": "التقارير",
+    "accountHealth": "صحة الحساب",
+    "onboarding": "تأهيل العملاء",
+    "subscriptions": "الاشتراكات",
+    "bundles": "حزم الخدمات",
+    "forms": "نماذج العملاء",
+    "clientPortal": "بوابة العميل",
+    "growth": "النمو والاستقطاب"
   },
   "dashboard": {
     "title": "لوحة التحكم التنفيذية",
@@ -441,5 +454,291 @@
     "profile": "الملف الشخصي",
     "security": "الأمان",
     "notifications": "الإشعارات"
+  },
+  "changeRequests": {
+    "title": "طلبات التغيير",
+    "new": "طلب تغيير جديد",
+    "status": {
+      "submitted": "مُقدَّم",
+      "under_review": "قيد المراجعة",
+      "impact_analysis": "تحليل الأثر",
+      "pending_approval": "في انتظار الموافقة",
+      "approved": "موافق عليه",
+      "rejected": "مرفوض",
+      "withdrawn": "مسحوب",
+      "in_progress": "قيد التنفيذ",
+      "completed": "مكتمل",
+      "cancelled": "ملغي"
+    },
+    "type": {
+      "scope": "تغيير النطاق",
+      "timeline": "تغيير الجدول الزمني",
+      "budget": "تغيير الميزانية",
+      "resource": "تغيير الموارد",
+      "technical": "تغيير تقني",
+      "other": "أخرى"
+    },
+    "fields": {
+      "title": "العنوان",
+      "description": "الوصف",
+      "type": "النوع",
+      "impact": "الأثر",
+      "estimatedCost": "التكلفة المتوقعة",
+      "estimatedDays": "الأيام المتوقعة",
+      "requestedBy": "طلب بواسطة",
+      "project": "المشروع"
+    }
+  },
+  "approvals": {
+    "title": "الموافقات",
+    "pending": "معلق",
+    "decided": "محسوم",
+    "approve": "موافقة",
+    "reject": "رفض",
+    "decision": "القرار",
+    "comment": "تعليق",
+    "workflow": "سير العمل",
+    "step": "خطوة",
+    "requestedBy": "طلب بواسطة",
+    "entityType": {
+      "quotation": "عرض سعر",
+      "contract": "عقد",
+      "expense": "مصروف",
+      "change_request": "طلب تغيير",
+      "proposal": "مقترح",
+      "invoice": "فاتورة",
+      "project_milestone": "معلم مشروع",
+      "preview": "معاينة",
+      "scope": "نطاق",
+      "budget": "ميزانية"
+    }
+  },
+  "deliverables": {
+    "title": "المسلّمات",
+    "new": "مسلّم جديد",
+    "status": {
+      "pending": "معلق",
+      "in_progress": "قيد التنفيذ",
+      "in_review": "قيد المراجعة",
+      "approved": "موافق عليه",
+      "rejected": "مرفوض",
+      "delivered": "مُسلَّم"
+    },
+    "fields": {
+      "name": "الاسم",
+      "description": "الوصف",
+      "type": "النوع",
+      "fileUrl": "رابط الملف",
+      "dueDate": "تاريخ الاستحقاق",
+      "deliveredAt": "تاريخ التسليم",
+      "project": "المشروع",
+      "clientService": "خدمة العميل",
+      "uploadedBy": "رُفع بواسطة"
+    }
+  },
+  "previewLinks": {
+    "title": "روابط المعاينة",
+    "new": "رابط معاينة جديد",
+    "copyLink": "نسخ الرابط",
+    "feedback": "ملاحظات",
+    "status": {
+      "active": "نشط",
+      "expired": "منتهي",
+      "approved": "موافق عليه",
+      "revision_needed": "يحتاج مراجعة"
+    },
+    "fields": {
+      "title": "العنوان",
+      "url": "الرابط",
+      "expiresAt": "ينتهي في",
+      "password": "كلمة المرور",
+      "allowFeedback": "السماح بالملاحظات",
+      "project": "المشروع",
+      "clientService": "خدمة العميل"
+    }
+  },
+  "clientServices": {
+    "title": "خدمات العملاء",
+    "new": "خدمة عميل جديدة",
+    "milestone": "معلم",
+    "milestones": "المعالم",
+    "team": "الفريق",
+    "status": {
+      "onboarding": "تأهيل",
+      "active": "نشط",
+      "on_hold": "معلق",
+      "completed": "مكتمل",
+      "cancelled": "ملغي"
+    },
+    "fields": {
+      "name": "اسم الخدمة",
+      "company": "الشركة",
+      "service": "الخدمة",
+      "package": "الباقة",
+      "startDate": "تاريخ البدء",
+      "endDate": "تاريخ الانتهاء",
+      "contractValue": "قيمة العقد",
+      "projectManager": "مدير المشروع"
+    }
+  },
+  "communicationLog": {
+    "title": "سجل التواصل",
+    "new": "تسجيل تواصل",
+    "timeline": "الجدول الزمني",
+    "list": "القائمة",
+    "type": {
+      "call": "مكالمة",
+      "email": "بريد إلكتروني",
+      "meeting": "اجتماع",
+      "note": "ملاحظة",
+      "whatsapp": "واتساب",
+      "sms": "رسالة نصية"
+    },
+    "direction": {
+      "inbound": "وارد",
+      "outbound": "صادر"
+    },
+    "fields": {
+      "subject": "الموضوع",
+      "body": "الملاحظات",
+      "duration": "المدة (بالدقائق)",
+      "occurredAt": "التاريخ والوقت",
+      "company": "الشركة",
+      "contact": "جهة الاتصال",
+      "lead": "العميل المحتمل",
+      "opportunity": "الفرصة",
+      "project": "المشروع"
+    }
+  },
+  "accountHealth": {
+    "title": "صحة الحساب",
+    "update": "تحديث الصحة",
+    "status": {
+      "healthy": "سليم",
+      "at_risk": "في خطر",
+      "critical": "حرج",
+      "churned": "مُفقَد"
+    },
+    "upsellReadiness": {
+      "low": "منخفض",
+      "medium": "متوسط",
+      "high": "عالٍ"
+    },
+    "fields": {
+      "overallScore": "النقاط الإجمالية",
+      "npsScore": "نقاط NPS",
+      "healthStatus": "حالة الصحة",
+      "upsellReadiness": "استعداد البيع الإضافي",
+      "openTickets": "التذاكر المفتوحة",
+      "overdueInvoices": "الفواتير المتأخرة",
+      "lastActivity": "آخر نشاط",
+      "notes": "ملاحظات"
+    }
+  },
+  "onboarding": {
+    "title": "تأهيل العملاء",
+    "new": "تأهيل جديد",
+    "checklist": "قائمة التحقق",
+    "progress": "التقدم",
+    "status": {
+      "in_progress": "قيد التنفيذ",
+      "completed": "مكتمل",
+      "cancelled": "ملغي"
+    },
+    "fields": {
+      "company": "الشركة",
+      "project": "المشروع",
+      "template": "القالب",
+      "completedAt": "اكتمل في"
+    }
+  },
+  "subscriptions": {
+    "title": "الاشتراكات",
+    "new": "اشتراك جديد",
+    "mrr": "الإيرادات الشهرية المتكررة",
+    "billingHistory": "سجل الفواتير",
+    "generateInvoice": "إنشاء فاتورة",
+    "status": {
+      "active": "نشط",
+      "paused": "متوقف",
+      "cancelled": "ملغي",
+      "expired": "منتهي"
+    },
+    "interval": {
+      "weekly": "أسبوعي",
+      "biweekly": "كل أسبوعين",
+      "monthly": "شهري",
+      "quarterly": "ربع سنوي",
+      "semi_annual": "نصف سنوي",
+      "annual": "سنوي"
+    },
+    "fields": {
+      "name": "اسم الاشتراك",
+      "company": "الشركة",
+      "service": "الخدمة",
+      "package": "الباقة",
+      "amount": "المبلغ",
+      "interval": "دورة الفوترة",
+      "startDate": "تاريخ البدء",
+      "nextBillingDate": "تاريخ الفاتورة القادمة",
+      "endDate": "تاريخ الانتهاء",
+      "autoRenew": "تجديد تلقائي",
+      "notes": "ملاحظات"
+    }
+  },
+  "bundles": {
+    "title": "حزم الخدمات",
+    "new": "حزمة جديدة",
+    "items": "عناصر الحزمة",
+    "addService": "إضافة خدمة",
+    "fields": {
+      "name": "اسم الحزمة",
+      "description": "الوصف",
+      "category": "الفئة",
+      "price": "سعر الحزمة",
+      "isActive": "نشط"
+    }
+  },
+  "forms": {
+    "title": "نماذج استقطاب العملاء",
+    "new": "نموذج جديد",
+    "submissions": "الردود",
+    "viewSubmissions": "عرض الردود",
+    "copyLink": "نسخ رابط النموذج",
+    "fieldBuilder": "منشئ الحقول",
+    "addField": "إضافة حقل",
+    "fieldTypes": {
+      "text": "نص",
+      "email": "بريد إلكتروني",
+      "phone": "هاتف",
+      "textarea": "منطقة نص",
+      "select": "قائمة منسدلة"
+    },
+    "fields": {
+      "name": "اسم النموذج",
+      "slug": "الرابط المختصر",
+      "description": "الوصف",
+      "sourceTag": "تاج مصدر العميل",
+      "thankYouMsg": "رسالة الشكر",
+      "redirectUrl": "رابط إعادة التوجيه",
+      "isActive": "نشط"
+    }
+  },
+  "clientPortal": {
+    "title": "بوابة العميل",
+    "login": "تسجيل الدخول",
+    "register": "إنشاء حساب",
+    "welcome": "مرحباً",
+    "myServices": "خدماتي",
+    "myRequests": "طلباتي",
+    "myPreviewLinks": "روابط المعاينة",
+    "myDocuments": "الوثائق",
+    "logout": "تسجيل الخروج",
+    "verifyEmail": "التحقق من البريد الإلكتروني",
+    "emailSent": "تم إرسال بريد التحقق. يرجى مراجعة صندوق الوارد.",
+    "emailVerified": "تم التحقق من البريد الإلكتروني بنجاح!",
+    "sendOtp": "إرسال رمز التحقق",
+    "verifyOtp": "التحقق من الرمز",
+    "otpSent": "تم إرسال رمز التحقق إلى هاتفك."
   }
 }

@@ -1,21 +1,39 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { formatRelativeDate } from '@/lib/utils'
-import { Target, Handshake, Building2, Phone, Mail, FileText } from 'lucide-react'
+import { Activity } from 'lucide-react'
 
-const activities = [
-  { id: 1, user: 'Sarah Al-Rashid', action: 'moved opportunity', target: 'Dubai Holding Website Redesign', detail: 'to Contract stage', icon: Handshake, color: 'text-blue-600 bg-blue-50', time: new Date(Date.now() - 1800000) },
-  { id: 2, user: 'Omar Hassan', action: 'created lead', target: 'Tariq Al-Muhairi', detail: 'from Website', icon: Target, color: 'text-indigo-600 bg-indigo-50', time: new Date(Date.now() - 3600000) },
-  { id: 3, user: 'Ahmed Noor', action: 'sent proposal to', target: 'Abu Dhabi Ports', detail: 'AED 18,000', icon: FileText, color: 'text-green-600 bg-green-50', time: new Date(Date.now() - 7200000) },
-  { id: 4, user: 'Layla Mahmoud', action: 'called', target: 'Khalid Bin Saeed', detail: 'MAF - 12 min', icon: Phone, color: 'text-cyan-600 bg-cyan-50', time: new Date(Date.now() - 14400000) },
-  { id: 5, user: 'Sarah Al-Rashid', action: 'added company', target: 'STC Group', detail: 'Riyadh, KSA', icon: Building2, color: 'text-purple-600 bg-purple-50', time: new Date(Date.now() - 28800000) },
-  { id: 6, user: 'Omar Hassan', action: 'emailed', target: 'Nadia Bakri', detail: 'Follow-up on website project', icon: Mail, color: 'text-orange-600 bg-orange-50', time: new Date(Date.now() - 43200000) },
-]
+const ACTION_COLORS: Record<string, string> = {
+  CREATE: 'text-green-600 bg-green-50 dark:bg-green-950',
+  UPDATE: 'text-blue-600 bg-blue-50 dark:bg-blue-950',
+  DELETE: 'text-red-600 bg-red-50 dark:bg-red-950',
+  ARCHIVE: 'text-amber-600 bg-amber-50 dark:bg-amber-950',
+}
+
+interface ActivityRecord {
+  id: string
+  action: string
+  entityType: string
+  entityName?: string
+  createdAt: string
+  user?: { firstName: string; lastName: string }
+}
 
 export function RecentActivity() {
   const t = useTranslations('dashboard')
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['dashboard', 'recent-activity'],
+    queryFn: () => fetch('/api/dashboard').then(r => r.json()),
+    staleTime: 60_000,
+    select: (d) => d?.data?.recentActivities ?? [],
+  })
+
+  const activities: ActivityRecord[] = data ?? []
 
   return (
     <Card>
@@ -23,26 +41,42 @@ export function RecentActivity() {
         <CardTitle className="text-base font-semibold">{t('recentActivity')}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {activities.map((activity) => {
-          const Icon = activity.icon
+        {isLoading ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-start gap-3">
+              <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+              <div className="flex-1 space-y-1">
+                <Skeleton className="h-4 w-56" />
+                <Skeleton className="h-3 w-32" />
+              </div>
+            </div>
+          ))
+        ) : activities.length > 0 ? activities.map((activity) => {
+          const colorClass = ACTION_COLORS[activity.action] ?? 'text-gray-600 bg-gray-50'
+          const userName = activity.user
+            ? `${activity.user.firstName} ${activity.user.lastName}`
+            : 'System'
+          const actionLabel = activity.action.charAt(0) + activity.action.slice(1).toLowerCase()
           return (
             <div key={activity.id} className="flex items-start gap-3">
-              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${activity.color}`}>
-                <Icon className="h-3.5 w-3.5" />
+              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${colorClass}`}>
+                <Activity className="h-3.5 w-3.5" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm">
-                  <span className="font-medium">{activity.user}</span>{' '}
-                  <span className="text-muted-foreground">{activity.action}</span>{' '}
-                  <span className="font-medium">{activity.target}</span>
+                  <span className="font-medium">{userName}</span>{' '}
+                  <span className="text-muted-foreground">{actionLabel.toLowerCase()}</span>{' '}
+                  <span className="font-medium">{activity.entityName ?? activity.entityType}</span>
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {activity.detail} · {formatRelativeDate(activity.time)}
+                  {activity.entityType} · {formatRelativeDate(activity.createdAt)}
                 </p>
               </div>
             </div>
           )
-        })}
+        }) : (
+          <p className="text-sm text-muted-foreground text-center py-4">No recent activity</p>
+        )}
       </CardContent>
     </Card>
   )

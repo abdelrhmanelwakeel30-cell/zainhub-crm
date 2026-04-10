@@ -2,18 +2,36 @@
 
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { useQuery } from '@tanstack/react-query'
 import { ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '@/components/shared/data-table'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { getInitials, formatRelativeDate } from '@/lib/utils'
-import { tickets } from '@/lib/demo-data'
 
-type Ticket = (typeof tickets)[number]
+interface Ticket {
+  id: string
+  ticketNumber: string
+  subject: string
+  status: string
+  priority: string
+  type: string
+  client?: { displayName: string } | null
+  assignedTo?: { firstName: string; lastName: string } | null
+  createdAt: string
+  dueDate?: string | null
+}
 
 export function TicketsTable() {
   const router = useRouter()
   const t = useTranslations('tickets')
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['tickets'],
+    queryFn: () => fetch('/api/tickets').then(r => r.json()),
+  })
+
+  const tickets: Ticket[] = data?.data ?? []
 
   const columns: ColumnDef<Ticket, unknown>[] = [
     {
@@ -31,7 +49,7 @@ export function TicketsTable() {
         <div>
           <p className="font-medium">{row.original.subject}</p>
           {row.original.client && (
-            <p className="text-xs text-muted-foreground">{row.original.client.name}</p>
+            <p className="text-xs text-muted-foreground">{row.original.client.displayName}</p>
           )}
         </div>
       ),
@@ -52,12 +70,13 @@ export function TicketsTable() {
       cell: ({ row }) => {
         const user = row.original.assignedTo
         if (!user) return <span className="text-xs text-muted-foreground italic">Unassigned</span>
+        const fullName = `${user.firstName} ${user.lastName}`
         return (
           <div className="flex items-center gap-2">
             <Avatar className="h-6 w-6">
-              <AvatarFallback className="text-[10px] bg-blue-100 text-blue-700">{getInitials(user.name)}</AvatarFallback>
+              <AvatarFallback className="text-[10px] bg-blue-100 text-blue-700">{getInitials(fullName)}</AvatarFallback>
             </Avatar>
-            <span className="text-sm">{user.name}</span>
+            <span className="text-sm">{fullName}</span>
           </div>
         )
       },
@@ -80,6 +99,7 @@ export function TicketsTable() {
     <DataTable
       columns={columns}
       data={tickets}
+      isLoading={isLoading}
       searchPlaceholder={`${t('title')}...`}
       onRowClick={(ticket) => router.push(`/tickets/${ticket.id}`)}
     />

@@ -4,19 +4,28 @@ import { useTranslations } from 'next-intl'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 
-const data = [
-  { name: 'Website', value: 4, color: '#3B82F6' },
-  { name: 'LinkedIn', value: 3, color: '#6366F1' },
-  { name: 'Referral', value: 2, color: '#10B981' },
-  { name: 'WhatsApp', value: 2, color: '#22C55E' },
-  { name: 'Google Ads', value: 1, color: '#F59E0B' },
-  { name: 'Instagram', value: 1, color: '#EC4899' },
-  { name: 'Events', value: 1, color: '#8B5CF6' },
-  { name: 'Direct', value: 1, color: '#64748B' },
-]
+interface SourceCount {
+  sourceId: string | null
+  _count: { id: number }
+}
 
-export function LeadsBySourceChart() {
+interface LeadsBySourceChartProps {
+  data?: SourceCount[]
+  sourcesMap?: Record<string, string>
+}
+
+const COLORS = ['#3B82F6', '#6366F1', '#10B981', '#22C55E', '#F59E0B', '#EC4899', '#8B5CF6', '#64748B']
+
+export function LeadsBySourceChart({ data, sourcesMap }: LeadsBySourceChartProps) {
   const t = useTranslations('dashboard')
+
+  const chartData = data && data.length > 0
+    ? data.map((d, i) => ({
+        name: sourcesMap?.[d.sourceId ?? ''] ?? d.sourceId ?? 'Unknown',
+        value: d._count.id,
+        color: COLORS[i % COLORS.length],
+      }))
+    : [{ name: 'No data', value: 1, color: '#CBD5E1' }]
 
   return (
     <Card>
@@ -28,7 +37,7 @@ export function LeadsBySourceChart() {
           <ResponsiveContainer width={200} height={200}>
             <PieChart>
               <Pie
-                data={data}
+                data={chartData}
                 cx="50%"
                 cy="50%"
                 innerRadius={50}
@@ -36,7 +45,7 @@ export function LeadsBySourceChart() {
                 dataKey="value"
                 stroke="none"
               >
-                {data.map((entry, index) => (
+                {chartData.map((entry, index) => (
                   <Cell key={index} fill={entry.color} />
                 ))}
               </Pie>
@@ -44,7 +53,7 @@ export function LeadsBySourceChart() {
             </PieChart>
           </ResponsiveContainer>
           <div className="flex-1 space-y-2">
-            {data.map((item) => (
+            {chartData.map((item) => (
               <div key={item.name} className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
                   <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />

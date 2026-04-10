@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { useQuery } from '@tanstack/react-query'
 import { PageHeader } from '@/components/shared/page-header'
 import { LeadsTable } from './leads-table'
 import { LeadsKanban } from './leads-kanban'
@@ -9,16 +10,20 @@ import { LeadFormDialog } from './lead-form-dialog'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus, List, LayoutGrid, Download } from 'lucide-react'
-import { leads } from '@/lib/demo-data'
 
 export function LeadsContent() {
   const t = useTranslations('leads')
   const [view, setView] = useState<'list' | 'kanban'>('list')
   const [showCreateForm, setShowCreateForm] = useState(false)
 
+  const { data } = useQuery({
+    queryKey: ['leads'],
+    queryFn: () => fetch('/api/leads').then(r => r.json()),
+  })
+
   return (
     <div className="space-y-6 animate-slide-in">
-      <PageHeader title={t('title')} description={`${leads.length} ${t('allLeads').toLowerCase()}`}>
+      <PageHeader title={t('title')} description={`${data?.total ?? 0} ${t('allLeads').toLowerCase()}`}>
         <Button variant="outline" size="sm">
           <Download className="h-4 w-4 me-2" />
           {t('export') || 'Export'}

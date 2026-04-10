@@ -1,24 +1,82 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Settings, Palette, Bell } from 'lucide-react'
+import { Settings, Palette, Bell, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+
+interface TenantSettings {
+  name?: string
+  primaryColor?: string
+  secondaryColor?: string
+  defaultCurrency?: string
+  defaultLanguage?: string
+  timezone?: string
+  taxRegistrationNumber?: string
+  address?: string
+  phone?: string
+  email?: string
+  website?: string
+}
 
 export function SettingsContent() {
   const t = useTranslations('admin')
+  const queryClient = useQueryClient()
 
-  const [tenantName, setTenantName] = useState('Zain Hub AI Solutions')
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin', 'settings'],
+    queryFn: () => fetch('/api/admin/settings').then(r => r.json()),
+  })
+
+  const tenant: TenantSettings = data?.data?.tenant ?? {}
+
+  const [tenantName, setTenantName] = useState('')
   const [currency, setCurrency] = useState('AED')
   const [timezone, setTimezone] = useState('Asia/Dubai')
   const [theme, setTheme] = useState('system')
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [pushNotifications, setPushNotifications] = useState(true)
+
+  // Pre-populate form once data loads
+  useEffect(() => {
+    if (tenant.name) setTenantName(tenant.name)
+    if (tenant.defaultCurrency) setCurrency(tenant.defaultCurrency)
+    if (tenant.timezone) setTimezone(tenant.timezone)
+  }, [tenant.name, tenant.defaultCurrency, tenant.timezone])
+
+  const mutation = useMutation({
+    mutationFn: (payload: TenantSettings) =>
+      fetch('/api/admin/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).then(r => {
+        if (!r.ok) throw new Error('Failed to save settings')
+        return r.json()
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'settings'] })
+      toast.success('Settings saved successfully')
+    },
+    onError: () => {
+      toast.error('Failed to save settings')
+    },
+  })
+
+  const handleSave = () => {
+    mutation.mutate({
+      name: tenantName,
+      defaultCurrency: currency,
+      timezone,
+    })
+  }
 
   return (
     <div className="space-y-6 animate-slide-in">
@@ -45,6 +103,7 @@ export function SettingsContent() {
                 id="tenantName"
                 value={tenantName}
                 onChange={(e) => setTenantName(e.target.value)}
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -76,7 +135,10 @@ export function SettingsContent() {
                 </SelectContent>
               </Select>
             </div>
-            <Button size="sm" className="mt-2">Save Changes</Button>
+            <Button size="sm" className="mt-2" onClick={handleSave} disabled={mutation.isPending || isLoading}>
+              {mutation.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
+              Save Changes
+            </Button>
           </CardContent>
         </Card>
 

@@ -2,11 +2,11 @@
 
 import { useTranslations } from 'next-intl'
 import { PageHeader } from '@/components/shared/page-header'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Shield, ShieldCheck, UserCog, Pencil } from 'lucide-react'
 
-const roles = [
+const staticRoles = [
   {
     id: '1',
     name: 'Admin',
@@ -46,10 +46,10 @@ export function RolesContent() {
 
   return (
     <div className="space-y-6 animate-slide-in">
-      <PageHeader title={t('roles')} description={`${roles.length} roles configured`} />
+      <PageHeader title={t('roles')} description={`${staticRoles.length} roles configured`} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {roles.map((role) => {
+        {staticRoles.map((role) => {
           const Icon = role.icon
           return (
             <Card key={role.id} className="hover:shadow-md transition-shadow">

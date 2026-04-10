@@ -1,11 +1,7 @@
 import { PrismaClient } from '@prisma/client'
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 import bcrypt from 'bcryptjs'
 
-const adapter = new PrismaBetterSqlite3({
-  url: process.env.DATABASE_URL || 'file:./prisma/dev.db',
-})
-const prisma = new PrismaClient({ adapter })
+const prisma = new PrismaClient()
 
 async function main() {
   console.log('🌱 Seeding database...')
@@ -98,6 +94,9 @@ async function main() {
     'projects', 'tasks', 'quotations', 'proposals', 'contracts',
     'invoices', 'payments', 'expenses', 'tickets', 'social_media',
     'campaigns', 'documents', 'reports', 'users', 'roles', 'settings', 'audit_log',
+    // New modules (Priority 1-4)
+    'change_requests', 'approvals', 'deliverables', 'preview_links', 'comms',
+    'client_services', 'subscriptions', 'bundles', 'forms', 'account_health', 'onboarding',
   ]
   const actions = ['view', 'create', 'edit', 'delete', 'export', 'approve']
 

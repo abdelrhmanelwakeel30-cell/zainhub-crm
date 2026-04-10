@@ -2,18 +2,35 @@
 
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { useQuery } from '@tanstack/react-query'
 import { ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '@/components/shared/data-table'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { getInitials, formatDate } from '@/lib/utils'
-import { tasks } from '@/lib/demo-data'
 
-type Task = (typeof tasks)[number]
+interface Task {
+  id: string
+  taskNumber: string
+  title: string
+  status: string
+  priority: string
+  dueDate: string
+  assignedTo?: { firstName: string; lastName: string } | null
+  project?: { id: string; name: string } | null
+  _count?: { subtasks: number }
+}
 
 export function TasksTable() {
   const router = useRouter()
   const t = useTranslations('tasks')
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['tasks'],
+    queryFn: () => fetch('/api/tasks').then(r => r.json()),
+  })
+
+  const tasks: Task[] = data?.data ?? []
 
   const columns: ColumnDef<Task, unknown>[] = [
     {
@@ -52,12 +69,13 @@ export function TasksTable() {
       cell: ({ row }) => {
         const user = row.original.assignedTo
         if (!user) return <span className="text-xs text-muted-foreground italic">{t('unassigned')}</span>
+        const fullName = `${user.firstName} ${user.lastName}`
         return (
           <div className="flex items-center gap-2">
             <Avatar className="h-6 w-6">
-              <AvatarFallback className="text-[10px] bg-blue-100 text-blue-700">{getInitials(user.name)}</AvatarFallback>
+              <AvatarFallback className="text-[10px] bg-blue-100 text-blue-700">{getInitials(fullName)}</AvatarFallback>
             </Avatar>
-            <span className="text-sm">{user.name}</span>
+            <span className="text-sm">{fullName}</span>
           </div>
         )
       },
@@ -100,6 +118,7 @@ export function TasksTable() {
     <DataTable
       columns={columns}
       data={tasks}
+      isLoading={isLoading}
       searchPlaceholder={`${t('title')}...`}
       onRowClick={(task) => router.push(`/tasks/${task.id}`)}
     />

@@ -2,19 +2,38 @@
 
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { useQuery } from '@tanstack/react-query'
 import { ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '@/components/shared/data-table'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { ScoreIndicator } from '@/components/shared/score-indicator'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { getInitials, formatDate } from '@/lib/utils'
-import { contacts } from '@/lib/demo-data'
 
-type Contact = (typeof contacts)[number]
+type Contact = {
+  id: string
+  contactNumber: string
+  firstName: string
+  lastName: string
+  email: string | null
+  phone: string | null
+  jobTitle: string | null
+  decisionRole: string
+  leadScore?: number | null
+  lastContactedAt?: string | null
+  company?: { id: string; displayName: string } | null
+}
 
 export function ContactsTable() {
   const router = useRouter()
   const t = useTranslations('contacts')
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['contacts'],
+    queryFn: () => fetch('/api/contacts').then(r => r.json()),
+  })
+
+  const contacts: Contact[] = data?.data ?? []
 
   const columns: ColumnDef<Contact, unknown>[] = [
     {
@@ -45,13 +64,13 @@ export function ContactsTable() {
     {
       accessorKey: 'jobTitle',
       header: t('jobTitle'),
-      cell: ({ row }) => <span className="text-sm">{row.original.jobTitle}</span>,
+      cell: ({ row }) => <span className="text-sm">{row.original.jobTitle ?? '-'}</span>,
     },
     {
       accessorKey: 'company',
       header: 'Company',
       cell: ({ row }) => (
-        <span className="text-sm font-medium">{row.original.company?.name || '-'}</span>
+        <span className="text-sm font-medium">{row.original.company?.displayName || '-'}</span>
       ),
     },
     {
@@ -62,12 +81,12 @@ export function ContactsTable() {
     {
       accessorKey: 'phone',
       header: 'Phone',
-      cell: ({ row }) => <span className="text-sm">{row.original.phone}</span>,
+      cell: ({ row }) => <span className="text-sm">{row.original.phone ?? '-'}</span>,
     },
     {
       accessorKey: 'leadScore',
       header: t('leadScore'),
-      cell: ({ row }) => <ScoreIndicator score={row.original.leadScore} size="sm" />,
+      cell: ({ row }) => <ScoreIndicator score={row.original.leadScore ?? 0} size="sm" />,
     },
     {
       accessorKey: 'lastContactedAt',
@@ -85,6 +104,7 @@ export function ContactsTable() {
       columns={columns}
       data={contacts}
       searchPlaceholder="Search contacts..."
+      isLoading={isLoading}
       onRowClick={(contact) => router.push(`/contacts/${contact.id}`)}
     />
   )

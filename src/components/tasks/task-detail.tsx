@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
-import { tasks } from '@/lib/demo-data'
+import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -17,12 +17,51 @@ interface TaskDetailProps {
   taskId: string
 }
 
+interface Task {
+  id: string
+  taskNumber: string
+  title: string
+  description?: string | null
+  status: string
+  priority: string
+  dueDate: string
+  createdAt: string
+  completedAt?: string | null
+  assignedTo?: { firstName: string; lastName: string } | null
+  project?: { id: string; name: string } | null
+  subtasks?: unknown[]
+  comments?: { id: string; body: string; createdAt: string; author: { firstName: string; lastName: string } }[]
+}
+
 export function TaskDetail({ taskId }: TaskDetailProps) {
   const t = useTranslations('tasks')
   const tc = useTranslations('common')
   const router = useRouter()
 
-  const task = tasks.find(tk => tk.id === taskId)
+  const { data, isLoading } = useQuery({
+    queryKey: ['tasks', taskId],
+    queryFn: () => fetch(`/api/tasks/${taskId}`).then(r => r.json()),
+  })
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="h-10 bg-muted rounded w-1/3" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-4">
+            <div className="h-40 bg-muted rounded" />
+            <div className="h-32 bg-muted rounded" />
+          </div>
+          <div className="space-y-4">
+            <div className="h-24 bg-muted rounded" />
+            <div className="h-24 bg-muted rounded" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const task: Task | undefined = data?.data
 
   if (!task) {
     return (
@@ -35,6 +74,10 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
       </div>
     )
   }
+
+  const assignedToName = task.assignedTo
+    ? `${task.assignedTo.firstName} ${task.assignedTo.lastName}`
+    : null
 
   return (
     <div className="space-y-6 animate-slide-in">
@@ -79,7 +122,7 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
                 <InfoRow
                   icon={<User className="h-4 w-4" />}
                   label={t('assignedTo')}
-                  value={task.assignedTo ? task.assignedTo.name : t('unassigned')}
+                  value={assignedToName ?? t('unassigned')}
                 />
                 <InfoRow
                   icon={<CalendarClock className="h-4 w-4" />}
@@ -170,11 +213,11 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
                     <AvatarFallback className="bg-blue-100 text-blue-700">
-                      {getInitials(task.assignedTo.name)}
+                      {getInitials(assignedToName!)}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-medium text-sm">{task.assignedTo.name}</p>
+                    <p className="font-medium text-sm">{assignedToName}</p>
                     <p className="text-xs text-muted-foreground">Team Member</p>
                   </div>
                 </div>
@@ -212,13 +255,14 @@ function InfoRow({ icon, label, value, link }: { icon: React.ReactNode; label: s
 
 type TimelineEvent = { action: string; detail: string; time: string }
 
-function buildTimeline(task: (typeof tasks)[number]): TimelineEvent[] {
+function buildTimeline(task: Task): TimelineEvent[] {
   const events: TimelineEvent[] = [
     { action: 'Task created', detail: task.project ? `Project: ${task.project.name}` : 'No project', time: task.createdAt },
   ]
 
   if (task.assignedTo) {
-    events.push({ action: `Assigned to ${task.assignedTo.name}`, detail: '', time: task.createdAt })
+    const assignedName = `${task.assignedTo.firstName} ${task.assignedTo.lastName}`
+    events.push({ action: `Assigned to ${assignedName}`, detail: '', time: task.createdAt })
   }
 
   if (task.status === 'IN_PROGRESS' || task.status === 'IN_REVIEW' || task.status === 'COMPLETED') {

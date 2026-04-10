@@ -1,20 +1,25 @@
 'use client'
 
-import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { useQuery } from '@tanstack/react-query'
 import { PageHeader } from '@/components/shared/page-header'
 import { KPICard } from '@/components/shared/kpi-card'
 import { QuotationsTable } from './quotations-table'
 import { Button } from '@/components/ui/button'
-import { Plus, Download, FileText, CheckCircle, Clock, Send } from 'lucide-react'
-import { quotations } from '@/lib/demo-data'
+import { Plus, Download, FileText, CheckCircle, Clock } from 'lucide-react'
 
 export function QuotationsContent() {
   const t = useTranslations('common')
 
-  const totalValue = quotations.reduce((s, q) => s + q.totalAmount, 0)
-  const accepted = quotations.filter(q => q.status === 'ACCEPTED')
-  const pending = quotations.filter(q => ['SENT', 'DRAFT'].includes(q.status))
+  const { data: quotationsResponse } = useQuery({
+    queryKey: ['quotations'],
+    queryFn: () => fetch('/api/quotations').then(r => r.json()),
+  })
+  const quotations = quotationsResponse?.data ?? []
+
+  const totalValue = quotations.reduce((s: number, q: { totalAmount: number }) => s + q.totalAmount, 0)
+  const accepted = quotations.filter((q: { status: string }) => q.status === 'ACCEPTED')
+  const pending = quotations.filter((q: { status: string }) => ['SENT', 'DRAFT'].includes(q.status))
 
   return (
     <div className="space-y-6 animate-slide-in">

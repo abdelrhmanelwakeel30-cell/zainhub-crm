@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { useQuery } from '@tanstack/react-query'
 import { cn } from '@/lib/utils'
 import {
   LayoutDashboard, Users, Building2, UserCircle, Target,
@@ -10,11 +11,14 @@ import {
   Wallet, Share2, Calendar as CalendarIcon,
   Megaphone, HeadphonesIcon, Settings, Shield, Activity,
   BarChart3, ChevronLeft, ChevronRight, Bell,
-  Handshake, Package, GitBranch, X
+  Handshake, Package, GitBranch, GitMerge, CheckSquare, X,
+  Eye, PackageOpen, MessageSquare, HeartPulse, ClipboardList,
+  RefreshCw, Layers, FormInput
 } from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import { hasPermission } from '@/lib/permissions'
 import { ZainHubLogo } from '@/components/shared/zainhub-logo'
 import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface NavItem {
@@ -23,6 +27,7 @@ interface NavItem {
   icon: React.ElementType
   badge?: number
   permission?: string
+  dynamicBadge?: 'unreadNotifications'
 }
 
 interface NavGroup {
@@ -34,61 +39,77 @@ const navigation: NavGroup[] = [
   {
     titleKey: 'nav.main',
     items: [
-      { titleKey: 'nav.dashboard', href: '/dashboard', icon: LayoutDashboard },
-      { titleKey: 'nav.notifications', href: '/notifications', icon: Bell, badge: 5 },
+      { titleKey: 'nav.dashboard', href: '/dashboard', icon: LayoutDashboard, permission: 'dashboard:view' },
+      { titleKey: 'nav.notifications', href: '/notifications', icon: Bell, dynamicBadge: 'unreadNotifications' },
     ],
   },
   {
     titleKey: 'nav.crmSales',
     items: [
-      { titleKey: 'nav.leads', href: '/leads', icon: Target },
-      { titleKey: 'nav.opportunities', href: '/opportunities', icon: Handshake },
-      { titleKey: 'nav.companies', href: '/companies', icon: Building2 },
-      { titleKey: 'nav.contacts', href: '/contacts', icon: UserCircle },
-      { titleKey: 'nav.services', href: '/services', icon: Package },
-      { titleKey: 'nav.pipelines', href: '/pipelines', icon: GitBranch },
+      { titleKey: 'nav.leads', href: '/leads', icon: Target, permission: 'leads:view' },
+      { titleKey: 'nav.opportunities', href: '/opportunities', icon: Handshake, permission: 'opportunities:view' },
+      { titleKey: 'nav.companies', href: '/companies', icon: Building2, permission: 'companies:view' },
+      { titleKey: 'nav.contacts', href: '/contacts', icon: UserCircle, permission: 'contacts:view' },
+      { titleKey: 'nav.services', href: '/services', icon: Package, permission: 'settings:view' },
+      { titleKey: 'nav.pipelines', href: '/pipelines', icon: GitBranch, permission: 'settings:view' },
     ],
   },
   {
     titleKey: 'nav.delivery',
     items: [
-      { titleKey: 'nav.projects', href: '/projects', icon: Briefcase },
-      { titleKey: 'nav.tasks', href: '/tasks', icon: ListTodo },
+      { titleKey: 'nav.projects', href: '/projects', icon: Briefcase, permission: 'projects:view' },
+      { titleKey: 'nav.tasks', href: '/tasks', icon: ListTodo, permission: 'tasks:view' },
+      { titleKey: 'nav.clientServices', href: '/client-services', icon: Activity, permission: 'projects:view' },
+      { titleKey: 'nav.deliverables', href: '/deliverables', icon: PackageOpen, permission: 'deliverables:view' },
+      { titleKey: 'nav.previewLinks', href: '/preview-links', icon: Eye, permission: 'preview_links:view' },
+      { titleKey: 'nav.communicationLog', href: '/communication-log', icon: MessageSquare, permission: 'comms:view' },
+      { titleKey: 'nav.accountHealth', href: '/account-health', icon: HeartPulse, permission: 'projects:view' },
+      { titleKey: 'nav.onboarding', href: '/onboarding', icon: ClipboardList, permission: 'projects:view' },
     ],
   },
   {
     titleKey: 'nav.finance',
     items: [
-      { titleKey: 'nav.quotations', href: '/quotations', icon: FileText },
-      { titleKey: 'nav.proposals', href: '/proposals', icon: FileText },
-      { titleKey: 'nav.contracts', href: '/contracts', icon: FileText },
-      { titleKey: 'nav.invoices', href: '/invoices', icon: Receipt },
-      { titleKey: 'nav.payments', href: '/payments', icon: CreditCard },
-      { titleKey: 'nav.expenses', href: '/expenses', icon: Wallet },
+      { titleKey: 'nav.quotations', href: '/quotations', icon: FileText, permission: 'quotations:view' },
+      { titleKey: 'nav.proposals', href: '/proposals', icon: FileText, permission: 'proposals:view' },
+      { titleKey: 'nav.contracts', href: '/contracts', icon: FileText, permission: 'contracts:view' },
+      { titleKey: 'nav.invoices', href: '/invoices', icon: Receipt, permission: 'invoices:view' },
+      { titleKey: 'nav.payments', href: '/payments', icon: CreditCard, permission: 'payments:view' },
+      { titleKey: 'nav.expenses', href: '/expenses', icon: Wallet, permission: 'expenses:view' },
+      { titleKey: 'nav.subscriptions', href: '/subscriptions', icon: RefreshCw, permission: 'invoices:view' },
     ],
   },
   {
     titleKey: 'nav.marketing',
     items: [
-      { titleKey: 'nav.contentCalendar', href: '/content-calendar', icon: CalendarIcon },
-      { titleKey: 'nav.socialAccounts', href: '/social-accounts', icon: Share2 },
-      { titleKey: 'nav.campaigns', href: '/campaigns', icon: Megaphone },
+      { titleKey: 'nav.contentCalendar', href: '/content-calendar', icon: CalendarIcon, permission: 'social_media:view' },
+      { titleKey: 'nav.socialAccounts', href: '/social-accounts', icon: Share2, permission: 'social_media:view' },
+      { titleKey: 'nav.campaigns', href: '/campaigns', icon: Megaphone, permission: 'campaigns:view' },
     ],
   },
   {
     titleKey: 'nav.support',
     items: [
-      { titleKey: 'nav.tickets', href: '/tickets', icon: HeadphonesIcon },
+      { titleKey: 'nav.tickets', href: '/tickets', icon: HeadphonesIcon, permission: 'tickets:view' },
+      { titleKey: 'nav.changeRequests', href: '/change-requests', icon: GitMerge, permission: 'change_requests:view' },
+      { titleKey: 'nav.approvals', href: '/approvals', icon: CheckSquare, permission: 'approvals:view' },
+    ],
+  },
+  {
+    titleKey: 'nav.growth',
+    items: [
+      { titleKey: 'nav.bundles', href: '/bundles', icon: Layers, permission: 'settings:view' },
+      { titleKey: 'nav.forms', href: '/forms', icon: FormInput, permission: 'leads:view' },
     ],
   },
   {
     titleKey: 'nav.admin',
     items: [
-      { titleKey: 'nav.users', href: '/admin/users', icon: Users },
-      { titleKey: 'nav.roles', href: '/admin/roles', icon: Shield },
-      { titleKey: 'nav.settings', href: '/admin/settings', icon: Settings },
-      { titleKey: 'nav.auditLog', href: '/admin/audit-log', icon: Activity },
-      { titleKey: 'nav.reports', href: '/reports', icon: BarChart3 },
+      { titleKey: 'nav.users', href: '/admin/users', icon: Users, permission: 'users:view' },
+      { titleKey: 'nav.roles', href: '/admin/roles', icon: Shield, permission: 'roles:view' },
+      { titleKey: 'nav.settings', href: '/admin/settings', icon: Settings, permission: 'settings:view' },
+      { titleKey: 'nav.auditLog', href: '/admin/audit-log', icon: Activity, permission: 'audit_log:view' },
+      { titleKey: 'nav.reports', href: '/reports', icon: BarChart3, permission: 'reports:view' },
     ],
   },
 ]
@@ -100,9 +121,36 @@ interface SidebarProps {
   onMobileClose: () => void
 }
 
+interface NotificationsResponse {
+  total: number
+  [key: string]: any
+}
+
 export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname()
   const t = useTranslations()
+  const { data: session } = useSession()
+  const userPermissions: string[] = (session?.user as { permissions?: string[] })?.permissions ?? []
+
+  // Filter nav items by permission — if no permission specified, always show
+  const filteredNavigation = navigation.map((group) => ({
+    ...group,
+    items: group.items.filter(
+      (item) => !item.permission || hasPermission(userPermissions, item.permission)
+    ),
+  })).filter((group) => group.items.length > 0)
+
+  const { data: notificationsData } = useQuery<NotificationsResponse>({
+    queryKey: ['notifications', 'unread-count'],
+    queryFn: async () => {
+      const res = await fetch('/api/notifications?unreadOnly=true&pageSize=1')
+      if (!res.ok) throw new Error('Failed to fetch notifications count')
+      return res.json()
+    },
+    staleTime: 30_000,
+  })
+
+  const unreadCount = notificationsData?.total ?? 0
 
   return (
     <aside
@@ -140,9 +188,9 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
       </div>
 
       {/* Nav */}
-      <ScrollArea className="flex-1 py-2">
+      <div className="flex-1 min-h-0 overflow-y-auto py-2 scrollbar-thin">
         <nav aria-label="Main navigation" className="space-y-1 px-2">
-          {navigation.map((group) => (
+          {filteredNavigation.map((group) => (
             <div key={group.titleKey} className="mb-4">
               {(!collapsed || mobileOpen) && (
                 <p className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -155,6 +203,10 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
                   const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
                   const Icon = item.icon
                   const showExpanded = !collapsed || mobileOpen
+
+                  const badgeCount = item.dynamicBadge === 'unreadNotifications'
+                    ? unreadCount
+                    : (item.badge ?? 0)
 
                   const linkContent = (
                     <Link
@@ -171,9 +223,9 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
                       {showExpanded && (
                         <>
                           <span className="flex-1 truncate">{t(item.titleKey)}</span>
-                          {item.badge && (
+                          {badgeCount > 0 && (
                             <Badge variant="secondary" className="h-5 min-w-5 text-xs">
-                              {item.badge}
+                              {badgeCount}
                             </Badge>
                           )}
                         </>
@@ -198,7 +250,7 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
             </div>
           ))}
         </nav>
-      </ScrollArea>
+      </div>
 
       {/* Collapse toggle - desktop only */}
       <div className="border-t p-2 max-lg:hidden">

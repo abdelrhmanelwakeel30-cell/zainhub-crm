@@ -1,6 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import { useQuery } from '@tanstack/react-query'
 import { PageHeader } from '@/components/shared/page-header'
 import { KPICard } from '@/components/shared/kpi-card'
 import { Card, CardContent } from '@/components/ui/card'
@@ -8,10 +9,35 @@ import { Button } from '@/components/ui/button'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { Badge } from '@/components/ui/badge'
 import { Plus, ExternalLink } from 'lucide-react'
-import { socialAccounts } from '@/lib/demo-data'
+
+interface SocialAccount {
+  id: string
+  accountName: string
+  platform: string
+  handle: string | null
+  followersCount: number
+  isActive: boolean
+  client: { displayName: string } | null
+}
+
+interface SocialAccountsApiResponse {
+  success: boolean
+  data: SocialAccount[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
 
 export function SocialAccountsContent() {
   const t = useTranslations('common')
+
+  const { data: response } = useQuery<SocialAccountsApiResponse>({
+    queryKey: ['social-accounts'],
+    queryFn: () => fetch('/api/social-accounts').then(r => r.json()),
+  })
+
+  const socialAccounts = response?.data ?? []
   const activeCount = socialAccounts.filter(a => a.isActive).length
 
   return (
@@ -37,14 +63,12 @@ export function SocialAccountsContent() {
                 </Badge>
               </div>
               <p className="font-medium text-sm">{account.accountName}</p>
-              <p className="text-xs text-muted-foreground mt-1">{account.client.name}</p>
-              {account.postingFrequency && (
-                <p className="text-xs text-muted-foreground mt-2">Posting: {account.postingFrequency}</p>
+              <p className="text-xs text-muted-foreground mt-1">{account.client?.displayName ?? '-'}</p>
+              {account.handle && (
+                <p className="text-xs text-muted-foreground mt-2">@{account.handle}</p>
               )}
-              {account.accountUrl && (
-                <a href={account.accountUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-blue-600 hover:underline mt-3">
-                  <ExternalLink className="h-3 w-3" /> View Profile
-                </a>
+              {account.followersCount > 0 && (
+                <p className="text-xs text-muted-foreground mt-1">{account.followersCount.toLocaleString()} followers</p>
               )}
             </CardContent>
           </Card>

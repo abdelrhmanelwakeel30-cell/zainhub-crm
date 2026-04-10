@@ -1,17 +1,22 @@
 'use client'
 
-import { useTranslations } from 'next-intl'
+import { useQuery } from '@tanstack/react-query'
 import { PageHeader } from '@/components/shared/page-header'
 import { KPICard } from '@/components/shared/kpi-card'
 import { ProposalsTable } from './proposals-table'
 import { Button } from '@/components/ui/button'
-import { Plus, Download, FileText, CheckCircle, Send, Clock } from 'lucide-react'
-import { proposals } from '@/lib/demo-data'
+import { Plus, Download, FileText, CheckCircle, Send } from 'lucide-react'
 
 export function ProposalsContent() {
-  const totalValue = proposals.reduce((s, p) => s + p.totalAmount, 0)
-  const accepted = proposals.filter(p => p.status === 'ACCEPTED')
-  const sent = proposals.filter(p => p.status === 'SENT')
+  const { data: proposalsResponse } = useQuery({
+    queryKey: ['proposals'],
+    queryFn: () => fetch('/api/proposals').then(r => r.json()),
+  })
+  const proposals = proposalsResponse?.data ?? []
+
+  const totalValue = proposals.reduce((s: number, p: { totalAmount: number }) => s + p.totalAmount, 0)
+  const accepted = proposals.filter((p: { status: string }) => p.status === 'ACCEPTED')
+  const sent = proposals.filter((p: { status: string }) => p.status === 'SENT')
 
   return (
     <div className="space-y-6 animate-slide-in">

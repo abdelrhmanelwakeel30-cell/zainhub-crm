@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog'
@@ -13,9 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { leadSources, users, services } from '@/lib/demo-data'
 import { Loader2 } from 'lucide-react'
-import { useState } from 'react'
 import { toast } from 'sonner'
 
 const leadSchema = z.object({
@@ -23,7 +22,7 @@ const leadSchema = z.object({
   email: z.string().email('Invalid email').optional().or(z.literal('')),
   phone: z.string().optional(),
   companyName: z.string().optional(),
-  source: z.string().optional(),
+  sourceId: z.string().optional(),
   urgency: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
   assignedToId: z.string().optional(),
   interestedServiceId: z.string().optional(),
@@ -42,7 +41,25 @@ interface LeadFormDialogProps {
 export function LeadFormDialog({ open, onOpenChange, defaultValues }: LeadFormDialogProps) {
   const t = useTranslations('leads')
   const tc = useTranslations('common')
-  const [saving, setSaving] = useState(false)
+  const queryClient = useQueryClient()
+
+  const { data: sourcesData } = useQuery({
+    queryKey: ['lead-sources'],
+    queryFn: () => fetch('/api/lead-sources').then(r => r.json()),
+    staleTime: 300_000,
+  })
+
+  const { data: servicesData } = useQuery({
+    queryKey: ['services'],
+    queryFn: () => fetch('/api/services').then(r => r.json()),
+    staleTime: 300_000,
+  })
+
+  const { data: usersData } = useQuery({
+    queryKey: ['users', 'minimal'],
+    queryFn: () => fetch('/api/users?minimal=true').then(r => r.json()),
+    staleTime: 300_000,
+  })
 
   const { register, handleSubmit, control, formState: { errors }, reset } = useForm<LeadFormData>({
     resolver: zodResolver(leadSchema),
@@ -52,15 +69,25 @@ export function LeadFormDialog({ open, onOpenChange, defaultValues }: LeadFormDi
     },
   })
 
-  const onSubmit = async (data: LeadFormData) => {
-    setSaving(true)
-    // Simulate save
-    await new Promise(r => setTimeout(r, 800))
-    setSaving(false)
-    toast.success('Lead created successfully')
-    reset()
-    onOpenChange(false)
-  }
+  const mutation = useMutation({
+    mutationFn: (data: LeadFormData) => fetch('/api/leads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }).then(async (r) => {
+      if (!r.ok) { const e = await r.json(); throw new Error(e.error || 'Failed to create lead') }
+      return r.json()
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] })
+      toast.success('Lead created successfully')
+      reset()
+      onOpenChange(false)
+    },
+    onError: (err: Error) => toast.error(err.message),
+  })
+
+  const onSubmit = (data: LeadFormData) => mutation.mutate(data)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -108,7 +135,7 @@ export function LeadFormDialog({ open, onOpenChange, defaultValues }: LeadFormDi
                       <SelectValue placeholder={`${tc('select')}...`} />
                     </SelectTrigger>
                     <SelectContent>
-                      {services.map(s => (
+                      {(servicesData?.data ?? []).map((s: { id: string; name: string }) => (
                         <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                       ))}
                     </SelectContent>
@@ -120,7 +147,7 @@ export function LeadFormDialog({ open, onOpenChange, defaultValues }: LeadFormDi
             <div>
               <Label>{t('source')}</Label>
               <Controller
-                name="source"
+                name="sourceId"
                 control={control}
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
@@ -128,8 +155,8 @@ export function LeadFormDialog({ open, onOpenChange, defaultValues }: LeadFormDi
                       <SelectValue placeholder={`${tc('select')}...`} />
                     </SelectTrigger>
                     <SelectContent>
-                      {leadSources.map(s => (
-                        <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
+                      {(sourcesData?.data ?? []).map((s: { id: string; name: string }) => (
+                        <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -169,7 +196,7 @@ export function LeadFormDialog({ open, onOpenChange, defaultValues }: LeadFormDi
                       <SelectValue placeholder="Unassigned" />
                     </SelectTrigger>
                     <SelectContent>
-                      {users.map(u => (
+                      {(usersData?.data ?? []).map((u: { id: string; firstName: string; lastName: string }) => (
                         <SelectItem key={u.id} value={u.id}>{u.firstName} {u.lastName}</SelectItem>
                       ))}
                     </SelectContent>
@@ -188,8 +215,8 @@ export function LeadFormDialog({ open, onOpenChange, defaultValues }: LeadFormDi
             <DialogClose render={<Button type="button" variant="outline" />}>
               {tc('cancel')}
             </DialogClose>
-            <Button type="submit" disabled={saving}>
-              {saving && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
+            <Button type="submit" disabled={mutation.isPending}>
+              {mutation.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
               {tc('save')}
             </Button>
           </DialogFooter>

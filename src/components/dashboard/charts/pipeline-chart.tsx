@@ -4,17 +4,25 @@ import { useTranslations } from 'next-intl'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 
-const data = [
-  { stage: 'Discovery', count: 2, value: 138000, color: '#6366F1' },
-  { stage: 'Proposal', count: 2, value: 180000, color: '#8B5CF6' },
-  { stage: 'Negotiation', count: 2, value: 60000, color: '#3B82F6' },
-  { stage: 'Contract', count: 2, value: 54000, color: '#06B6D4' },
-  { stage: 'Closed Won', count: 1, value: 12000, color: '#22C55E' },
-  { stage: 'Closed Lost', count: 1, value: 36000, color: '#EF4444' },
-]
+interface PipelineStage {
+  id: string
+  name: string
+  count: number
+  color?: string
+}
 
-export function PipelineChart() {
+interface PipelineChartProps {
+  data?: PipelineStage[]
+}
+
+const COLORS = ['#6366F1', '#8B5CF6', '#3B82F6', '#06B6D4', '#22C55E', '#EF4444', '#F59E0B', '#EC4899']
+
+export function PipelineChart({ data }: PipelineChartProps) {
   const t = useTranslations('dashboard')
+
+  const chartData = data && data.length > 0
+    ? data.map((s) => ({ stage: s.name, count: s.count, color: s.color || COLORS[0] }))
+    : [{ stage: 'No data', count: 0, color: '#CBD5E1' }]
 
   return (
     <Card>
@@ -23,17 +31,17 @@ export function PipelineChart() {
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={data} layout="vertical" barSize={24}>
+          <BarChart data={chartData} layout="vertical" barSize={24}>
             <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-border" />
-            <XAxis type="number" axisLine={false} tickLine={false} fontSize={12} tickFormatter={(v) => `${v/1000}K`} className="fill-muted-foreground" />
-            <YAxis type="category" dataKey="stage" axisLine={false} tickLine={false} fontSize={12} width={100} className="fill-muted-foreground" />
+            <XAxis type="number" axisLine={false} tickLine={false} fontSize={12} className="fill-muted-foreground" />
+            <YAxis type="category" dataKey="stage" axisLine={false} tickLine={false} fontSize={12} width={110} className="fill-muted-foreground" />
             <Tooltip
-              formatter={(value) => [`AED ${Number(value).toLocaleString()}`, 'Value']}
+              formatter={(value) => [value, 'Deals']}
               contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', background: 'hsl(var(--card))', color: 'hsl(var(--card-foreground))', fontSize: '12px' }}
             />
-            <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-              {data.map((entry, index) => (
-                <Cell key={index} fill={entry.color} />
+            <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+              {chartData.map((entry, index) => (
+                <Cell key={index} fill={entry.color || COLORS[index % COLORS.length]} />
               ))}
             </Bar>
           </BarChart>

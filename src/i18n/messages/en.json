@@ -99,6 +99,10 @@
     "delivery": "Delivery",
     "projects": "Projects",
     "tasks": "Tasks",
+    "clientServices": "Client Services",
+    "deliverables": "Deliverables",
+    "previewLinks": "Preview Links",
+    "communicationLog": "Communication Log",
     "timeTracking": "Time Tracking",
     "finance": "Finance",
     "quotations": "Quotations",
@@ -114,13 +118,22 @@
     "marketing": "Marketing",
     "support": "Support",
     "tickets": "Tickets",
+    "changeRequests": "Change Requests",
+    "approvals": "Approvals",
     "knowledgeBase": "Knowledge Base",
     "admin": "Administration",
     "users": "Users",
     "roles": "Roles & Permissions",
     "settings": "Settings",
     "auditLog": "Audit Log",
-    "reports": "Reports"
+    "reports": "Reports",
+    "accountHealth": "Account Health",
+    "onboarding": "Onboarding",
+    "subscriptions": "Subscriptions",
+    "bundles": "Service Bundles",
+    "forms": "Lead Forms",
+    "clientPortal": "Client Portal",
+    "growth": "Growth & Acquisition"
   },
   "dashboard": {
     "title": "Executive Dashboard",
@@ -441,5 +454,291 @@
     "profile": "Profile",
     "security": "Security",
     "notifications": "Notifications"
+  },
+  "changeRequests": {
+    "title": "Change Requests",
+    "new": "New Change Request",
+    "status": {
+      "submitted": "Submitted",
+      "under_review": "Under Review",
+      "impact_analysis": "Impact Analysis",
+      "pending_approval": "Pending Approval",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "withdrawn": "Withdrawn",
+      "in_progress": "In Progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "type": {
+      "scope": "Scope Change",
+      "timeline": "Timeline Change",
+      "budget": "Budget Change",
+      "resource": "Resource Change",
+      "technical": "Technical Change",
+      "other": "Other"
+    },
+    "fields": {
+      "title": "Title",
+      "description": "Description",
+      "type": "Type",
+      "impact": "Impact",
+      "estimatedCost": "Estimated Cost",
+      "estimatedDays": "Estimated Days",
+      "requestedBy": "Requested By",
+      "project": "Project"
+    }
+  },
+  "approvals": {
+    "title": "Approvals",
+    "pending": "Pending",
+    "decided": "Decided",
+    "approve": "Approve",
+    "reject": "Reject",
+    "decision": "Decision",
+    "comment": "Comment",
+    "workflow": "Workflow",
+    "step": "Step",
+    "requestedBy": "Requested By",
+    "entityType": {
+      "quotation": "Quotation",
+      "contract": "Contract",
+      "expense": "Expense",
+      "change_request": "Change Request",
+      "proposal": "Proposal",
+      "invoice": "Invoice",
+      "project_milestone": "Project Milestone",
+      "preview": "Preview",
+      "scope": "Scope",
+      "budget": "Budget"
+    }
+  },
+  "deliverables": {
+    "title": "Deliverables",
+    "new": "New Deliverable",
+    "status": {
+      "pending": "Pending",
+      "in_progress": "In Progress",
+      "in_review": "In Review",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "delivered": "Delivered"
+    },
+    "fields": {
+      "name": "Name",
+      "description": "Description",
+      "type": "Type",
+      "fileUrl": "File URL",
+      "dueDate": "Due Date",
+      "deliveredAt": "Delivered At",
+      "project": "Project",
+      "clientService": "Client Service",
+      "uploadedBy": "Uploaded By"
+    }
+  },
+  "previewLinks": {
+    "title": "Preview Links",
+    "new": "New Preview Link",
+    "copyLink": "Copy Link",
+    "feedback": "Feedback",
+    "status": {
+      "active": "Active",
+      "expired": "Expired",
+      "approved": "Approved",
+      "revision_needed": "Revision Needed"
+    },
+    "fields": {
+      "title": "Title",
+      "url": "URL",
+      "expiresAt": "Expires At",
+      "password": "Password",
+      "allowFeedback": "Allow Feedback",
+      "project": "Project",
+      "clientService": "Client Service"
+    }
+  },
+  "clientServices": {
+    "title": "Client Services",
+    "new": "New Client Service",
+    "milestone": "Milestone",
+    "milestones": "Milestones",
+    "team": "Team",
+    "status": {
+      "onboarding": "Onboarding",
+      "active": "Active",
+      "on_hold": "On Hold",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "fields": {
+      "name": "Service Name",
+      "company": "Company",
+      "service": "Service",
+      "package": "Package",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "contractValue": "Contract Value",
+      "projectManager": "Project Manager"
+    }
+  },
+  "communicationLog": {
+    "title": "Communication Log",
+    "new": "Log Communication",
+    "timeline": "Timeline",
+    "list": "List",
+    "type": {
+      "call": "Call",
+      "email": "Email",
+      "meeting": "Meeting",
+      "note": "Note",
+      "whatsapp": "WhatsApp",
+      "sms": "SMS"
+    },
+    "direction": {
+      "inbound": "Inbound",
+      "outbound": "Outbound"
+    },
+    "fields": {
+      "subject": "Subject",
+      "body": "Notes",
+      "duration": "Duration (minutes)",
+      "occurredAt": "Date & Time",
+      "company": "Company",
+      "contact": "Contact",
+      "lead": "Lead",
+      "opportunity": "Opportunity",
+      "project": "Project"
+    }
+  },
+  "accountHealth": {
+    "title": "Account Health",
+    "update": "Update Health",
+    "status": {
+      "healthy": "Healthy",
+      "at_risk": "At Risk",
+      "critical": "Critical",
+      "churned": "Churned"
+    },
+    "upsellReadiness": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "fields": {
+      "overallScore": "Overall Score",
+      "npsScore": "NPS Score",
+      "healthStatus": "Health Status",
+      "upsellReadiness": "Upsell Readiness",
+      "openTickets": "Open Tickets",
+      "overdueInvoices": "Overdue Invoices",
+      "lastActivity": "Last Activity",
+      "notes": "Notes"
+    }
+  },
+  "onboarding": {
+    "title": "Client Onboarding",
+    "new": "New Onboarding",
+    "checklist": "Checklist",
+    "progress": "Progress",
+    "status": {
+      "in_progress": "In Progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "fields": {
+      "company": "Company",
+      "project": "Project",
+      "template": "Template",
+      "completedAt": "Completed At"
+    }
+  },
+  "subscriptions": {
+    "title": "Subscriptions",
+    "new": "New Subscription",
+    "mrr": "Monthly Recurring Revenue",
+    "billingHistory": "Billing History",
+    "generateInvoice": "Generate Invoice",
+    "status": {
+      "active": "Active",
+      "paused": "Paused",
+      "cancelled": "Cancelled",
+      "expired": "Expired"
+    },
+    "interval": {
+      "weekly": "Weekly",
+      "biweekly": "Bi-weekly",
+      "monthly": "Monthly",
+      "quarterly": "Quarterly",
+      "semi_annual": "Semi-Annual",
+      "annual": "Annual"
+    },
+    "fields": {
+      "name": "Subscription Name",
+      "company": "Company",
+      "service": "Service",
+      "package": "Package",
+      "amount": "Amount",
+      "interval": "Billing Interval",
+      "startDate": "Start Date",
+      "nextBillingDate": "Next Billing Date",
+      "endDate": "End Date",
+      "autoRenew": "Auto Renew",
+      "notes": "Notes"
+    }
+  },
+  "bundles": {
+    "title": "Service Bundles",
+    "new": "New Bundle",
+    "items": "Bundle Items",
+    "addService": "Add Service",
+    "fields": {
+      "name": "Bundle Name",
+      "description": "Description",
+      "category": "Category",
+      "price": "Bundle Price",
+      "isActive": "Active"
+    }
+  },
+  "forms": {
+    "title": "Lead Capture Forms",
+    "new": "New Form",
+    "submissions": "Submissions",
+    "viewSubmissions": "View Submissions",
+    "copyLink": "Copy Form Link",
+    "fieldBuilder": "Field Builder",
+    "addField": "Add Field",
+    "fieldTypes": {
+      "text": "Text",
+      "email": "Email",
+      "phone": "Phone",
+      "textarea": "Text Area",
+      "select": "Dropdown"
+    },
+    "fields": {
+      "name": "Form Name",
+      "slug": "URL Slug",
+      "description": "Description",
+      "sourceTag": "Lead Source Tag",
+      "thankYouMsg": "Thank You Message",
+      "redirectUrl": "Redirect URL",
+      "isActive": "Active"
+    }
+  },
+  "clientPortal": {
+    "title": "Client Portal",
+    "login": "Login",
+    "register": "Register",
+    "welcome": "Welcome",
+    "myServices": "My Services",
+    "myRequests": "My Requests",
+    "myPreviewLinks": "Preview Links",
+    "myDocuments": "Documents",
+    "logout": "Logout",
+    "verifyEmail": "Verify Email",
+    "emailSent": "Verification email sent. Please check your inbox.",
+    "emailVerified": "Email verified successfully!",
+    "sendOtp": "Send OTP",
+    "verifyOtp": "Verify OTP",
+    "otpSent": "OTP sent to your phone."
   }
 }

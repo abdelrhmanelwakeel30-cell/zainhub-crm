@@ -1,24 +1,57 @@
 'use client'
 
+import { useQuery } from '@tanstack/react-query'
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { Plus, ArrowRight } from 'lucide-react'
-import { opportunities } from '@/lib/demo-data'
 
-const defaultStages = [
-  { name: 'Discovery', key: 'DISCOVERY', color: 'bg-indigo-500' },
-  { name: 'Proposal', key: 'PROPOSAL', color: 'bg-violet-500' },
-  { name: 'Negotiation', key: 'NEGOTIATION', color: 'bg-blue-500' },
-  { name: 'Contract', key: 'CONTRACT', color: 'bg-cyan-500' },
-  { name: 'Closed Won', key: 'CLOSED_WON', color: 'bg-green-500' },
-  { name: 'Closed Lost', key: 'CLOSED_LOST', color: 'bg-red-500' },
-]
+interface Stage {
+  id: string
+  name: string
+  color: string
+  order: number
+  probability: number
+  isClosed: boolean
+  isWon: boolean
+}
+
+interface Pipeline {
+  id: string
+  name: string
+  type: string
+  isDefault: boolean
+  isActive: boolean
+  stages: Stage[]
+}
 
 export function PipelinesContent() {
-  const stageCount = (key: string) => opportunities.filter(o => o.stage === key).length
-  const stageValue = (key: string) => opportunities.filter(o => o.stage === key).reduce((sum, o) => sum + o.value, 0)
+  const { data: pipelinesData, isLoading: pipelinesLoading } = useQuery({
+    queryKey: ['pipelines'],
+    queryFn: () => fetch('/api/pipelines').then(r => r.json()),
+    staleTime: 300_000,
+  })
+
+  const { data: oppsData, isLoading: oppsLoading } = useQuery({
+    queryKey: ['opportunities', 'pipeline-overview'],
+    queryFn: () => fetch('/api/opportunities?pageSize=200').then(r => r.json()),
+    staleTime: 60_000,
+  })
+
+  const pipelines: Pipeline[] = pipelinesData?.data ?? []
+  const opportunities: Array<{ stageId: string; expectedValue: number; weightedValue: number }> = oppsData?.data ?? []
+  const isLoading = pipelinesLoading || oppsLoading
+
+  const stageCount = (stageId: string) => opportunities.filter(o => (o as Record<string, unknown>).stage && ((o as Record<string, unknown>).stage as { id: string }).id === stageId).length
+  const stageValue = (stageId: string) => opportunities
+    .filter(o => (o as Record<string, unknown>).stage && ((o as Record<string, unknown>).stage as { id: string }).id === stageId)
+    .reduce((sum, o) => sum + Number(o.expectedValue ?? 0), 0)
+
+  const totalDeals = opportunities.length
+  const totalPipelineValue = opportunities.reduce((s, o) => s + Number(o.expectedValue ?? 0), 0)
+  const totalWeightedValue = opportunities.reduce((s, o) => s + Number(o.weightedValue ?? 0), 0)
 
   return (
     <div className="space-y-6 animate-slide-in">
@@ -26,66 +59,84 @@ export function PipelinesContent() {
         <Button size="sm"><Plus className="h-4 w-4 me-2" /> New Pipeline</Button>
       </PageHeader>
 
-      {/* Default Sales Pipeline */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Default Sales Pipeline</CardTitle>
-            <StatusBadge status="active" />
+      {isLoading ? (
+        <div className="space-y-4">
+          <Skeleton className="h-48" />
+          <div className="grid grid-cols-3 gap-4">
+            <Skeleton className="h-24" />
+            <Skeleton className="h-24" />
+            <Skeleton className="h-24" />
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-2 overflow-x-auto pb-2">
-            {defaultStages.map((stage, i) => {
-              const count = stageCount(stage.key)
-              const value = stageValue(stage.key)
-              return (
-                <div key={stage.key} className="flex items-center gap-2">
-                  <div className="min-w-[160px] rounded-lg border p-3">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className={`h-2 w-2 rounded-full ${stage.color}`} />
-                      <p className="text-xs font-medium">{stage.name}</p>
-                    </div>
-                    <p className="text-lg font-bold">{count}</p>
-                    <p className="text-xs text-muted-foreground">
-                      AED {value.toLocaleString()}
-                    </p>
+        </div>
+      ) : (
+        <>
+          {pipelines.map(pipeline => {
+            const activeStages = pipeline.stages.filter(s => !s.isClosed)
+            const closedStages = pipeline.stages.filter(s => s.isClosed)
+            return (
+              <Card key={pipeline.id}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base">{pipeline.name}</CardTitle>
+                    <StatusBadge status={pipeline.isActive ? 'active' : 'inactive'} />
                   </div>
-                  {i < defaultStages.length - 1 && (
-                    <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </CardContent>
-      </Card>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-2 overflow-x-auto pb-2">
+                    {[...activeStages, ...closedStages].map((stage, i, arr) => {
+                      const count = stageCount(stage.id)
+                      const value = stageValue(stage.id)
+                      return (
+                        <div key={stage.id} className="flex items-center gap-2">
+                          <div className="min-w-[160px] rounded-lg border p-3">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="h-2 w-2 rounded-full" style={{ backgroundColor: stage.color || '#6b7280' }} />
+                              <p className="text-xs font-medium">{stage.name}</p>
+                            </div>
+                            <p className="text-lg font-bold">{count}</p>
+                            <p className="text-xs text-muted-foreground">
+                              AED {value.toLocaleString()}
+                            </p>
+                          </div>
+                          {i < arr.length - 1 && (
+                            <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })}
 
-      {/* Pipeline Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-5">
-            <p className="text-xs text-muted-foreground">Total Deals</p>
-            <p className="text-2xl font-bold mt-1">{opportunities.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-5">
-            <p className="text-xs text-muted-foreground">Pipeline Value</p>
-            <p className="text-2xl font-bold mt-1">
-              AED {opportunities.reduce((s, o) => s + o.value, 0).toLocaleString()}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-5">
-            <p className="text-xs text-muted-foreground">Weighted Value</p>
-            <p className="text-2xl font-bold mt-1">
-              AED {opportunities.reduce((s, o) => s + o.weightedValue, 0).toLocaleString()}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+          {/* Pipeline Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardContent className="p-5">
+                <p className="text-xs text-muted-foreground">Total Deals</p>
+                <p className="text-2xl font-bold mt-1">{totalDeals}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-5">
+                <p className="text-xs text-muted-foreground">Pipeline Value</p>
+                <p className="text-2xl font-bold mt-1">
+                  AED {totalPipelineValue.toLocaleString()}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-5">
+                <p className="text-xs text-muted-foreground">Weighted Value</p>
+                <p className="text-2xl font-bold mt-1">
+                  AED {totalWeightedValue.toLocaleString()}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </>
+      )}
     </div>
   )
 }

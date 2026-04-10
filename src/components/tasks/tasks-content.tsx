@@ -2,19 +2,26 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { useQuery } from '@tanstack/react-query'
 import { PageHeader } from '@/components/shared/page-header'
 import { KPICard } from '@/components/shared/kpi-card'
 import { TasksTable } from './tasks-table'
 import { TaskFormDialog } from './task-form-dialog'
 import { Button } from '@/components/ui/button'
 import { Plus, Download, ListTodo, Clock, AlertTriangle, CheckCircle2 } from 'lucide-react'
-import { tasks } from '@/lib/demo-data'
 
 export function TasksContent() {
   const t = useTranslations('tasks')
   const [showCreateForm, setShowCreateForm] = useState(false)
 
-  const totalTasks = tasks.length
+  const { data } = useQuery({
+    queryKey: ['tasks'],
+    queryFn: () => fetch('/api/tasks').then(r => r.json()),
+  })
+
+  const tasks: Array<{ status: string; dueDate: string }> = data?.data ?? []
+
+  const totalTasks = data?.total ?? 0
   const inProgress = tasks.filter(t => t.status === 'IN_PROGRESS').length
   const overdue = tasks.filter(t => {
     const due = new Date(t.dueDate)

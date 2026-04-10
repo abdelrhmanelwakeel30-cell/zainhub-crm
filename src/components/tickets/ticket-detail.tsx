@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
-import { tickets, users } from '@/lib/demo-data'
+import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -20,13 +20,57 @@ interface TicketDetailProps {
   ticketId: string
 }
 
+interface Ticket {
+  id: string
+  ticketNumber: string
+  subject: string
+  description?: string | null
+  status: string
+  priority: string
+  type: string
+  client?: { displayName: string } | null
+  assignedTo?: { firstName: string; lastName: string } | null
+  comments?: { id: string; body: string; createdAt: string; author: { firstName: string; lastName: string } }[]
+  createdAt: string
+  dueDate?: string | null
+  resolvedAt?: string | null
+  slaDueAt?: string | null
+  closedAt?: string | null
+  createdBy?: { firstName: string; lastName: string } | null
+  project?: { id: string; name: string } | null
+}
+
 export function TicketDetail({ ticketId }: TicketDetailProps) {
   const t = useTranslations('tickets')
   const tc = useTranslations('common')
   const router = useRouter()
   const [showAssign, setShowAssign] = useState(false)
 
-  const ticket = tickets.find(tk => tk.id === ticketId)
+  const { data, isLoading } = useQuery({
+    queryKey: ['tickets', ticketId],
+    queryFn: () => fetch(`/api/tickets/${ticketId}`).then(r => r.json()),
+  })
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="h-10 bg-muted rounded w-1/3" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-4">
+            <div className="h-40 bg-muted rounded" />
+            <div className="h-48 bg-muted rounded" />
+          </div>
+          <div className="space-y-4">
+            <div className="h-24 bg-muted rounded" />
+            <div className="h-32 bg-muted rounded" />
+            <div className="h-24 bg-muted rounded" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const ticket: Ticket | undefined = data?.data
   const isClosed = ticket?.status === 'RESOLVED' || ticket?.status === 'CLOSED'
 
   if (!ticket) {
@@ -40,6 +84,14 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
       </div>
     )
   }
+
+  const assignedToName = ticket.assignedTo
+    ? `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`
+    : null
+
+  const createdByName = ticket.createdBy
+    ? `${ticket.createdBy.firstName} ${ticket.createdBy.lastName}`
+    : null
 
   return (
     <div className="space-y-6 animate-slide-in">
@@ -57,7 +109,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
               <StatusBadge status={ticket.status.replace(/_/g, ' ')} />
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-              {ticket.ticketNumber} · {ticket.client?.name || 'Internal'} · Created {formatRelativeDate(ticket.createdAt)}
+              {ticket.ticketNumber} · {ticket.client?.displayName || 'Internal'} · Created {formatRelativeDate(ticket.createdAt)}
             </p>
           </div>
         </div>
@@ -84,9 +136,9 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
-                <InfoRow icon={<Building2 className="h-4 w-4" />} label={t('client')} value={ticket.client?.name} />
+                <InfoRow icon={<Building2 className="h-4 w-4" />} label={t('client')} value={ticket.client?.displayName} />
                 <InfoRow icon={<FolderOpen className="h-4 w-4" />} label={t('project')} value={ticket.project?.name} />
-                <InfoRow icon={<User className="h-4 w-4" />} label={t('createdBy')} value={ticket.createdBy?.name} />
+                <InfoRow icon={<User className="h-4 w-4" />} label={t('createdBy')} value={createdByName} />
                 <InfoRow icon={<CalendarClock className="h-4 w-4" />} label={t('createdAt')} value={formatDate(ticket.createdAt)} />
                 {ticket.resolvedAt && (
                   <InfoRow icon={<Clock className="h-4 w-4" />} label={t('resolvedAt')} value={formatDate(ticket.resolvedAt)} />
@@ -151,11 +203,11 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
                     <AvatarFallback className="bg-blue-100 text-blue-700">
-                      {getInitials(ticket.assignedTo.name)}
+                      {getInitials(assignedToName!)}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-medium text-sm">{ticket.assignedTo.name}</p>
+                    <p className="font-medium text-sm">{assignedToName}</p>
                     <p className="text-xs text-muted-foreground">Support Team</p>
                   </div>
                 </div>
@@ -168,9 +220,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
                         <SelectValue placeholder="Select team member..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {users.map(u => (
-                          <SelectItem key={u.id} value={u.id}>{u.firstName} {u.lastName}</SelectItem>
-                        ))}
+                        <SelectItem value="placeholder">Loading...</SelectItem>
                       </SelectContent>
                     </Select>
                   ) : (
@@ -220,15 +270,19 @@ function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string;
 
 type TimelineEvent = { action: string; detail: string; time: string }
 
-function buildTimeline(ticket: (typeof tickets)[number]): TimelineEvent[] {
+function buildTimeline(ticket: Ticket): TimelineEvent[] {
+  const createdByName = ticket.createdBy
+    ? `${ticket.createdBy.firstName} ${ticket.createdBy.lastName}`
+    : 'Unknown'
+
   const events: TimelineEvent[] = [
-    { action: 'Ticket created', detail: `By ${ticket.createdBy?.name || 'Unknown'} · ${ticket.type.replace(/_/g, ' ')} · ${ticket.priority}`, time: ticket.createdAt },
+    { action: 'Ticket created', detail: `By ${createdByName} · ${ticket.type.replace(/_/g, ' ')} · ${ticket.priority}`, time: ticket.createdAt },
   ]
 
   if (ticket.assignedTo) {
-    // Estimate assignment ~1 hour after creation
+    const assignedName = `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`
     const assignedTime = new Date(new Date(ticket.createdAt).getTime() + 3600000).toISOString()
-    events.push({ action: `Assigned to ${ticket.assignedTo.name}`, detail: '', time: assignedTime })
+    events.push({ action: `Assigned to ${assignedName}`, detail: '', time: assignedTime })
   }
   if (ticket.status === 'IN_PROGRESS' || ticket.status === 'WAITING_CLIENT' || ticket.status === 'RESOLVED' || ticket.status === 'CLOSED') {
     const startTime = new Date(new Date(ticket.createdAt).getTime() + 7200000).toISOString()

@@ -4,15 +4,14 @@ import { useTranslations } from 'next-intl'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { companies } from '@/lib/demo-data'
 import { Loader2 } from 'lucide-react'
-import { useState } from 'react'
 import { toast } from 'sonner'
 
 const contactSchema = z.object({
@@ -37,20 +36,49 @@ interface ContactFormDialogProps {
 export function ContactFormDialog({ open, onOpenChange, defaultValues }: ContactFormDialogProps) {
   const t = useTranslations('contacts')
   const tc = useTranslations('common')
-  const [saving, setSaving] = useState(false)
+  const queryClient = useQueryClient()
+
+  const { data: companiesData } = useQuery({
+    queryKey: ['companies'],
+    queryFn: () => fetch('/api/companies').then(r => r.json()),
+    enabled: open,
+  })
+
+  const companies: { id: string; displayName: string }[] = companiesData?.data ?? []
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
     defaultValues: { decisionRole: 'OTHER', ...defaultValues },
   })
 
-  const onSubmit = async (data: ContactFormData) => {
-    setSaving(true)
-    await new Promise(r => setTimeout(r, 800))
-    setSaving(false)
-    toast.success('Contact created successfully')
-    reset()
-    onOpenChange(false)
+  const mutation = useMutation({
+    mutationFn: (data: ContactFormData) =>
+      fetch('/api/contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+          phone: data.phone,
+          jobTitle: data.jobTitle,
+          companyId: data.companyId,
+          notes: data.department,
+        }),
+      }).then(r => r.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contacts'] })
+      toast.success('Contact created successfully')
+      reset()
+      onOpenChange(false)
+    },
+    onError: () => {
+      toast.error('Failed to create contact')
+    },
+  })
+
+  const onSubmit = (data: ContactFormData) => {
+    mutation.mutate(data)
   }
 
   return (
@@ -112,8 +140,8 @@ export function ContactFormDialog({ open, onOpenChange, defaultValues }: Contact
             <DialogClose render={<Button type="button" variant="outline" />}>
               {tc('cancel')}
             </DialogClose>
-            <Button type="submit" disabled={saving}>
-              {saving && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
+            <Button type="submit" disabled={mutation.isPending}>
+              {mutation.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
               {tc('save')}
             </Button>
           </DialogFooter>
