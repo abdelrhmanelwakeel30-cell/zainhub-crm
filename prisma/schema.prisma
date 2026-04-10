@@ -11,7 +11,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"     // Switch to "postgresql" for production
+  provider = "postgresql"
 }
 
 // ============================================================================
@@ -469,7 +469,7 @@ model Role {
   tenant      Tenant   @relation(fields: [tenantId], references: [id])
   name        String
   nameAr      String?
-  description String?
+  description String? @db.Text
   isSystem    Boolean  @default(false) // System roles can't be deleted
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -485,7 +485,7 @@ model Permission {
   id          String  @id @default(cuid())
   module      String  // "leads", "companies", "invoices", etc.
   action      String  // "view", "create", "edit", "delete", "export", "approve"
-  description String?
+  description String? @db.Text
 
   rolePermissions RolePermission[]
 
@@ -542,7 +542,7 @@ model Company {
   employeeCount         Int?
   source                String?
   healthScore           Int?           @default(0) // 0-100 composite score
-  notes                 String?
+  notes                 String? @db.Text
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
   archivedAt            DateTime?
@@ -586,7 +586,7 @@ model Contact {
   nextFollowUpAt    DateTime?
   leadScore         Int?          @default(0)
   source            String?
-  notes             String?
+  notes             String? @db.Text
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
   archivedAt        DateTime?
@@ -785,7 +785,7 @@ model Opportunity {
   tenant             Tenant        @relation(fields: [tenantId], references: [id])
   opportunityNumber  String        // Auto: OPP-0001
   title              String
-  description        String?
+  description        String? @db.Text
   companyId          String?
   company            Company?      @relation(fields: [companyId], references: [id])
   primaryContactId   String?
@@ -858,7 +858,7 @@ model ServiceCategory {
   tenant    Tenant   @relation(fields: [tenantId], references: [id])
   name      String
   nameAr    String?
-  description String?
+  description String? @db.Text
   icon      String?
   order     Int      @default(0)
   isActive  Boolean  @default(true)
@@ -879,7 +879,7 @@ model Service {
   category    ServiceCategory @relation(fields: [categoryId], references: [id])
   name        String
   nameAr      String?
-  description String?
+  description String? @db.Text
   basePrice   Decimal?
   currency    Currency        @default(AED)
   pricingType PricingType     @default(FIXED)
@@ -908,7 +908,7 @@ model ServicePackage {
   service     Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
   name        String
   nameAr      String?
-  description String?
+  description String? @db.Text
   price       Decimal
   currency    Currency @default(AED)
   features    Json?    // ["Feature 1", "Feature 2", ...]
@@ -936,7 +936,7 @@ model Project {
   tenant                Tenant        @relation(fields: [tenantId], references: [id])
   projectNumber         String        // Auto: PRJ-0001
   name                  String
-  description           String?
+  description           String? @db.Text
   clientId              String?
   client                Company?      @relation(fields: [clientId], references: [id])
   opportunityId         String?
@@ -957,7 +957,7 @@ model Project {
   currency              Currency      @default(AED)
   actualCost            Decimal?      @default(0)
   profitabilityEstimate Decimal?
-  notes                 String?
+  notes                 String? @db.Text
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt
   archivedAt            DateTime?
@@ -997,7 +997,7 @@ model ProjectMilestone {
   projectId   String
   project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   name        String
-  description String?
+  description String? @db.Text
   dueDate     DateTime?
   completedAt DateTime?
   status      String    @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED, OVERDUE
@@ -1106,7 +1106,7 @@ model Campaign {
   tenantId              String
   tenant                Tenant         @relation(fields: [tenantId], references: [id])
   name                  String
-  description           String?
+  description           String? @db.Text
   type                  CampaignType   @default(OTHER)
   platform              String?
   budget                Decimal?
@@ -1144,7 +1144,7 @@ model Quotation {
   tenant            Tenant          @relation(fields: [tenantId], references: [id])
   quotationNumber   String          // Auto: QUO-0001
   title             String
-  description       String?
+  description       String? @db.Text
   companyId         String?
   company           Company?        @relation(fields: [companyId], references: [id])
   contactId         String?
@@ -1193,7 +1193,7 @@ model QuotationItem {
   service         Service?        @relation(fields: [serviceId], references: [id])
   packageId       String?
   package         ServicePackage? @relation(fields: [packageId], references: [id])
-  description     String
+  description     String @db.Text
   quantity        Int             @default(1)
   unitPrice       Decimal
   discountPercent Decimal?        @default(0)
@@ -1263,7 +1263,7 @@ model ProposalItem {
   service         Service?        @relation(fields: [serviceId], references: [id])
   packageId       String?
   package         ServicePackage? @relation(fields: [packageId], references: [id])
-  description     String
+  description     String @db.Text
   quantity        Int             @default(1)
   unitPrice       Decimal
   totalPrice      Decimal
@@ -1346,7 +1346,7 @@ model Invoice {
   isRecurring        Boolean         @default(false)
   recurringInterval  RecurringInterval?
   nextRecurringDate  DateTime?
-  notes              String?
+  notes              String? @db.Text
   terms              String?
   createdById        String
   createdBy          User            @relation("InvoiceCreator", fields: [createdById], references: [id])
@@ -1369,7 +1369,7 @@ model InvoiceItem {
   invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
   serviceId   String?
   service     Service? @relation(fields: [serviceId], references: [id])
-  description String
+  description String @db.Text
   quantity    Int      @default(1)
   unitPrice   Decimal
   discountPercent Decimal? @default(0)
@@ -1394,7 +1394,7 @@ model Payment {
   paymentDate   DateTime
   paymentMethod PaymentMethod @default(BANK_TRANSFER)
   reference     String?
-  notes         String?
+  notes         String? @db.Text
   createdById   String
   createdBy     User          @relation(fields: [createdById], references: [id])
   createdAt     DateTime      @default(now())
@@ -1423,8 +1423,8 @@ model Expense {
   currency          Currency      @default(AED)
   expenseDate       DateTime
   paymentMethod     PaymentMethod @default(BANK_TRANSFER)
-  description       String?
-  notes             String?
+  description       String? @db.Text
+  notes             String? @db.Text
   linkedProjectId   String?
   linkedProject     Project?      @relation(fields: [linkedProjectId], references: [id])
   receiptDocumentId String?       // Reference to Document
@@ -1489,7 +1489,7 @@ model Ticket {
   tenant            Tenant       @relation(fields: [tenantId], references: [id])
   ticketNumber      String       // Auto: TKT-0001
   subject           String
-  description       String?
+  description       String? @db.Text
   clientId          String?
   client            Company?     @relation(fields: [clientId], references: [id])
   projectId         String?
@@ -1541,7 +1541,7 @@ model Task {
   tenant         Tenant      @relation(fields: [tenantId], references: [id])
   taskNumber     String      // Auto: TSK-0001
   title          String
-  description    String?
+  description    String? @db.Text
   // Polymorphic linking
   relatedType    String?     // "lead", "opportunity", "project", "ticket", "campaign"
   relatedId      String?
@@ -1615,7 +1615,7 @@ model TimeEntry {
   task        Task?    @relation(fields: [taskId], references: [id])
   projectId   String?
   project     Project? @relation(fields: [projectId], references: [id])
-  description String?
+  description String? @db.Text
   startTime   DateTime
   endTime     DateTime?
   durationMinutes Int?
@@ -1638,7 +1638,7 @@ model Document {
   tenantId         String
   tenant           Tenant           @relation(fields: [tenantId], references: [id])
   name             String
-  description      String?
+  description      String? @db.Text
   fileType         String?          // "pdf", "png", "docx", etc.
   fileUrl          String
   fileSize         Int?             // bytes
@@ -1672,7 +1672,7 @@ model Activity {
   entityType    String       // "lead", "company", "contact", "opportunity", "project", etc.
   entityId      String
   title         String
-  description   String?
+  description   String? @db.Text
   metadata      Json?        // Flexible: old/new values, related entity links, etc.
   performedById String?
   performedBy   User?        @relation(fields: [performedById], references: [id])
@@ -1695,7 +1695,7 @@ model Notification {
   user       User     @relation(fields: [userId], references: [id])
   type       String   // Matches NotificationType values as string for flexibility
   title      String
-  body       String?
+  body       String? @db.Text
   entityType String?
   entityId   String?
   actionUrl  String?
@@ -1806,7 +1806,7 @@ model AutomationRule {
   tenantId          String
   tenant            Tenant   @relation(fields: [tenantId], references: [id])
   name              String
-  description       String?
+  description       String? @db.Text
   triggerEvent      String   // "lead.created", "invoice.overdue", "ticket.urgent", etc.
   triggerConditions Json?    // { "field": "budget", "operator": "gt", "value": 50000 }
   actions           Json     // [{ "type": "notify", "to": "sales_manager" }, { "type": "update_field", ... }]
