@@ -1,69 +1,69 @@
 import { PrismaClient } from '@prisma/client'
+import { PrismaNeon } from '@prisma/adapter-neon'
 import bcrypt from 'bcryptjs'
 
-const prisma = new PrismaClient()
+const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL! })
+const prisma = new PrismaClient({ adapter })
 
 async function main() {
   console.log('🌱 Seeding database...')
 
-  // Clean existing data
-  await prisma.$transaction([
-    prisma.activity.deleteMany(),
-    prisma.auditLog.deleteMany(),
-    prisma.notification.deleteMany(),
-    prisma.tagRelation.deleteMany(),
-    prisma.tag.deleteMany(),
-    prisma.customFieldValue.deleteMany(),
-    prisma.customField.deleteMany(),
-    prisma.contentApproval.deleteMany(),
-    prisma.contentItem.deleteMany(),
-    prisma.socialAccount.deleteMany(),
-    prisma.ticketComment.deleteMany(),
-    prisma.ticket.deleteMany(),
-    prisma.taskWatcher.deleteMany(),
-    prisma.taskComment.deleteMany(),
-    prisma.task.deleteMany(),
-    prisma.timeEntry.deleteMany(),
-    prisma.projectMilestone.deleteMany(),
-    prisma.projectMember.deleteMany(),
-    prisma.project.deleteMany(),
-    prisma.payment.deleteMany(),
-    prisma.invoiceItem.deleteMany(),
-    prisma.invoice.deleteMany(),
-    prisma.expense.deleteMany(),
-    prisma.contract.deleteMany(),
-    prisma.proposalItem.deleteMany(),
-    prisma.proposal.deleteMany(),
-    prisma.quotationItem.deleteMany(),
-    prisma.quotation.deleteMany(),
-    prisma.opportunityService.deleteMany(),
-    prisma.opportunity.deleteMany(),
-    prisma.lead.deleteMany(),
-    prisma.companyContact.deleteMany(),
-    prisma.contact.deleteMany(),
-    prisma.company.deleteMany(),
-    prisma.campaign.deleteMany(),
-    prisma.document.deleteMany(),
-    prisma.savedFilter.deleteMany(),
-    prisma.setting.deleteMany(),
-    prisma.automationRule.deleteMany(),
-    prisma.onboardingTemplate.deleteMany(),
-    prisma.servicePackage.deleteMany(),
-    prisma.service.deleteMany(),
-    prisma.serviceCategory.deleteMany(),
-    prisma.pipelineStage.deleteMany(),
-    prisma.pipeline.deleteMany(),
-    prisma.lostReason.deleteMany(),
-    prisma.leadSource.deleteMany(),
-    prisma.taxRate.deleteMany(),
-    prisma.expenseCategory.deleteMany(),
-    prisma.userRole.deleteMany(),
-    prisma.rolePermission.deleteMany(),
-    prisma.permission.deleteMany(),
-    prisma.role.deleteMany(),
-    prisma.user.deleteMany(),
-    prisma.tenant.deleteMany(),
-  ])
+  // Clean existing data (sequential — pooler doesn't support batch transactions)
+  await prisma.activity.deleteMany()
+  await prisma.auditLog.deleteMany()
+  await prisma.notification.deleteMany()
+  await prisma.tagRelation.deleteMany()
+  await prisma.tag.deleteMany()
+  await prisma.customFieldValue.deleteMany()
+  await prisma.customField.deleteMany()
+  await prisma.contentApproval.deleteMany()
+  await prisma.contentItem.deleteMany()
+  await prisma.socialAccount.deleteMany()
+  await prisma.ticketComment.deleteMany()
+  await prisma.ticket.deleteMany()
+  await prisma.taskWatcher.deleteMany()
+  await prisma.taskComment.deleteMany()
+  await prisma.task.deleteMany()
+  await prisma.timeEntry.deleteMany()
+  await prisma.projectMilestone.deleteMany()
+  await prisma.projectMember.deleteMany()
+  await prisma.project.deleteMany()
+  await prisma.payment.deleteMany()
+  await prisma.invoiceItem.deleteMany()
+  await prisma.invoice.deleteMany()
+  await prisma.expense.deleteMany()
+  await prisma.contract.deleteMany()
+  await prisma.proposalItem.deleteMany()
+  await prisma.proposal.deleteMany()
+  await prisma.quotationItem.deleteMany()
+  await prisma.quotation.deleteMany()
+  await prisma.opportunityService.deleteMany()
+  await prisma.opportunity.deleteMany()
+  await prisma.lead.deleteMany()
+  await prisma.companyContact.deleteMany()
+  await prisma.contact.deleteMany()
+  await prisma.company.deleteMany()
+  await prisma.campaign.deleteMany()
+  await prisma.document.deleteMany()
+  await prisma.savedFilter.deleteMany()
+  await prisma.setting.deleteMany()
+  await prisma.automationRule.deleteMany()
+  await prisma.onboardingTemplate.deleteMany()
+  await prisma.servicePackage.deleteMany()
+  await prisma.service.deleteMany()
+  await prisma.serviceCategory.deleteMany()
+  await prisma.pipelineStage.deleteMany()
+  await prisma.pipeline.deleteMany()
+  await prisma.lostReason.deleteMany()
+  await prisma.leadSource.deleteMany()
+  await prisma.taxRate.deleteMany()
+  await prisma.expenseCategory.deleteMany()
+  await prisma.userRole.deleteMany()
+  await prisma.rolePermission.deleteMany()
+  await prisma.permission.deleteMany()
+  await prisma.role.deleteMany()
+  await prisma.user.deleteMany()
+  await prisma.tenant.deleteMany()
 
   // ============================================================================
   // 1. TENANT
