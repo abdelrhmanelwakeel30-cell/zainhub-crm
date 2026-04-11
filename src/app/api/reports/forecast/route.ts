@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
         select: { amount: true, interval: true },
       })
       const subscriptionRevenue = activeSubs.reduce((sum, sub) => {
-        return sum + toMonthlyAmount(sub.amount, sub.interval)
+        return sum + toMonthlyAmount(Number(sub.amount), sub.interval)
       }, 0)
 
       // Pipeline revenue: opportunities closing this month × probability
