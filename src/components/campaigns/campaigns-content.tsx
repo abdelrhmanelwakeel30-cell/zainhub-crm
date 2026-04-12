@@ -50,7 +50,7 @@ export function CampaignsContent() {
   const activeCampaigns = campaigns.filter(c => c.status === 'ACTIVE')
   const totalBudget = campaigns.reduce((sum, c) => sum + Number(c.budget ?? 0), 0)
   const totalLeads = campaigns.reduce(
-    (sum, c) => sum + (c._count?.leads ?? c.leadsGenerated ?? 0),
+    (sum, c) => sum + (c._count?.leads || c.leadsGenerated || 0),
     0,
   )
 

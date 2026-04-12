@@ -195,7 +195,8 @@
     "country": "الدولة",
     "city": "المدينة",
     "website": "الموقع الإلكتروني",
-    "whatsapp": "واتساب"
+    "whatsapp": "واتساب",
+    "export": "تصدير"
   },
   "companies": {
     "title": "الشركات",
@@ -299,7 +300,8 @@
     "taskNotFound": "المهمة غير موجودة",
     "todo": "للتنفيذ",
     "inReview": "قيد المراجعة",
-    "blocked": "محظورة"
+    "blocked": "محظورة",
+    "export": "تصدير"
   },
   "invoices": {
     "title": "الفواتير",
@@ -369,7 +371,8 @@
     "completed": "مكتمل",
     "totalBudget": "إجمالي الميزانية",
     "milestones": "المراحل",
-    "teamMembers": "أعضاء الفريق"
+    "teamMembers": "أعضاء الفريق",
+    "name": "اسم المشروع"
   },
   "quotations": {
     "title": "عروض الأسعار",

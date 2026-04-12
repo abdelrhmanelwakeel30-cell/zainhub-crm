@@ -17,7 +17,7 @@ interface Contract {
   status: string
   startDate: string
   endDate: string | null
-  totalValue: number | null
+  value: number | null
   currency: string
 }
 
@@ -59,11 +59,11 @@ export function ContractsTable() {
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
-      accessorKey: 'totalValue',
+      accessorKey: 'value',
       header: 'Value',
       cell: ({ row }) => (
         <span className="text-sm font-semibold">
-          {row.original.totalValue ? `${row.original.currency} ${row.original.totalValue.toLocaleString()}` : '-'}
+          {row.original.value ? `${row.original.currency} ${row.original.value.toLocaleString()}` : '-'}
         </span>
       ),
     },

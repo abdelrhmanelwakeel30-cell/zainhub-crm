@@ -16,7 +16,7 @@ type Quotation = {
   totalAmount: number
   status: string
   issueDate: string
-  expiryDate?: string
+  validUntil?: string
   currency: string
 }
 
@@ -65,10 +65,10 @@ export function QuotationsTable() {
       cell: ({ row }) => <span className="text-xs text-muted-foreground">{formatDate(row.original.issueDate)}</span>,
     },
     {
-      accessorKey: 'expiryDate',
+      accessorKey: 'validUntil',
       header: 'Expiry Date',
       cell: ({ row }) => (
-        <span className="text-xs text-muted-foreground">{row.original.expiryDate ? formatDate(row.original.expiryDate) : '-'}</span>
+        <span className="text-xs text-muted-foreground">{row.original.validUntil ? formatDate(row.original.validUntil) : '-'}</span>
       ),
     },
   ]

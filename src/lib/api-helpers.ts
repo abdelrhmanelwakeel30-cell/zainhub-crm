@@ -62,7 +62,7 @@ export function serverError(err: unknown) {
 }
 
 export function ok<T>(data: T, extra?: Record<string, unknown>) {
-  return NextResponse.json({ success: true, data, ...extra })
+  return NextResponse.json({ success: true, data: serializeDecimals(data), ...extra })
 }
 
 export function paginatedOk<T>(
@@ -73,7 +73,7 @@ export function paginatedOk<T>(
 ) {
   return NextResponse.json({
     success: true,
-    data,
+    data: serializeDecimals(data),
     total,
     page,
     pageSize,
@@ -139,6 +139,7 @@ export function sanitizeUpdateBody<T extends Record<string, unknown>>(
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function serializeDecimals(obj: any): any {
   if (obj === null || obj === undefined) return obj
+  if (obj instanceof Date) return obj
   if (typeof obj === 'object' && typeof obj.toNumber === 'function') return obj.toNumber()
   if (Array.isArray(obj)) return obj.map(serializeDecimals)
   if (typeof obj === 'object') {

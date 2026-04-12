@@ -1,6 +1,13 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Prisma } from '@prisma/client'
 import { PrismaNeon } from '@prisma/adapter-neon'
 import type { PrismaClient as PrismaClientType } from '.prisma/client'
+
+// Ensure Prisma Decimal fields serialize as JS numbers (not strings) in JSON responses.
+// This patches the prototype once at module load so ALL routes benefit automatically.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+;(Prisma.Decimal.prototype as any).toJSON = function () {
+  return this.toNumber()
+}
 
 declare global {
   // eslint-disable-next-line no-var

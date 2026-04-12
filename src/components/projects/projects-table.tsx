@@ -19,8 +19,8 @@ type Project = {
   owner: { firstName: string; lastName: string }
   status: string
   startDate?: string
-  endDate?: string
-  budget: number
+  targetEndDate?: string
+  budgetValue: number | null
   currency: string
 }
 
@@ -78,18 +78,18 @@ export function ProjectsTable() {
       },
     },
     {
-      accessorKey: 'budget',
+      accessorKey: 'budgetValue',
       header: t('budget'),
       cell: ({ row }) => (
-        <span className="text-sm tabular-nums">{formatCurrency(row.original.budget, row.original.currency)}</span>
+        <span className="text-sm tabular-nums">{formatCurrency(Number(row.original.budgetValue ?? 0), row.original.currency)}</span>
       ),
     },
     {
-      accessorKey: 'endDate',
+      accessorKey: 'targetEndDate',
       header: t('targetEndDate'),
       cell: ({ row }) => (
         <span className="text-xs text-muted-foreground">
-          {row.original.endDate ? formatDate(row.original.endDate) : '-'}
+          {formatDate(row.original.targetEndDate)}
         </span>
       ),
     },

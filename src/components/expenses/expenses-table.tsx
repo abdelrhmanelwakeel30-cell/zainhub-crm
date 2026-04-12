@@ -17,11 +17,11 @@ interface Expense {
   description: string
   amount: number
   currency: string
-  category: { name: string }
+  category: { name: string } | null
   expenseDate: string
   status: string
-  paidBy: { firstName: string; lastName: string }
-  project: { id: string; name: string } | null
+  createdBy: { firstName: string; lastName: string } | null
+  linkedProject: { id: string; name: string } | null
 }
 
 export function ExpensesTable() {
@@ -55,7 +55,7 @@ export function ExpensesTable() {
       accessorKey: 'category',
       header: t('category'),
       cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground">{row.original.category.name}</span>
+        <span className="text-sm text-muted-foreground">{row.original.category?.name ?? '-'}</span>
       ),
     },
     {
@@ -77,10 +77,10 @@ export function ExpensesTable() {
       ),
     },
     {
-      accessorKey: 'project',
+      accessorKey: 'linkedProject',
       header: t('project'),
       cell: ({ row }) => {
-        const project = row.original.project
+        const project = row.original.linkedProject
         if (!project) return <span className="text-xs text-muted-foreground">-</span>
         return (
           <Link
@@ -99,10 +99,11 @@ export function ExpensesTable() {
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
-      accessorKey: 'paidBy',
+      accessorKey: 'createdBy',
       header: t('createdBy'),
       cell: ({ row }) => {
-        const paidBy = row.original.paidBy
+        const paidBy = row.original.createdBy
+        if (!paidBy) return <span className="text-xs text-muted-foreground">-</span>
         const fullName = `${paidBy.firstName} ${paidBy.lastName}`
         return (
           <div className="flex items-center gap-2">

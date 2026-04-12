@@ -946,18 +946,52 @@ async function main() {
         issueDate: data.createdAt,
       },
     })
-    // Add line items
-    await prisma.quotationItem.create({
-      data: {
-        quotationId: quotationRecords[q.quotationNumber].id,
-        description: data.title,
-        quantity: 1,
-        unitPrice: data.subtotal,
-        totalPrice: data.subtotal,
-        order: 1,
-        taxRate: 5,
-      },
-    })
+    // Add line items (multi-line for realism)
+    const quotationLineItems: Record<string, Array<{ description: string; quantity: number; unitPrice: number }>> = {
+      'QUO-0001': [
+        { description: 'AI Chatbot Design & Development', quantity: 1, unitPrice: 15000 },
+        { description: 'WhatsApp Integration', quantity: 1, unitPrice: 5000 },
+        { description: 'Admin Dashboard', quantity: 1, unitPrice: 3000 },
+        { description: 'Training & Handover', quantity: 2, unitPrice: 1000 },
+      ],
+      'QUO-0002': [
+        { description: 'UX Research & Wireframes', quantity: 1, unitPrice: 8000 },
+        { description: 'UI Design (15 pages)', quantity: 15, unitPrice: 1000 },
+        { description: 'Next.js Development', quantity: 1, unitPrice: 20000 },
+        { description: 'CMS Integration', quantity: 1, unitPrice: 7000 },
+        { description: 'Launch & QA', quantity: 1, unitPrice: 5000 },
+      ],
+      'QUO-0003': [
+        { description: 'CRM Automation Setup', quantity: 1, unitPrice: 10000 },
+        { description: 'n8n Workflow Development', quantity: 4, unitPrice: 2000 },
+      ],
+      'QUO-0004': [
+        { description: 'Social Media Management — Monthly Retainer', quantity: 12, unitPrice: 8000 },
+      ],
+      'QUO-0005': [
+        { description: 'RAG Architecture & Development', quantity: 1, unitPrice: 20000 },
+        { description: 'Document Processing Pipeline', quantity: 1, unitPrice: 8000 },
+        { description: 'API & Dashboard', quantity: 1, unitPrice: 7000 },
+      ],
+      'QUO-0006': [
+        { description: 'Landing Page Design (3 pages)', quantity: 3, unitPrice: 3000 },
+      ],
+    }
+    const qItems = quotationLineItems[q.quotationNumber] ?? [{ description: data.title, quantity: 1, unitPrice: data.subtotal }]
+    for (let idx = 0; idx < qItems.length; idx++) {
+      const li = qItems[idx]
+      await prisma.quotationItem.create({
+        data: {
+          quotationId: quotationRecords[q.quotationNumber].id,
+          description: li.description,
+          quantity: li.quantity,
+          unitPrice: li.unitPrice,
+          totalPrice: li.quantity * li.unitPrice,
+          order: idx + 1,
+          taxRate: 5,
+        },
+      })
+    }
   }
 
   // ============================================================================
@@ -994,9 +1028,36 @@ async function main() {
         acceptedAt: data.acceptedAt || null,
       },
     })
-    await prisma.proposalItem.create({
-      data: { proposalId: proposal.id, description: data.title, quantity: 1, unitPrice: data.subtotal, totalPrice: data.subtotal, order: 1 },
-    })
+    const proposalLineItems: Record<string, Array<{ description: string; quantity: number; unitPrice: number }>> = {
+      'PRP-0001': [
+        { description: 'AI Chatbot Design & Development', quantity: 1, unitPrice: 15000 },
+        { description: 'WhatsApp Channel Integration', quantity: 1, unitPrice: 5000 },
+        { description: 'Admin Dashboard & Analytics', quantity: 1, unitPrice: 3000 },
+        { description: 'Training (2 sessions)', quantity: 2, unitPrice: 1000 },
+      ],
+      'PRP-0002': [
+        { description: 'Discovery & UX Research', quantity: 1, unitPrice: 8000 },
+        { description: 'UI Design (20 screens)', quantity: 20, unitPrice: 800 },
+        { description: 'Next.js + CMS Development', quantity: 1, unitPrice: 25000 },
+        { description: 'QA, Launch & Hypercare', quantity: 1, unitPrice: 3000 },
+      ],
+      'PRP-0003': [
+        { description: 'Social Media Strategy Document', quantity: 1, unitPrice: 8000 },
+        { description: 'Monthly Management Retainer × 12', quantity: 12, unitPrice: 7333.33 },
+      ],
+      'PRP-0004': [
+        { description: 'Enterprise AI Platform — Architecture', quantity: 1, unitPrice: 30000 },
+        { description: 'Core Development (16 weeks × AED 5K)', quantity: 16, unitPrice: 5000 },
+        { description: 'Deployment & Infrastructure', quantity: 1, unitPrice: 10000 },
+      ],
+    }
+    const pItems = proposalLineItems[data.proposalNumber] ?? [{ description: data.title, quantity: 1, unitPrice: data.subtotal }]
+    for (let idx = 0; idx < pItems.length; idx++) {
+      const li = pItems[idx]
+      await prisma.proposalItem.create({
+        data: { proposalId: proposal.id, description: li.description, quantity: li.quantity, unitPrice: li.unitPrice, totalPrice: li.quantity * li.unitPrice, order: idx + 1 },
+      })
+    }
   }
 
   // ============================================================================
@@ -1035,12 +1096,12 @@ async function main() {
   // 21. INVOICES
   // ============================================================================
   const invoicesData = [
-    { invoiceNumber: 'INV-0001', clientKey: 'Al Futtaim', status: 'PARTIALLY_PAID' as const, subtotal: 13125, taxAmount: 656.25, totalAmount: 13781.25, amountPaid: 10000, dueDate: daysAgo(-10), issueDate: daysAgo(10), createdById: sarah.id },
-    { invoiceNumber: 'INV-0002', clientKey: 'Arabian Adventures', status: 'PAID' as const, subtotal: 12000, taxAmount: 600, totalAmount: 12600, amountPaid: 12600, dueDate: daysAgo(15), issueDate: daysAgo(45), createdById: omar.id },
-    { invoiceNumber: 'INV-0003', clientKey: 'Property Finder', status: 'SENT' as const, subtotal: 17500, taxAmount: 875, totalAmount: 18375, amountPaid: 0, dueDate: daysAgo(-20), issueDate: daysAgo(3), createdById: sarah.id },
-    { invoiceNumber: 'INV-0004', clientKey: 'MAF', status: 'DRAFT' as const, subtotal: 8000, taxAmount: 400, totalAmount: 8400, amountPaid: 0, dueDate: daysAgo(-30), issueDate: daysAgo(0), createdById: layla.id },
-    { invoiceNumber: 'INV-0005', clientKey: 'Kitopi', status: 'OVERDUE' as const, subtotal: 4500, taxAmount: 225, totalAmount: 4725, amountPaid: 0, dueDate: daysAgo(5), issueDate: daysAgo(35), createdById: ahmed.id },
-    { invoiceNumber: 'INV-0006', clientKey: 'Dubai Holding', status: 'SENT' as const, subtotal: 22500, taxAmount: 1125, totalAmount: 23625, amountPaid: 0, dueDate: daysAgo(-15), issueDate: daysAgo(5), createdById: sarah.id },
+    { invoiceNumber: 'INV-0001', clientKey: 'Al Futtaim',       status: 'PAID'          as const, subtotal: 13125, taxAmount: 656.25, totalAmount: 13781.25, amountPaid: 13781.25, dueDate: daysAgo(-10), issueDate: daysAgo(10), createdById: sarah.id },
+    { invoiceNumber: 'INV-0002', clientKey: 'Arabian Adventures',status: 'PAID'          as const, subtotal: 12000, taxAmount: 600,    totalAmount: 12600,    amountPaid: 12600,    dueDate: daysAgo(15),  issueDate: daysAgo(45), createdById: omar.id },
+    { invoiceNumber: 'INV-0003', clientKey: 'Property Finder',   status: 'PARTIALLY_PAID'as const, subtotal: 17500, taxAmount: 875,    totalAmount: 18375,    amountPaid: 9187.5,   dueDate: daysAgo(-20), issueDate: daysAgo(3),  createdById: sarah.id },
+    { invoiceNumber: 'INV-0004', clientKey: 'MAF',               status: 'PAID'          as const, subtotal: 8000,  taxAmount: 400,    totalAmount: 8400,     amountPaid: 8400,     dueDate: daysAgo(-30), issueDate: daysAgo(0),  createdById: layla.id },
+    { invoiceNumber: 'INV-0005', clientKey: 'Kitopi',            status: 'PARTIALLY_PAID'as const, subtotal: 4500,  taxAmount: 225,    totalAmount: 4725,     amountPaid: 2362.5,   dueDate: daysAgo(5),   issueDate: daysAgo(35), createdById: ahmed.id },
+    { invoiceNumber: 'INV-0006', clientKey: 'Dubai Holding',     status: 'PAID'          as const, subtotal: 22500, taxAmount: 1125,   totalAmount: 23625,    amountPaid: 23625,    dueDate: daysAgo(-15), issueDate: daysAgo(5),  createdById: sarah.id },
   ]
 
   const invoiceRecords: Record<string, any> = {}
@@ -1081,13 +1142,17 @@ async function main() {
   // 22. PAYMENTS
   // ============================================================================
   const paymentsData = [
-    { paymentNumber: 'PAY-0001', invoiceKey: 'INV-0001', clientKey: 'Al Futtaim', amount: 10000, paymentDate: daysAgo(5), paymentMethod: 'BANK_TRANSFER' as const, reference: 'TRF-2026-0401' },
-    { paymentNumber: 'PAY-0002', invoiceKey: 'INV-0002', clientKey: 'Arabian Adventures', amount: 12600, paymentDate: daysAgo(20), paymentMethod: 'BANK_TRANSFER' as const, reference: 'TRF-2026-0322' },
-    { paymentNumber: 'PAY-0003', invoiceKey: 'INV-0002', clientKey: 'Arabian Adventures', amount: 0, paymentDate: daysAgo(30), paymentMethod: 'CREDIT_CARD' as const, reference: 'CC-2026-0312' },
+    { paymentNumber: 'PAY-0001', invoiceKey: 'INV-0001', clientKey: 'Al Futtaim',       amount: 10000,  paymentDate: daysAgo(5),  paymentMethod: 'BANK_TRANSFER' as const, reference: 'TRF-2026-0401', notes: 'First instalment — 50% upfront' },
+    { paymentNumber: 'PAY-0002', invoiceKey: 'INV-0002', clientKey: 'Arabian Adventures',amount: 6300,   paymentDate: daysAgo(30), paymentMethod: 'BANK_TRANSFER' as const, reference: 'TRF-2026-0312', notes: 'First payment — 50%' },
+    { paymentNumber: 'PAY-0003', invoiceKey: 'INV-0002', clientKey: 'Arabian Adventures',amount: 6300,   paymentDate: daysAgo(15), paymentMethod: 'BANK_TRANSFER' as const, reference: 'TRF-2026-0327', notes: 'Final payment — project delivered' },
+    { paymentNumber: 'PAY-0004', invoiceKey: 'INV-0003', clientKey: 'Property Finder',   amount: 9187.5, paymentDate: daysAgo(1),  paymentMethod: 'CHECK' as const,         reference: 'CHQ-2026-0411', notes: '50% deposit on account' },
+    { paymentNumber: 'PAY-0005', invoiceKey: 'INV-0006', clientKey: 'Dubai Holding',     amount: 23625,  paymentDate: daysAgo(0),  paymentMethod: 'BANK_TRANSFER' as const, reference: 'TRF-2026-0412', notes: 'Full payment received' },
+    { paymentNumber: 'PAY-0006', invoiceKey: 'INV-0001', clientKey: 'Al Futtaim',       amount: 3781.25,paymentDate: daysAgo(0),  paymentMethod: 'BANK_TRANSFER' as const, reference: 'TRF-2026-0412B', notes: 'Balance payment — project sign-off' },
+    { paymentNumber: 'PAY-0007', invoiceKey: 'INV-0005', clientKey: 'Kitopi',           amount: 2362.5, paymentDate: daysAgo(0),  paymentMethod: 'CREDIT_CARD' as const,   reference: 'CC-2026-0412', notes: 'Partial recovery on overdue invoice' },
+    { paymentNumber: 'PAY-0008', invoiceKey: 'INV-0004', clientKey: 'MAF',              amount: 8400,   paymentDate: daysAgo(0),  paymentMethod: 'BANK_TRANSFER' as const, reference: 'TRF-2026-0412C', notes: 'Full payment for social strategy sprint' },
   ]
 
   for (const p of paymentsData) {
-    if (p.amount === 0) continue // skip zero-amount placeholder
     const { invoiceKey, clientKey, ...data } = p
     await prisma.payment.create({
       data: {
@@ -1100,6 +1165,7 @@ async function main() {
         paymentDate: data.paymentDate,
         paymentMethod: data.paymentMethod,
         reference: data.reference,
+        notes: data.notes || null,
         createdById: admin.id,
       },
     })
@@ -1109,14 +1175,22 @@ async function main() {
   // 23. EXPENSES
   // ============================================================================
   const expensesData = [
-    { expenseNumber: 'EXP-0001', vendorName: 'Vercel', catKey: 'Hosting & Cloud', amount: 1200, expenseDate: daysAgo(5), status: 'APPROVED' as const, description: 'Annual Vercel Pro plan', approvedById: admin.id },
-    { expenseNumber: 'EXP-0002', vendorName: 'Figma', catKey: 'Software & Tools', amount: 600, expenseDate: daysAgo(10), status: 'APPROVED' as const, description: 'Figma Organization plan - monthly', approvedById: admin.id },
-    { expenseNumber: 'EXP-0003', vendorName: 'Meta Ads', catKey: 'Marketing', amount: 3500, expenseDate: daysAgo(3), status: 'PAID' as const, description: 'Instagram ads for Ramadan campaign', paymentMethod: 'CREDIT_CARD' as const },
-    { expenseNumber: 'EXP-0004', vendorName: 'Emirates Airlines', catKey: 'Travel', amount: 2800, expenseDate: daysAgo(15), status: 'PENDING' as const, description: 'Flight to Riyadh for STC meeting' },
-    { expenseNumber: 'EXP-0005', vendorName: 'OpenAI', catKey: 'Software & Tools', amount: 450, expenseDate: daysAgo(1), status: 'APPROVED' as const, description: 'GPT-4 API usage - March', approvedById: admin.id },
-    { expenseNumber: 'EXP-0006', vendorName: 'Anthropic', catKey: 'Software & Tools', amount: 320, expenseDate: daysAgo(1), status: 'APPROVED' as const, description: 'Claude API usage - March', approvedById: admin.id },
-    { expenseNumber: 'EXP-0007', vendorName: 'WeWork', catKey: 'Professional Services', amount: 4500, expenseDate: daysAgo(0), status: 'PENDING' as const, description: 'Office space rent - April' },
-    { expenseNumber: 'EXP-0008', vendorName: 'Amazon AWS', catKey: 'Hosting & Cloud', amount: 890, expenseDate: daysAgo(7), status: 'APPROVED' as const, description: 'AWS infra - client projects', approvedById: admin.id },
+    { expenseNumber: 'EXP-0001', vendorName: 'Vercel',          catKey: 'Hosting & Cloud',       amount: 1200,  expenseDate: daysAgo(5),  status: 'APPROVED' as const, description: 'Annual Vercel Pro plan',                        approvedById: admin.id },
+    { expenseNumber: 'EXP-0002', vendorName: 'Figma',           catKey: 'Software & Tools',      amount: 600,   expenseDate: daysAgo(10), status: 'APPROVED' as const, description: 'Figma Organization plan - monthly',               approvedById: admin.id },
+    { expenseNumber: 'EXP-0003', vendorName: 'Meta Ads',        catKey: 'Marketing',             amount: 3500,  expenseDate: daysAgo(3),  status: 'PAID'     as const, description: 'Instagram ads for Ramadan campaign',              paymentMethod: 'CREDIT_CARD' as const, approvedById: admin.id },
+    { expenseNumber: 'EXP-0004', vendorName: 'Emirates Airlines',catKey: 'Travel',               amount: 2800,  expenseDate: daysAgo(15), status: 'PENDING'  as const, description: 'Flight to Riyadh for STC meeting' },
+    { expenseNumber: 'EXP-0005', vendorName: 'OpenAI',          catKey: 'Software & Tools',      amount: 450,   expenseDate: daysAgo(1),  status: 'APPROVED' as const, description: 'GPT-4o API usage - March 2026',                  approvedById: admin.id },
+    { expenseNumber: 'EXP-0006', vendorName: 'Anthropic',       catKey: 'Software & Tools',      amount: 320,   expenseDate: daysAgo(1),  status: 'APPROVED' as const, description: 'Claude API usage - March 2026',                  approvedById: admin.id },
+    { expenseNumber: 'EXP-0007', vendorName: 'WeWork',          catKey: 'Professional Services', amount: 4500,  expenseDate: daysAgo(0),  status: 'PENDING'  as const, description: 'Office space rent - April 2026' },
+    { expenseNumber: 'EXP-0008', vendorName: 'Amazon AWS',      catKey: 'Hosting & Cloud',       amount: 890,   expenseDate: daysAgo(7),  status: 'APPROVED' as const, description: 'AWS infra - client projects March',              approvedById: admin.id },
+    { expenseNumber: 'EXP-0009', vendorName: 'Google Ads',      catKey: 'Marketing',             amount: 5200,  expenseDate: daysAgo(2),  status: 'APPROVED' as const, description: 'Google Ads - Q1 brand awareness campaign',       approvedById: admin.id, paymentMethod: 'CREDIT_CARD' as const },
+    { expenseNumber: 'EXP-0010', vendorName: 'Notion',          catKey: 'Software & Tools',      amount: 240,   expenseDate: daysAgo(12), status: 'APPROVED' as const, description: 'Notion Team plan - annual',                      approvedById: admin.id },
+    { expenseNumber: 'EXP-0011', vendorName: 'Etisalat',        catKey: 'Professional Services', amount: 1800,  expenseDate: daysAgo(0),  status: 'PAID'     as const, description: 'Business internet & phone - April',               paymentMethod: 'BANK_TRANSFER' as const, approvedById: admin.id },
+    { expenseNumber: 'EXP-0012', vendorName: 'Freelancer — UI', catKey: 'Professional Services', amount: 3000,  expenseDate: daysAgo(8),  status: 'APPROVED' as const, description: 'Freelance UI design — Kitopi landing pages',     approvedById: admin.id },
+    { expenseNumber: 'EXP-0013', vendorName: 'Adobe Creative',  catKey: 'Software & Tools',      amount: 780,   expenseDate: daysAgo(30), status: 'APPROVED' as const, description: 'Adobe CC annual licence',                        approvedById: admin.id },
+    { expenseNumber: 'EXP-0014', vendorName: 'Slack',           catKey: 'Software & Tools',      amount: 360,   expenseDate: daysAgo(30), status: 'APPROVED' as const, description: 'Slack Pro - annual renewal',                     approvedById: admin.id },
+    { expenseNumber: 'EXP-0015', vendorName: 'Careem',          catKey: 'Travel',                amount: 420,   expenseDate: daysAgo(4),  status: 'PENDING'  as const, description: 'Client visits - week of April 7' },
+    { expenseNumber: 'EXP-0016', vendorName: 'LinkedIn Ads',    catKey: 'Marketing',             amount: 2800,  expenseDate: daysAgo(6),  status: 'APPROVED' as const, description: 'LinkedIn B2B campaign - April sprint',           approvedById: admin.id, paymentMethod: 'CREDIT_CARD' as const },
   ]
 
   for (const e of expensesData) {
@@ -1185,16 +1259,26 @@ async function main() {
   // 25. TASKS
   // ============================================================================
   const tasksData = [
-    { taskNumber: 'TSK-0001', title: 'Prepare discovery document for STC', assignedToId: sarah.id, priority: 'HIGH' as const, status: 'IN_PROGRESS' as const, dueDate: daysAgo(-2), projectKey: 'PRJ-0005', createdById: admin.id },
-    { taskNumber: 'TSK-0002', title: 'Design chatbot conversation flows', assignedToId: omar.id, priority: 'HIGH' as const, status: 'COMPLETED' as const, dueDate: daysAgo(5), completedAt: daysAgo(6), projectKey: 'PRJ-0001', createdById: sarah.id },
-    { taskNumber: 'TSK-0003', title: 'Review MAF content calendar', assignedToId: layla.id, priority: 'MEDIUM' as const, status: 'TODO' as const, dueDate: daysAgo(-3), projectKey: 'PRJ-0003', createdById: layla.id },
-    { taskNumber: 'TSK-0004', title: 'Update Al Futtaim chatbot training data', assignedToId: omar.id, priority: 'MEDIUM' as const, status: 'IN_PROGRESS' as const, dueDate: daysAgo(-5), projectKey: 'PRJ-0001', createdById: sarah.id },
-    { taskNumber: 'TSK-0005', title: 'Send Kitopi landing page mockups', assignedToId: ahmed.id, priority: 'HIGH' as const, status: 'TODO' as const, dueDate: daysAgo(-1), projectKey: 'PRJ-0006', createdById: ahmed.id },
-    { taskNumber: 'TSK-0006', title: 'Follow up with Noon on CRM requirements', assignedToId: omar.id, priority: 'MEDIUM' as const, status: 'TODO' as const, dueDate: daysAgo(-4), relatedType: 'opportunity', createdById: omar.id },
-    { taskNumber: 'TSK-0007', title: 'Prepare GITEX booth design brief', assignedToId: admin.id, priority: 'LOW' as const, status: 'TODO' as const, dueDate: daysAgo(-90), createdById: admin.id },
-    { taskNumber: 'TSK-0008', title: 'QA test Arabian Adventures brand assets', assignedToId: ahmed.id, priority: 'MEDIUM' as const, status: 'COMPLETED' as const, dueDate: daysAgo(8), completedAt: daysAgo(7), projectKey: 'PRJ-0004', createdById: omar.id },
-    { taskNumber: 'TSK-0009', title: 'Write Property Finder RAG integration spec', assignedToId: sarah.id, priority: 'HIGH' as const, status: 'IN_REVIEW' as const, dueDate: daysAgo(-1), projectKey: 'PRJ-0005', createdById: sarah.id },
-    { taskNumber: 'TSK-0010', title: 'Monthly expense report — March 2026', assignedToId: admin.id, priority: 'LOW' as const, status: 'COMPLETED' as const, dueDate: daysAgo(2), completedAt: daysAgo(1), createdById: admin.id },
+    { taskNumber: 'TSK-0001', title: 'Prepare discovery document for STC',                 assignedToId: sarah.id,  priority: 'HIGH'   as const, status: 'IN_PROGRESS' as const, dueDate: daysAgo(-2),  projectKey: 'PRJ-0005', createdById: admin.id,  description: 'Cover AI chatbot scope, integration points, timeline, and resource plan.' },
+    { taskNumber: 'TSK-0002', title: 'Design chatbot conversation flows',                   assignedToId: omar.id,   priority: 'HIGH'   as const, status: 'COMPLETED'   as const, dueDate: daysAgo(5),   projectKey: 'PRJ-0001', createdById: sarah.id, completedAt: daysAgo(6) },
+    { taskNumber: 'TSK-0003', title: 'Review MAF content calendar',                         assignedToId: layla.id,  priority: 'MEDIUM' as const, status: 'TODO'        as const, dueDate: daysAgo(-3),  projectKey: 'PRJ-0003', createdById: layla.id,  description: 'Approve 30-day calendar: Ramadan + Eid posts, brand tone check.' },
+    { taskNumber: 'TSK-0004', title: 'Update Al Futtaim chatbot training data',             assignedToId: omar.id,   priority: 'MEDIUM' as const, status: 'IN_PROGRESS' as const, dueDate: daysAgo(-5),  projectKey: 'PRJ-0001', createdById: sarah.id },
+    { taskNumber: 'TSK-0005', title: 'Send Kitopi landing page mockups',                    assignedToId: ahmed.id,  priority: 'HIGH'   as const, status: 'TODO'        as const, dueDate: daysAgo(-1),  projectKey: 'PRJ-0006', createdById: ahmed.id },
+    { taskNumber: 'TSK-0006', title: 'Follow up with Noon on CRM requirements',            assignedToId: omar.id,   priority: 'MEDIUM' as const, status: 'TODO'        as const, dueDate: daysAgo(-4),  relatedType: 'opportunity', createdById: omar.id },
+    { taskNumber: 'TSK-0007', title: 'Prepare GITEX booth design brief',                   assignedToId: admin.id,  priority: 'LOW'    as const, status: 'TODO'        as const, dueDate: daysAgo(-90), createdById: admin.id },
+    { taskNumber: 'TSK-0008', title: 'QA test Arabian Adventures brand assets',            assignedToId: ahmed.id,  priority: 'MEDIUM' as const, status: 'COMPLETED'   as const, dueDate: daysAgo(8),   projectKey: 'PRJ-0004', createdById: omar.id,  completedAt: daysAgo(7) },
+    { taskNumber: 'TSK-0009', title: 'Write Property Finder RAG integration spec',        assignedToId: sarah.id,  priority: 'HIGH'   as const, status: 'IN_REVIEW'   as const, dueDate: daysAgo(-1),  projectKey: 'PRJ-0005', createdById: sarah.id },
+    { taskNumber: 'TSK-0010', title: 'Monthly expense report — March 2026',               assignedToId: admin.id,  priority: 'LOW'    as const, status: 'COMPLETED'   as const, dueDate: daysAgo(2),   createdById: admin.id,  completedAt: daysAgo(1) },
+    { taskNumber: 'TSK-0011', title: 'Set up staging environment for Dubai Holding',      assignedToId: omar.id,   priority: 'HIGH'   as const, status: 'IN_PROGRESS' as const, dueDate: daysAgo(-3),  projectKey: 'PRJ-0002', createdById: sarah.id,  description: 'Vercel staging with CI/CD, Neon preview branch, env vars.' },
+    { taskNumber: 'TSK-0012', title: 'Onboard MAF social media channels',                 assignedToId: layla.id,  priority: 'HIGH'   as const, status: 'TODO'        as const, dueDate: daysAgo(-5),  projectKey: 'PRJ-0003', createdById: layla.id,  description: 'Connect Instagram, TikTok, LinkedIn, Twitter accounts via Meta API.' },
+    { taskNumber: 'TSK-0013', title: 'Create invoice for INV-0006 (Dubai Holding)',       assignedToId: admin.id,  priority: 'MEDIUM' as const, status: 'COMPLETED'   as const, dueDate: daysAgo(5),   createdById: admin.id,  completedAt: daysAgo(5) },
+    { taskNumber: 'TSK-0014', title: 'Competitor analysis — AI chatbot market UAE',       assignedToId: sarah.id,  priority: 'LOW'    as const, status: 'TODO'        as const, dueDate: daysAgo(-14), createdById: sarah.id,  description: 'Research 5 competitors: pricing, features, positioning in MENA.' },
+    { taskNumber: 'TSK-0015', title: 'Review STC proposal with legal',                    assignedToId: admin.id,  priority: 'HIGH'   as const, status: 'IN_REVIEW'   as const, dueDate: daysAgo(-1),  createdById: sarah.id,  description: 'Verify IP ownership, SLA clauses, payment terms before sending.' },
+    { taskNumber: 'TSK-0016', title: 'Fix TKT-0003 — Invoice PDF generation bug',        assignedToId: ahmed.id,  priority: 'URGENT' as const, status: 'IN_PROGRESS' as const, dueDate: daysAgo(0),   createdById: layla.id },
+    { taskNumber: 'TSK-0017', title: 'Create onboarding checklist for new clients',      assignedToId: layla.id,  priority: 'MEDIUM' as const, status: 'TODO'        as const, dueDate: daysAgo(-20), createdById: admin.id },
+    { taskNumber: 'TSK-0018', title: 'Deploy Property Finder RAG bot to production',     assignedToId: omar.id,   priority: 'HIGH'   as const, status: 'TODO'        as const, dueDate: daysAgo(-7),  projectKey: 'PRJ-0005', createdById: sarah.id },
+    { taskNumber: 'TSK-0019', title: 'Record demo video — AI chatbot for marketing',     assignedToId: ahmed.id,  priority: 'LOW'    as const, status: 'TODO'        as const, dueDate: daysAgo(-30), createdById: admin.id,  description: '3-min loom walkthrough for zainhub.ae hero section.' },
+    { taskNumber: 'TSK-0020', title: 'Renew SSL certificates — client servers',          assignedToId: omar.id,   priority: 'HIGH'   as const, status: 'COMPLETED'   as const, dueDate: daysAgo(3),   createdById: admin.id,  completedAt: daysAgo(4) },
   ]
 
   for (const t of tasksData) {
@@ -1204,6 +1288,7 @@ async function main() {
         tenantId: tenant.id,
         taskNumber: data.taskNumber,
         title: data.title,
+        description: (data as any).description || null,
         assignedToId: data.assignedToId,
         priority: data.priority,
         status: data.status,
@@ -1220,12 +1305,20 @@ async function main() {
   // 26. DOCUMENTS
   // ============================================================================
   const documentsData = [
-    { name: 'Al Futtaim Chatbot Requirements.pdf', fileUrl: '/documents/alfuttaim-requirements.pdf', fileType: 'application/pdf', fileSize: 245000, category: 'BRIEF' as const, linkedEntityType: 'project', uploadedById: sarah.id },
-    { name: 'Dubai Holding Brand Guidelines.pdf', fileUrl: '/documents/dh-brand-guidelines.pdf', fileType: 'application/pdf', fileSize: 1200000, category: 'BRAND' as const, linkedEntityType: 'company', uploadedById: sarah.id },
-    { name: 'MAF Social Strategy Deck.pdf', fileUrl: '/documents/maf-social-strategy.pdf', fileType: 'application/pdf', fileSize: 890000, category: 'PROPOSAL' as const, linkedEntityType: 'proposal', uploadedById: layla.id },
-    { name: 'Property Finder NDA — Signed.pdf', fileUrl: '/documents/pf-nda-signed.pdf', fileType: 'application/pdf', fileSize: 156000, category: 'CONTRACT' as const, linkedEntityType: 'contract', uploadedById: sarah.id },
-    { name: 'Q1 2026 Financial Report.xlsx', fileUrl: '/documents/q1-2026-financials.xlsx', fileType: 'application/vnd.ms-excel', fileSize: 340000, category: 'REPORT' as const, uploadedById: admin.id },
-    { name: 'Arabian Adventures Logo — Final.ai', fileUrl: '/documents/aa-logo-final.ai', fileType: 'application/illustrator', fileSize: 2800000, category: 'ASSET' as const, linkedEntityType: 'project', uploadedById: omar.id },
+    { name: 'Al Futtaim Chatbot Requirements.pdf',       fileUrl: '/documents/alfuttaim-requirements.pdf',    fileType: 'application/pdf',          fileSize: 245000,  category: 'BRIEF'    as const, linkedEntityType: 'project',  uploadedById: sarah.id },
+    { name: 'Dubai Holding Brand Guidelines.pdf',        fileUrl: '/documents/dh-brand-guidelines.pdf',       fileType: 'application/pdf',          fileSize: 1200000, category: 'BRAND'    as const, linkedEntityType: 'company',  uploadedById: sarah.id },
+    { name: 'MAF Social Strategy Deck.pdf',              fileUrl: '/documents/maf-social-strategy.pdf',       fileType: 'application/pdf',          fileSize: 890000,  category: 'PROPOSAL' as const, linkedEntityType: 'proposal', uploadedById: layla.id },
+    { name: 'Property Finder NDA — Signed.pdf',         fileUrl: '/documents/pf-nda-signed.pdf',             fileType: 'application/pdf',          fileSize: 156000,  category: 'CONTRACT' as const, linkedEntityType: 'contract', uploadedById: sarah.id },
+    { name: 'Q1 2026 Financial Report.xlsx',             fileUrl: '/documents/q1-2026-financials.xlsx',       fileType: 'application/vnd.ms-excel', fileSize: 340000,  category: 'REPORT'   as const,                               uploadedById: admin.id },
+    { name: 'Arabian Adventures Logo — Final.ai',        fileUrl: '/documents/aa-logo-final.ai',              fileType: 'application/illustrator',  fileSize: 2800000, category: 'ASSET'    as const, linkedEntityType: 'project',  uploadedById: omar.id },
+    { name: 'ZainHub Service Catalogue 2026.pdf',        fileUrl: '/documents/zainhub-services-2026.pdf',     fileType: 'application/pdf',          fileSize: 620000,  category: 'BRIEF'    as const,                               uploadedById: admin.id },
+    { name: 'STC Enterprise AI Proposal.pdf',            fileUrl: '/documents/stc-ai-proposal-v2.pdf',        fileType: 'application/pdf',          fileSize: 1450000, category: 'PROPOSAL' as const, linkedEntityType: 'proposal', uploadedById: sarah.id },
+    { name: 'Kitopi Landing Page Wireframes.fig',        fileUrl: '/documents/kitopi-wireframes.fig',         fileType: 'application/figma',        fileSize: 3200000, category: 'ASSET'    as const, linkedEntityType: 'project',  uploadedById: ahmed.id },
+    { name: 'Al Futtaim Contract — Signed.pdf',         fileUrl: '/documents/alfuttaim-contract-signed.pdf', fileType: 'application/pdf',          fileSize: 185000,  category: 'CONTRACT' as const, linkedEntityType: 'contract', uploadedById: sarah.id },
+    { name: 'MAF Retainer Contract.docx',                fileUrl: '/documents/maf-retainer-contract.docx',    fileType: 'application/msword',       fileSize: 94000,   category: 'CONTRACT' as const, linkedEntityType: 'contract', uploadedById: layla.id },
+    { name: 'Team Meeting Notes — Apr 2026.docx',       fileUrl: '/documents/team-notes-apr2026.docx',       fileType: 'application/msword',       fileSize: 48000,   category: 'REPORT'   as const,                               uploadedById: admin.id },
+    { name: 'Dubai Holding Mockups v3.pdf',              fileUrl: '/documents/dh-mockups-v3.pdf',             fileType: 'application/pdf',          fileSize: 5600000, category: 'ASSET'    as const, linkedEntityType: 'project',  uploadedById: omar.id },
+    { name: 'Invoice Template — ZainHub.docx',          fileUrl: '/documents/invoice-template.docx',         fileType: 'application/msword',       fileSize: 65000,   category: 'OTHER'    as const,                               uploadedById: admin.id },
   ]
 
   for (const d of documentsData) {
@@ -1247,21 +1340,31 @@ async function main() {
   // 27. ACTIVITIES (Recent timeline entries)
   // ============================================================================
   const activitiesData = [
-    { type: 'NOTE' as const, entityType: 'lead', title: 'Initial discovery call with Tariq', description: 'Discussed AI chatbot needs. Budget approved by board. Follow up Thursday.', performedById: omar.id, performedAt: daysAgo(1) },
-    { type: 'CALL' as const, entityType: 'lead', title: 'Follow-up call — Reem (Etisalat)', description: 'Confirmed meeting for next week. Very interested in AI Agent Workflow.', performedById: sarah.id, performedAt: daysAgo(0) },
-    { type: 'EMAIL' as const, entityType: 'opportunity', title: 'Sent Al Futtaim chatbot demo link', performedById: sarah.id, performedAt: daysAgo(2) },
-    { type: 'MEETING' as const, entityType: 'opportunity', title: 'Dubai Holding website kickoff meeting', description: '2-hour session. Stakeholders aligned on scope and timeline.', performedById: sarah.id, performedAt: daysAgo(8) },
-    { type: 'STATUS_CHANGE' as const, entityType: 'project', title: 'PRJ-0004 moved to Delivered', performedById: omar.id, performedAt: daysAgo(3) },
-    { type: 'TASK_COMPLETED' as const, entityType: 'task', title: 'Chatbot conversation flows completed', performedById: omar.id, performedAt: daysAgo(6) },
-    { type: 'DOCUMENT_UPLOADED' as const, entityType: 'project', title: 'Uploaded Al Futtaim Requirements.pdf', performedById: sarah.id, performedAt: daysAgo(25) },
-    { type: 'STAGE_CHANGE' as const, entityType: 'lead', title: 'Lead LD-0004 moved to Meeting Scheduled', performedById: sarah.id, performedAt: daysAgo(1) },
-    { type: 'ASSIGNMENT' as const, entityType: 'ticket', title: 'TKT-0003 assigned to Ahmed', performedById: layla.id, performedAt: daysAgo(0) },
-    { type: 'COMMENT' as const, entityType: 'ticket', title: 'Added comment on TKT-0001', description: 'Investigating the after-hours shutdown. Likely a cron job conflict.', performedById: omar.id, performedAt: daysAgo(0) },
-    { type: 'NOTE' as const, entityType: 'company', title: 'STC account note', description: 'VP Innovation very interested. Need to schedule exec demo with CTO.', performedById: sarah.id, performedAt: daysAgo(4) },
-    { type: 'CONVERSION' as const, entityType: 'lead', title: 'Lead LD-0010 (Tabby) converted to opportunity', performedById: sarah.id, performedAt: daysAgo(7) },
-    { type: 'EMAIL' as const, entityType: 'lead', title: 'Sent proposal to Yousef (Omantel)', performedById: omar.id, performedAt: daysAgo(3) },
-    { type: 'CALL' as const, entityType: 'lead', title: 'Discovery call with Sultan (Masdar)', description: 'Needs corporate website with AR/EN. Budget range 12-18K.', performedById: ahmed.id, performedAt: daysAgo(0) },
-    { type: 'SYSTEM' as const, entityType: 'invoice', title: 'Invoice INV-0005 marked as overdue', performedAt: daysAgo(0) },
+    { type: 'NOTE'              as const, entityType: 'lead',        title: 'Initial discovery call with Tariq',                  description: 'Discussed AI chatbot needs. Budget approved by board. Follow up Thursday.',                        performedById: omar.id,  performedAt: daysAgo(1) },
+    { type: 'CALL'              as const, entityType: 'lead',        title: 'Follow-up call — Reem (Etisalat)',                   description: 'Confirmed meeting for next week. Very interested in AI Agent Workflow.',                             performedById: sarah.id, performedAt: daysAgo(0) },
+    { type: 'EMAIL'             as const, entityType: 'opportunity', title: 'Sent Al Futtaim chatbot demo link',                  description: 'Personalized Loom demo showing FAQ bot on e-commerce site.',                                          performedById: sarah.id, performedAt: daysAgo(2) },
+    { type: 'MEETING'           as const, entityType: 'opportunity', title: 'Dubai Holding website kickoff meeting',              description: '2-hour session. Stakeholders aligned on scope and timeline. Sarah presenting wireframes next Monday.', performedById: sarah.id, performedAt: daysAgo(8) },
+    { type: 'STATUS_CHANGE'     as const, entityType: 'project',     title: 'PRJ-0004 moved to Delivered',                        description: 'Client signed off brand assets. Archiving project.',                                                  performedById: omar.id,  performedAt: daysAgo(3) },
+    { type: 'TASK_COMPLETED'    as const, entityType: 'task',        title: 'Chatbot conversation flows completed',               description: '23 intent flows mapped across FAQ, booking, complaints.',                                             performedById: omar.id,  performedAt: daysAgo(6) },
+    { type: 'DOCUMENT_UPLOADED' as const, entityType: 'project',     title: 'Uploaded Al Futtaim Requirements.pdf',               description: 'Final requirements approved by client. Shared on project portal.',                                    performedById: sarah.id, performedAt: daysAgo(25) },
+    { type: 'STAGE_CHANGE'      as const, entityType: 'lead',        title: 'Lead LD-0004 moved to Meeting Scheduled',            description: 'Call scheduled for Monday 14 Apr at 11AM.',                                                          performedById: sarah.id, performedAt: daysAgo(1) },
+    { type: 'ASSIGNMENT'        as const, entityType: 'ticket',      title: 'TKT-0003 assigned to Ahmed',                         description: 'Escalated to senior dev — urgent PDF generation failure.',                                            performedById: layla.id, performedAt: daysAgo(0) },
+    { type: 'COMMENT'           as const, entityType: 'ticket',      title: 'Added comment on TKT-0001',                          description: 'Investigating the after-hours shutdown. Likely a cron job conflict with the webhook heartbeat.',       performedById: omar.id,  performedAt: daysAgo(0) },
+    { type: 'NOTE'              as const, entityType: 'company',     title: 'STC account note',                                   description: 'VP Innovation very interested. Need to schedule exec demo with CTO. Mention on-prem deployment.',       performedById: sarah.id, performedAt: daysAgo(4) },
+    { type: 'CONVERSION'        as const, entityType: 'lead',        title: 'Lead LD-0010 (Tabby) converted to opportunity',      description: 'Budget confirmed AED 55K. Moving to Sales Pipeline: Discovery stage.',                                 performedById: sarah.id, performedAt: daysAgo(7) },
+    { type: 'EMAIL'             as const, entityType: 'lead',        title: 'Sent proposal to Yousef (Omantel)',                  description: 'PRP-0004-draft sent for review. Following up Thursday.',                                              performedById: omar.id,  performedAt: daysAgo(3) },
+    { type: 'CALL'              as const, entityType: 'lead',        title: 'Discovery call with Sultan (Masdar)',                 description: 'Needs corporate website with AR/EN. Budget range 12-18K. Govt tender process — needs local partner.',    performedById: ahmed.id, performedAt: daysAgo(0) },
+    { type: 'SYSTEM'            as const, entityType: 'invoice',     title: 'Invoice INV-0005 marked as overdue',                 description: 'Auto-flagged by system — past due 5 days.',                                                           performedAt: daysAgo(0) },
+    { type: 'SYSTEM'            as const, entityType: 'invoice',     title: 'Payment PAY-0005 received — AED 23,625 (Dubai Holding)', description: 'Full payment received. Invoice INV-0006 now closed.',                                            performedById: admin.id, performedAt: daysAgo(0) },
+    { type: 'SYSTEM'            as const, entityType: 'invoice',     title: 'Payment PAY-0002 received — AED 6,300 (Arabian Adventures)', description: '50% upfront payment received for branding project.',                                        performedById: admin.id, performedAt: daysAgo(30) },
+    { type: 'NOTE'              as const, entityType: 'lead',        title: 'LinkedIn DM from Noura Al-Dosari (ENOC)',            description: 'Interested in AI automation for fuel station ops. Forwarded to Sarah.',                               performedById: layla.id, performedAt: daysAgo(2) },
+    { type: 'EMAIL'             as const, entityType: 'opportunity', title: 'Sent Al Futtaim contract for signature',             description: 'CTR-0001 sent via DocuSign. Awaiting signature from Khalid Al-Rashidi.',                              performedById: sarah.id, performedAt: daysAgo(17) },
+    { type: 'MEETING'           as const, entityType: 'company',     title: 'MAF quarterly review meeting',                       description: 'Reviewed Q1 social metrics. MAF happy with engagement rates. Upsell: add TikTok channel.',              performedById: layla.id, performedAt: daysAgo(5) },
+    { type: 'TASK_COMPLETED'    as const, entityType: 'task',        title: 'SSL certificates renewed for 5 client domains',       description: 'All certificates valid until Apr 2027.',                                                             performedById: omar.id,  performedAt: daysAgo(4) },
+    { type: 'STAGE_CHANGE'      as const, entityType: 'opportunity', title: 'OPP-0003 moved from Proposal to Negotiation',        description: 'STC reviewing contract clauses with internal legal team.',                                             performedById: sarah.id, performedAt: daysAgo(3) },
+    { type: 'DOCUMENT_UPLOADED' as const, entityType: 'project',     title: 'Uploaded Dubai Holding Mockups v3.pdf',              description: 'Third revision. Client requested navbar redesign and hero section update.',                             performedById: omar.id,  performedAt: daysAgo(1) },
+    { type: 'NOTE'              as const, entityType: 'opportunity', title: 'Noon procurement sent RFP',                          description: 'RFP for CRM automation. Response needed by Apr 20. Budget ceiling AED 60K.',                            performedById: omar.id,  performedAt: daysAgo(2) },
+    { type: 'SYSTEM'            as const, entityType: 'contract',    title: 'CTR-0002 (Arabian Adventures) expiring in 5 days',   description: 'Auto-alert triggered. Renewal discussion needed.',                                                    performedAt: daysAgo(0) },
   ]
 
   for (const a of activitiesData) {
@@ -1280,19 +1383,67 @@ async function main() {
   }
 
   // ============================================================================
+  // 27b. TICKET COMMENTS (for all tickets)
+  // ============================================================================
+  const ticketComments = [
+    // TKT-0001 — Chatbot not responding after hours
+    { ticketNumber: 'TKT-0001', authorId: omar.id,  content: 'Reproducing the issue now. Looks like the cron job that refreshes the auth token is conflicting with the WebSocket heartbeat. Will push a fix by EOD.', isInternal: false },
+    { ticketNumber: 'TKT-0001', authorId: sarah.id, content: 'INTERNAL: Al Futtaim wants this resolved before Eid. Escalate if not fixed by tomorrow morning.', isInternal: true },
+    // TKT-0002 — Multilingual support request
+    { ticketNumber: 'TKT-0002', authorId: layla.id, content: 'Logged this as a feature request. Will include in Q3 roadmap. Dubai Holding needs AR + EN + Hindi support.', isInternal: true },
+    // TKT-0003 — Invoice PDF generation
+    { ticketNumber: 'TKT-0003', authorId: ahmed.id, content: 'Root cause found: the Decimal fields were serializing as strings causing the PDF renderer to crash. Fix deployed to staging — testing now.', isInternal: false },
+    { ticketNumber: 'TKT-0003', authorId: layla.id, content: 'MAF needs this resolved for their end-of-month billing. Please confirm production deploy.', isInternal: false },
+    // TKT-0004 — Already resolved
+    { ticketNumber: 'TKT-0004', authorId: omar.id,  content: 'Resolution: Walked client through Settings → Branding → Colors. Updated primary and secondary brand colors. Client confirmed it looks correct.', isInternal: false },
+    // TKT-0005 — Timezone issue
+    { ticketNumber: 'TKT-0005', authorId: layla.id, content: 'Issue is that the scheduler was using UTC timestamps but the display UI was showing Gulf Standard Time without conversion. Fix is straightforward.', isInternal: true },
+    { ticketNumber: 'TKT-0005', authorId: layla.id, content: 'Waiting on client to confirm which timezone they want as their account default (GST vs AST). Sent email 3 days ago — following up.', isInternal: false },
+    // TKT-0006 — WhatsApp channel
+    { ticketNumber: 'TKT-0006', authorId: sarah.id, content: 'Added to PRJ-0005 scope. WhatsApp Business API integration requires Meta Business verification. Sending documentation to Property Finder team.', isInternal: false },
+  ]
+
+  // We need ticket IDs — re-query them by ticketNumber
+  const ticketMap: Record<string, any> = {}
+  for (const tk of await prisma.ticket.findMany({ where: { tenantId: tenant.id }, select: { id: true, ticketNumber: true } })) {
+    ticketMap[tk.ticketNumber] = tk
+  }
+  for (const tc of ticketComments) {
+    if (!ticketMap[tc.ticketNumber]) continue
+    await prisma.ticketComment.create({
+      data: {
+        ticketId: ticketMap[tc.ticketNumber].id,
+        authorId: tc.authorId,
+        content: tc.content,
+        isInternal: tc.isInternal,
+      },
+    })
+  }
+
+  // ============================================================================
   // 28. NOTIFICATIONS
   // ============================================================================
   const notificationsData = [
-    { userId: sarah.id, type: 'task_assigned', title: 'New task assigned: Prepare discovery document for STC', entityType: 'task', actionUrl: '/tasks' },
-    { userId: omar.id, type: 'ticket_assigned', title: 'Ticket TKT-0001 assigned to you', entityType: 'ticket', actionUrl: '/tickets' },
-    { userId: ahmed.id, type: 'ticket_assigned', title: 'Urgent: TKT-0003 — Invoice PDF not generating', entityType: 'ticket', actionUrl: '/tickets' },
-    { userId: admin.id, type: 'invoice_overdue', title: 'Invoice INV-0005 (Kitopi) is overdue', entityType: 'invoice', actionUrl: '/invoices' },
-    { userId: sarah.id, type: 'lead_new', title: 'New hot lead: Sultan Al-Kendi (Masdar)', entityType: 'lead', actionUrl: '/leads' },
-    { userId: layla.id, type: 'project_at_risk', title: 'Project PRJ-0003 marked as At Risk', entityType: 'project', actionUrl: '/projects' },
-    { userId: admin.id, type: 'expense_pending', title: '2 expenses pending approval', entityType: 'expense', actionUrl: '/expenses' },
-    { userId: omar.id, type: 'lead_followup', title: 'Follow-up due: Tariq Al-Muhairi (Emirates NBD)', entityType: 'lead', actionUrl: '/leads', isRead: true, readAt: daysAgo(0) },
-    { userId: sarah.id, type: 'proposal_viewed', title: 'Proposal PRP-0004 viewed by STC', entityType: 'proposal', actionUrl: '/proposals' },
-    { userId: ahmed.id, type: 'task_due', title: 'Task TSK-0005 due tomorrow', entityType: 'task', actionUrl: '/tasks' },
+    { userId: sarah.id, type: 'task_assigned',      title: 'New task assigned: Prepare discovery document for STC',        entityType: 'task',     actionUrl: '/tasks' },
+    { userId: omar.id,  type: 'ticket_assigned',    title: 'Ticket TKT-0001 assigned to you',                               entityType: 'ticket',   actionUrl: '/tickets' },
+    { userId: ahmed.id, type: 'ticket_assigned',    title: 'Urgent: TKT-0003 — Invoice PDF not generating',                entityType: 'ticket',   actionUrl: '/tickets' },
+    { userId: admin.id, type: 'invoice_overdue',    title: 'Invoice INV-0005 (Kitopi) is overdue',                          entityType: 'invoice',  actionUrl: '/invoices' },
+    { userId: sarah.id, type: 'lead_new',           title: 'New hot lead: Sultan Al-Kendi (Masdar)',                        entityType: 'lead',     actionUrl: '/leads' },
+    { userId: layla.id, type: 'project_at_risk',    title: 'Project PRJ-0003 marked as At Risk',                           entityType: 'project',  actionUrl: '/projects' },
+    { userId: admin.id, type: 'expense_pending',    title: '3 expenses pending approval — total AED 9,020',                entityType: 'expense',  actionUrl: '/expenses' },
+    { userId: omar.id,  type: 'lead_followup',      title: 'Follow-up due: Tariq Al-Muhairi (Emirates NBD)',               entityType: 'lead',     actionUrl: '/leads', isRead: true, readAt: daysAgo(0) },
+    { userId: sarah.id, type: 'proposal_viewed',    title: 'Proposal PRP-0004 viewed by STC contact',                      entityType: 'proposal', actionUrl: '/proposals' },
+    { userId: ahmed.id, type: 'task_due',           title: 'Task TSK-0005 due tomorrow: Send Kitopi mockups',              entityType: 'task',     actionUrl: '/tasks' },
+    { userId: admin.id, type: 'payment_received',   title: 'Payment received AED 23,625 from Dubai Holding',              entityType: 'payment',  actionUrl: '/payments', isRead: true, readAt: daysAgo(0) },
+    { userId: sarah.id, type: 'contract_expiring',  title: 'Contract CTR-0002 (Arabian Adventures) expires in 5 days',   entityType: 'contract', actionUrl: '/contracts' },
+    { userId: layla.id, type: 'task_assigned',      title: 'New task: Review MAF content calendar',                        entityType: 'task',     actionUrl: '/tasks' },
+    { userId: omar.id,  type: 'task_assigned',      title: 'New task: Set up staging for Dubai Holding',                  entityType: 'task',     actionUrl: '/tasks' },
+    { userId: admin.id, type: 'lead_converted',     title: 'Lead LD-0010 (Tabby) converted to Opportunity by Sarah',     entityType: 'lead',     actionUrl: '/leads', isRead: true, readAt: daysAgo(7) },
+    { userId: sarah.id, type: 'proposal_accepted',  title: 'Proposal PRP-0001 accepted by Al Futtaim!',                   entityType: 'proposal', actionUrl: '/proposals', isRead: true, readAt: daysAgo(18) },
+    { userId: admin.id, type: 'invoice_paid',       title: 'Invoice INV-0002 (Arabian Adventures) fully paid — AED 12,600', entityType: 'invoice', actionUrl: '/invoices', isRead: true, readAt: daysAgo(15) },
+    { userId: omar.id,  type: 'mention',            title: 'Sarah mentioned you in PRJ-0005 discussion',                  entityType: 'project',  actionUrl: '/projects' },
+    { userId: ahmed.id, type: 'task_overdue',       title: 'Task TSK-0016 is overdue: Fix TKT-0003 PDF bug',             entityType: 'task',     actionUrl: '/tasks' },
+    { userId: sarah.id, type: 'lead_new',           title: 'New inbound lead from zainhub.ae contact form: Noura (ENOC)', entityType: 'lead',     actionUrl: '/leads' },
   ]
 
   for (const n of notificationsData) {
@@ -1314,19 +1465,19 @@ async function main() {
   // 29. NUMBER SEQUENCES (to keep auto-numbering consistent)
   // ============================================================================
   const sequences = [
-    { entityType: 'company', prefix: 'COM', lastNumber: 10 },
-    { entityType: 'contact', prefix: 'CON', lastNumber: 12 },
-    { entityType: 'lead', prefix: 'LD', lastNumber: 15 },
+    { entityType: 'company',     prefix: 'COM', lastNumber: 10 },
+    { entityType: 'contact',     prefix: 'CON', lastNumber: 12 },
+    { entityType: 'lead',        prefix: 'LD',  lastNumber: 15 },
     { entityType: 'opportunity', prefix: 'OPP', lastNumber: 10 },
-    { entityType: 'project', prefix: 'PRJ', lastNumber: 6 },
-    { entityType: 'quotation', prefix: 'QUO', lastNumber: 6 },
-    { entityType: 'proposal', prefix: 'PRP', lastNumber: 4 },
-    { entityType: 'contract', prefix: 'CTR', lastNumber: 5 },
-    { entityType: 'invoice', prefix: 'INV', lastNumber: 6 },
-    { entityType: 'payment', prefix: 'PAY', lastNumber: 3 },
-    { entityType: 'expense', prefix: 'EXP', lastNumber: 8 },
-    { entityType: 'ticket', prefix: 'TKT', lastNumber: 6 },
-    { entityType: 'task', prefix: 'TSK', lastNumber: 10 },
+    { entityType: 'project',     prefix: 'PRJ', lastNumber: 6  },
+    { entityType: 'quotation',   prefix: 'QUO', lastNumber: 6  },
+    { entityType: 'proposal',    prefix: 'PRP', lastNumber: 4  },
+    { entityType: 'contract',    prefix: 'CTR', lastNumber: 5  },
+    { entityType: 'invoice',     prefix: 'INV', lastNumber: 6  },
+    { entityType: 'payment',     prefix: 'PAY', lastNumber: 8  },
+    { entityType: 'expense',     prefix: 'EXP', lastNumber: 16 },
+    { entityType: 'ticket',      prefix: 'TKT', lastNumber: 6  },
+    { entityType: 'task',        prefix: 'TSK', lastNumber: 20 },
   ]
 
   for (const seq of sequences) {
@@ -1377,14 +1528,18 @@ async function main() {
   console.log(`   Services: ${Object.keys(serviceMap).length}`)
   console.log(`   Projects: ${projectsData.length}`)
   console.log(`   Campaigns: ${campaignsData.length}`)
-  console.log(`   Quotations: ${quotationsData.length}`)
-  console.log(`   Proposals: ${proposalsData.length}`)
+  console.log(`   Quotations: ${quotationsData.length} (multi-line items)`)
+  console.log(`   Proposals: ${proposalsData.length} (multi-line items)`)
   console.log(`   Contracts: ${contractsData.length}`)
   console.log(`   Invoices: ${invoicesData.length}`)
+  console.log(`   Payments: ${paymentsData.length}`)
   console.log(`   Expenses: ${expensesData.length}`)
-  console.log(`   Tickets: ${ticketsData.length}`)
+  console.log(`   Tickets: ${ticketsData.length} (with comments)`)
   console.log(`   Tasks: ${tasksData.length}`)
-  console.log(`   Service Categories: 17 (6 original + 11 added)'`)
+  console.log(`   Activities: ${activitiesData.length}`)
+  console.log(`   Notifications: ${notificationsData.length}`)
+  console.log(`   Documents: ${documentsData.length}`)
+  console.log(`   Service Categories: 17`)
 }
 
 main()

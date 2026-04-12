@@ -9,13 +9,18 @@ export function formatCurrency(amount: number, currency = 'AED', locale = 'en-AE
   return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(amount)
 }
 
-export function formatDate(date: Date | string, locale = 'en-AE'): string {
-  return new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(date))
+export function formatDate(date: Date | string | null | undefined, locale = 'en-AE'): string {
+  if (!date) return '-'
+  const d = new Date(date)
+  if (isNaN(d.getTime())) return '-'
+  return new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'short', day: 'numeric' }).format(d)
 }
 
-export function formatRelativeDate(date: Date | string): string {
+export function formatRelativeDate(date: Date | string | null | undefined): string {
+  if (!date) return '-'
   const now = new Date()
   const d = new Date(date)
+  if (isNaN(d.getTime())) return '-'
   const diff = now.getTime() - d.getTime()
   const seconds = Math.floor(diff / 1000)
   const minutes = Math.floor(seconds / 60)

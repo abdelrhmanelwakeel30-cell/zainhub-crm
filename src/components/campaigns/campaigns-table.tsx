@@ -96,7 +96,7 @@ export function CampaignsTable() {
       header: t('leadsGenerated'),
       cell: ({ row }) => (
         <span className="text-sm font-semibold">
-          {row.original._count?.leads ?? row.original.leadsGenerated ?? 0}
+          {row.original._count?.leads || row.original.leadsGenerated || 0}
         </span>
       ),
     },

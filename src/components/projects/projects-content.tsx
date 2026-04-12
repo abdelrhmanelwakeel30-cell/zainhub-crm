@@ -21,12 +21,12 @@ export function ProjectsContent() {
     queryFn: () => fetch('/api/projects').then(r => r.json()),
   })
 
-  const projects: Array<{ status: string; budget: number }> = data?.data ?? []
+  const projects: Array<{ status: string; budgetValue: number | null }> = data?.data ?? []
 
   const totalProjects = data?.total ?? 0
   const inProgress = projects.filter(p => p.status === 'IN_PROGRESS').length
   const completed = projects.filter(p => p.status === 'COMPLETED').length
-  const totalBudget = projects.reduce((sum, p) => sum + (p.budget ?? 0), 0)
+  const totalBudget = projects.reduce((sum, p) => sum + Number(p.budgetValue ?? 0), 0)
 
   const kpis = [
     { label: t('totalProjects'), value: totalProjects, icon: FolderKanban, color: 'text-blue-600' },

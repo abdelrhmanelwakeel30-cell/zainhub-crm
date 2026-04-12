@@ -195,7 +195,8 @@
     "country": "Country",
     "city": "City",
     "website": "Website",
-    "whatsapp": "WhatsApp"
+    "whatsapp": "WhatsApp",
+    "export": "Export"
   },
   "companies": {
     "title": "Companies",
@@ -299,7 +300,8 @@
     "taskNotFound": "Task not found",
     "todo": "To Do",
     "inReview": "In Review",
-    "blocked": "Blocked"
+    "blocked": "Blocked",
+    "export": "Export"
   },
   "invoices": {
     "title": "Invoices",
@@ -364,6 +366,7 @@
     "actualCost": "Actual Cost",
     "startDate": "Start Date",
     "targetEndDate": "Target End Date",
+    "name": "Project Name",
     "totalProjects": "Total Projects",
     "inProgress": "In Progress",
     "completed": "Completed",

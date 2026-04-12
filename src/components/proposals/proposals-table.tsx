@@ -16,7 +16,7 @@ type Proposal = {
   totalAmount: number
   status: string
   createdAt: string
-  expiryDate?: string
+  validUntil?: string
 }
 
 export function ProposalsTable() {
@@ -62,10 +62,10 @@ export function ProposalsTable() {
       cell: ({ row }) => <span className="text-xs text-muted-foreground">{formatDate(row.original.createdAt)}</span>,
     },
     {
-      accessorKey: 'expiryDate',
+      accessorKey: 'validUntil',
       header: 'Expiry Date',
       cell: ({ row }) => (
-        <span className="text-xs text-muted-foreground">{row.original.expiryDate ? formatDate(row.original.expiryDate) : '-'}</span>
+        <span className="text-xs text-muted-foreground">{row.original.validUntil ? formatDate(row.original.validUntil) : '-'}</span>
       ),
     },
   ]
