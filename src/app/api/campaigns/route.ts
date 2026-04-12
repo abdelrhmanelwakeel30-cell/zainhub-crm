@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSession, unauthorized, serverError, paginatedOk, parsePagination, serializeDecimals } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
+import { logCreate } from '@/lib/activity'
 
 const CreateSchema = z.object({
   name: z.string().min(1),
@@ -28,7 +29,7 @@ export async function GET(req: NextRequest) {
 
     const where: Record<string, unknown> = {
       tenantId: session.user.tenantId,
-      ...(search && { OR: [{ name: { contains: search } }] }),
+      ...(search && { OR: [{ name: { contains: search, mode: 'insensitive' as const } }] }),
       ...(status && { status }),
     }
 
@@ -79,6 +80,8 @@ export async function POST(req: NextRequest) {
     await prisma.auditLog.create({
       data: { tenantId, userId: session.user.id, action: 'CREATE', entityType: 'Campaign', entityId: campaign.id, entityName: campaign.name },
     })
+
+    logCreate(tenantId, 'campaign', campaign.id, campaign.name, session.user.id)
 
     return NextResponse.json({ success: true, data: serializeDecimals(campaign) }, { status: 201 })
   } catch (err) {

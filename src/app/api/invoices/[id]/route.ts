@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
+import { sendInvoiceEmail } from '@/lib/email'
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getApiSession()
@@ -37,6 +38,19 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (data.dueDate) data.dueDate = new Date(data.dueDate)
     const invoice = await prisma.invoice.update({ where: { id }, data })
     await prisma.auditLog.create({ data: { tenantId: session.user.tenantId, userId: session.user.id, action: 'UPDATE', entityType: 'invoice', entityId: id, entityName: invoice.invoiceNumber } })
+
+    // Auto-send email when invoice status changes to SENT
+    if (data.status === 'SENT' && existing.status !== 'SENT') {
+      const client = await prisma.company.findUnique({ where: { id: invoice.clientId }, select: { email: true } })
+      const tenant = await prisma.tenant.findUnique({ where: { id: session.user.tenantId }, select: { name: true } })
+      if (client?.email && tenant) {
+        sendInvoiceEmail(
+          client.email, invoice.invoiceNumber, Number(invoice.totalAmount),
+          invoice.currency, invoice.dueDate.toLocaleDateString('en-GB'), tenant.name,
+        )
+      }
+    }
+
     return NextResponse.json({ success: true, data: invoice })
   } catch (err) { console.error(err); return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 }) }
 }

@@ -9,6 +9,8 @@ declare module 'next-auth' {
       tenantSlug: string
       firstName: string
       lastName: string
+      primaryColor: string
+      secondaryColor: string
       roles: string[]
       permissions: string[]
     } & DefaultSession['user']
@@ -21,6 +23,8 @@ declare module 'next-auth' {
     tenantSlug: string
     firstName: string
     lastName: string
+    primaryColor: string
+    secondaryColor: string
     roles: string[]
     permissions: string[]
   }
@@ -34,6 +38,8 @@ declare module 'next-auth/jwt' {
     tenantSlug: string
     firstName: string
     lastName: string
+    primaryColor: string
+    secondaryColor: string
     roles: string[]
     permissions: string[]
   }

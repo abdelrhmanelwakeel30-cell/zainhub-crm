@@ -58,7 +58,7 @@ export function ContactDetail({ contactId }: ContactDetailProps) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.push('/contacts')}>
+          <Button variant="ghost" size="icon" aria-label="Back to contacts" onClick={() => router.push('/contacts')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <Skeleton className="h-12 w-12 rounded-full" />
@@ -96,7 +96,7 @@ export function ContactDetail({ contactId }: ContactDetailProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.push('/contacts')}>
+          <Button variant="ghost" size="icon" aria-label="Back to contacts" onClick={() => router.push('/contacts')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <Avatar className="h-12 w-12">

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useQuery } from '@tanstack/react-query'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import {
   Search, Users, Building2, UserCircle, Briefcase,
   LayoutDashboard, FileText, ArrowRight,
@@ -197,6 +197,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl p-0 gap-0 overflow-hidden" showCloseButton={false}>
+        <DialogTitle className="sr-only">Search commands and pages</DialogTitle>
         <div className="flex items-center border-b px-4" onKeyDown={handleKeyDown}>
           {isFetching ? (
             <Loader2 className="h-4 w-4 text-muted-foreground shrink-0 animate-spin" />

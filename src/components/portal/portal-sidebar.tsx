@@ -40,11 +40,11 @@ export function PortalSidebar({ open, onClose }: PortalSidebarProps) {
 
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-30 w-64 flex flex-col',
-          'bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800',
+          'fixed inset-y-0 start-0 z-30 w-64 flex flex-col',
+          'bg-white dark:bg-slate-900 border-e border-slate-200 dark:border-slate-800',
           'transition-transform duration-200 ease-in-out',
           'lg:translate-x-0 lg:static lg:z-auto',
-          open ? 'translate-x-0' : '-translate-x-full',
+          open ? 'translate-x-0' : '-translate-x-full rtl:translate-x-full',
         )}
       >
         {/* Close button (mobile) */}

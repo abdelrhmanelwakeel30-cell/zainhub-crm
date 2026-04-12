@@ -8,12 +8,14 @@ import { KPICard } from '@/components/shared/kpi-card'
 import { OpportunitiesTable } from './opportunities-table'
 import { OpportunityFormDialog } from './opportunity-form-dialog'
 import { Button } from '@/components/ui/button'
-import { Plus, Download, DollarSign, Target, TrendingUp, Handshake } from 'lucide-react'
+import { Plus, Download, DollarSign, Target, TrendingUp, Handshake, LayoutGrid, List } from 'lucide-react'
+import { OpportunitiesKanban } from './opportunities-kanban'
 import { toast } from 'sonner'
 
 export function OpportunitiesContent() {
   const t = useTranslations('opportunities')
   const [showCreateForm, setShowCreateForm] = useState(false)
+  const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table')
 
   const { data } = useQuery({
     queryKey: ['opportunities'],
@@ -32,6 +34,26 @@ export function OpportunitiesContent() {
   return (
     <div className="space-y-6 animate-slide-in">
       <PageHeader title={t('title')} description={`${data?.total ?? 0} opportunities`}>
+        <div className="flex items-center border rounded-lg overflow-hidden">
+          <Button
+            variant={viewMode === 'table' ? 'default' : 'ghost'}
+            size="sm"
+            className="rounded-none"
+            onClick={() => setViewMode('table')}
+            aria-label="Table view"
+          >
+            <List className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewMode === 'kanban' ? 'default' : 'ghost'}
+            size="sm"
+            className="rounded-none"
+            onClick={() => setViewMode('kanban')}
+            aria-label="Kanban view"
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </Button>
+        </div>
         <Button variant="outline" size="sm" onClick={() => toast.success('Export started')}>
           <Download className="h-4 w-4 me-2" /> Export
         </Button>
@@ -47,7 +69,7 @@ export function OpportunitiesContent() {
         <KPICard title={t('winRate')} value={`${winRate}%`} icon={<TrendingUp className="h-5 w-5" />} />
       </div>
 
-      <OpportunitiesTable />
+      {viewMode === 'table' ? <OpportunitiesTable /> : <OpportunitiesKanban />}
 
       <OpportunityFormDialog open={showCreateForm} onOpenChange={setShowCreateForm} />
     </div>

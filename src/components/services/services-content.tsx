@@ -1,11 +1,13 @@
 'use client'
 
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ServiceFormDialog } from './service-form-dialog'
 import { Plus, Package } from 'lucide-react'
 
 const pricingLabel: Record<string, string> = {
@@ -21,11 +23,12 @@ interface Service {
   nameAr?: string
   basePrice: number
   currency: string
-  billingType: string
+  pricingType: string
   category?: { id: string; name: string; nameAr?: string }
 }
 
 export function ServicesContent() {
+  const [showCreate, setShowCreate] = useState(false)
   const { data, isLoading } = useQuery({
     queryKey: ['services'],
     queryFn: () => fetch('/api/services').then(r => r.json()),
@@ -50,8 +53,12 @@ export function ServicesContent() {
         title="Services"
         description={isLoading ? 'Loading...' : `${services.length} services across ${categories.length} categories`}
       >
-        <Button size="sm"><Plus className="h-4 w-4 me-2" /> Add Service</Button>
+        <Button size="sm" onClick={() => setShowCreate(true)}>
+          <Plus className="h-4 w-4 me-2" /> Add Service
+        </Button>
       </PageHeader>
+
+      <ServiceFormDialog open={showCreate} onOpenChange={setShowCreate} />
 
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -73,7 +80,7 @@ export function ServicesContent() {
                         <p className="font-medium text-sm">{svc.name}</p>
                       </div>
                       <Badge variant="outline" className="text-[10px]">
-                        {pricingLabel[svc.billingType] || svc.billingType}
+                        {pricingLabel[svc.pricingType] || svc.pricingType}
                       </Badge>
                     </div>
                     {svc.nameAr && (

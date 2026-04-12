@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { formatDate, formatRelativeDate } from '@/lib/utils'
 import {
   ArrowLeft, Edit, Building2, DollarSign,
-  CalendarDays, CreditCard, FileText
+  CalendarDays, CreditCard, FileText, Download
 } from 'lucide-react'
 
 interface InvoiceDetailProps {
@@ -109,7 +109,7 @@ export function InvoiceDetail({ invoiceId }: InvoiceDetailProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.push('/invoices')}>
+          <Button variant="ghost" size="icon" aria-label="Back to invoices" onClick={() => router.push('/invoices')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
@@ -123,6 +123,14 @@ export function InvoiceDetail({ invoiceId }: InvoiceDetailProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <a
+            href={`/api/pdf/invoice/${invoiceId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center rounded-lg border border-border bg-background hover:bg-muted hover:text-foreground h-7 gap-1 px-2.5 text-[0.8rem] font-medium transition-all"
+          >
+            <Download className="h-3.5 w-3.5 me-2" /> Download PDF
+          </a>
           <Button variant="outline" size="sm">
             <Edit className="h-4 w-4 me-2" /> Edit
           </Button>

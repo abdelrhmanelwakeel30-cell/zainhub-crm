@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { formatDate } from '@/lib/utils'
-import { ArrowLeft, Edit, Building2, UserCircle, DollarSign, CalendarDays, FileText } from 'lucide-react'
+import { ArrowLeft, Edit, Building2, UserCircle, DollarSign, CalendarDays, FileText, Download } from 'lucide-react'
 
 interface QuotationDetailProps { quotationId: string }
 
@@ -47,7 +47,7 @@ export function QuotationDetail({ quotationId }: QuotationDetailProps) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.push('/quotations')}>
+          <Button variant="ghost" size="icon" aria-label="Back to quotations" onClick={() => router.push('/quotations')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="space-y-2">
@@ -78,7 +78,7 @@ export function QuotationDetail({ quotationId }: QuotationDetailProps) {
     <div className="space-y-6 animate-slide-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.push('/quotations')}>
+          <Button variant="ghost" size="icon" aria-label="Back to quotations" onClick={() => router.push('/quotations')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
@@ -91,7 +91,17 @@ export function QuotationDetail({ quotationId }: QuotationDetailProps) {
             </p>
           </div>
         </div>
-        <Button variant="outline" size="sm"><Edit className="h-4 w-4 me-2" /> Edit</Button>
+        <div className="flex items-center gap-2">
+          <a
+            href={`/api/pdf/quotation/${quotationId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center rounded-lg border border-border bg-background hover:bg-muted hover:text-foreground h-7 gap-1 px-2.5 text-[0.8rem] font-medium transition-all"
+          >
+            <Download className="h-3.5 w-3.5 me-2" /> Download PDF
+          </a>
+          <Button variant="outline" size="sm"><Edit className="h-4 w-4 me-2" /> Edit</Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

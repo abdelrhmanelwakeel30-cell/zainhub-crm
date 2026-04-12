@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSession, unauthorized, serverError, paginatedOk, parsePagination, serializeDecimals } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
+import { nextNumber } from '@/lib/number-sequence'
+import { logCreate } from '@/lib/activity'
 
 const ItemSchema = z.object({
   description: z.string().min(1),
@@ -52,7 +54,7 @@ export async function GET(req: NextRequest) {
 
     const where: Record<string, unknown> = {
       tenantId: session.user.tenantId,
-      ...(search && { OR: [{ title: { contains: search } }, { quotationNumber: { contains: search } }] }),
+      ...(search && { OR: [{ title: { contains: search, mode: 'insensitive' as const } }, { quotationNumber: { contains: search, mode: 'insensitive' as const } }] }),
       ...(status && { status }),
       ...(companyId && { companyId }),
     }
@@ -91,8 +93,7 @@ export async function POST(req: NextRequest) {
     }
 
     const tenantId = session.user.tenantId
-    const count = await prisma.quotation.count({ where: { tenantId } })
-    const quotationNumber = `QUO-${String(count + 1).padStart(4, '0')}`
+    const quotationNumber = await nextNumber(tenantId, 'quotation')
 
     const { items, issueDate, validUntil, ...rest } = parsed.data
 
@@ -118,6 +119,8 @@ export async function POST(req: NextRequest) {
     await prisma.auditLog.create({
       data: { tenantId, userId: session.user.id, action: 'CREATE', entityType: 'Quotation', entityId: quotation.id, entityName: quotation.quotationNumber },
     })
+
+    logCreate(tenantId, 'quotation', quotation.id, quotation.title, session.user.id)
 
     return NextResponse.json({ success: true, data: serializeDecimals(quotation) }, { status: 201 })
   } catch (err) {

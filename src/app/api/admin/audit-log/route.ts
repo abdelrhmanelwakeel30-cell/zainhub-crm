@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     const where: Record<string, unknown> = {
       tenantId: session.user.tenantId,
       ...(action && { action }),
-      ...(entityType && { entityType: { contains: entityType } }),
+      ...(entityType && { entityType: { contains: entityType, mode: 'insensitive' as const } }),
       ...(userId && { userId }),
       ...((dateFrom || dateTo) && {
         createdAt: {

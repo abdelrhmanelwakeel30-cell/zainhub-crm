@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
+import { parseJson } from '@/lib/api-helpers'
+import { OpportunityUpdateSchema, pruneUndefined } from '@/lib/validators'
+import { createAuditLog } from '@/lib/audit'
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getApiSession()
@@ -33,15 +36,33 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   try {
     const existing = await prisma.opportunity.findFirst({ where: { id, tenantId: session.user.tenantId } })
     if (!existing) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
-    const body = await req.json()
-    if (body.expectedValue !== undefined && body.probability !== undefined) {
-      body.weightedValue = (body.expectedValue * body.probability) / 100
+
+    const parsed = await parseJson(req, OpportunityUpdateSchema)
+    if (parsed instanceof NextResponse) return parsed
+    const data = pruneUndefined({ ...parsed.data }) as Record<string, unknown>
+
+    // Recompute weighted value whenever either factor changes
+    const nextExpected =
+      (data.expectedValue as number | undefined) ?? Number(existing.expectedValue)
+    const nextProbability =
+      (data.probability as number | undefined) ?? existing.probability
+    if (data.expectedValue !== undefined || data.probability !== undefined) {
+      data.weightedValue = (nextExpected * nextProbability) / 100
     }
-    if (body.expectedCloseDate) body.expectedCloseDate = new Date(body.expectedCloseDate)
-    if (body.wonAt) body.wonAt = new Date(body.wonAt)
-    if (body.lostAt) body.lostAt = new Date(body.lostAt)
-    const opp = await prisma.opportunity.update({ where: { id }, data: body })
-    await prisma.auditLog.create({ data: { tenantId: session.user.tenantId, userId: session.user.id, action: 'UPDATE', entityType: 'opportunity', entityId: id, entityName: opp.title } })
+
+    const opp = await prisma.opportunity.update({ where: { id }, data })
+    await createAuditLog({
+      tenantId: session.user.tenantId,
+      userId: session.user.id,
+      action: 'UPDATE',
+      entityType: 'opportunity',
+      entityId: id,
+      entityName: opp.title,
+      beforeValue: existing as unknown as Record<string, unknown>,
+      afterValue: opp as unknown as Record<string, unknown>,
+      sourceModule: 'opportunities',
+      req,
+    })
     return NextResponse.json({ success: true, data: opp })
   } catch (err) { console.error(err); return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 }) }
 }

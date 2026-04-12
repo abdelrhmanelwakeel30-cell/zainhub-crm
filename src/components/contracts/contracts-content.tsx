@@ -1,22 +1,27 @@
 'use client'
 
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { PageHeader } from '@/components/shared/page-header'
 import { KPICard } from '@/components/shared/kpi-card'
 import { ContractsTable } from './contracts-table'
+import { ContractFormDialog } from './contract-form-dialog'
 import { Button } from '@/components/ui/button'
 import { Plus, Download, FileText, CheckCircle, AlertTriangle } from 'lucide-react'
 
 export function ContractsContent() {
+  const [showCreate, setShowCreate] = useState(false)
+
   const { data: contractsResponse } = useQuery({
     queryKey: ['contracts'],
     queryFn: () => fetch('/api/contracts').then(r => r.json()),
   })
   const contracts = contractsResponse?.data ?? []
 
-  const totalValue = contracts
-    .filter((c: { totalValue?: number }) => c.totalValue)
-    .reduce((s: number, c: { totalValue: number }) => s + c.totalValue, 0)
+  const totalValue = contracts.reduce(
+    (s: number, c: { value?: number | string }) => s + Number(c.value ?? 0),
+    0,
+  )
   const active = contracts.filter((c: { status: string }) => c.status === 'ACTIVE')
   const expiringSoon = contracts.filter(
     (c: { endDate?: string }) =>
@@ -27,7 +32,9 @@ export function ContractsContent() {
     <div className="space-y-6 animate-slide-in">
       <PageHeader title="Contracts" description={`${contracts.length} contracts`}>
         <Button variant="outline" size="sm"><Download className="h-4 w-4 me-2" /> Export</Button>
-        <Button size="sm"><Plus className="h-4 w-4 me-2" /> New Contract</Button>
+        <Button size="sm" onClick={() => setShowCreate(true)}>
+          <Plus className="h-4 w-4 me-2" /> New Contract
+        </Button>
       </PageHeader>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -38,6 +45,8 @@ export function ContractsContent() {
       </div>
 
       <ContractsTable />
+
+      <ContractFormDialog open={showCreate} onOpenChange={setShowCreate} />
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
+import { sanitizeUpdateBody } from '@/lib/api-helpers'
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getApiSession()
@@ -30,10 +31,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   try {
     const existing = await prisma.project.findFirst({ where: { id, tenantId: session.user.tenantId } })
     if (!existing) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
-    const body = await req.json()
-    if (body.startDate) body.startDate = new Date(body.startDate)
-    if (body.targetEndDate) body.targetEndDate = new Date(body.targetEndDate)
-    if (body.actualEndDate) body.actualEndDate = new Date(body.actualEndDate)
+    const raw = await req.json()
+    const body = sanitizeUpdateBody<Record<string, unknown>>(raw, ['projectNumber']) as Record<string, unknown>
+    if (body.startDate) body.startDate = new Date(body.startDate as string)
+    if (body.targetEndDate) body.targetEndDate = new Date(body.targetEndDate as string)
+    if (body.actualEndDate) body.actualEndDate = new Date(body.actualEndDate as string)
     const project = await prisma.project.update({ where: { id }, data: body })
     await prisma.auditLog.create({ data: { tenantId: session.user.tenantId, userId: session.user.id, action: 'UPDATE', entityType: 'project', entityId: id, entityName: project.name } })
     return NextResponse.json({ success: true, data: project })

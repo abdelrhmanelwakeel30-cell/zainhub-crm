@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
+import { logUpdate } from '@/lib/activity'
 import { z } from 'zod'
 
 const updateSchema = z.object({
@@ -82,6 +83,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     await prisma.auditLog.create({
       data: { tenantId: session.user.tenantId, userId: session.user.id, action: 'UPDATE', entityType: 'lead', entityId: id, entityName: lead.fullName },
     })
+    logUpdate(session.user.tenantId, 'lead', lead.id, lead.fullName, session.user.id)
     return NextResponse.json({ success: true, data: lead })
   } catch (err) {
     console.error('PATCH /api/leads/[id]', err)

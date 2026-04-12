@@ -1,5 +1,5 @@
-import { NextRequest } from 'next/server'
-import { getSession, unauthorized, serverError, paginatedOk, parsePagination, ok } from '@/lib/api-helpers'
+import { NextRequest, NextResponse } from 'next/server'
+import { getSession, unauthorized, serverError, parsePagination, ok } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(req: NextRequest) {
@@ -30,7 +30,15 @@ export async function GET(req: NextRequest) {
       }),
     ])
 
-    return paginatedOk(data, total, page, pageSize)
+    return NextResponse.json({
+      success: true,
+      data,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+      unreadCount,
+    })
   } catch (err) {
     return serverError(err)
   }

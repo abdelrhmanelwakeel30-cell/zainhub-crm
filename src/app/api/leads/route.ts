@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
+import { nextNumber } from '@/lib/number-sequence'
+import { logCreate } from '@/lib/activity'
 import { z } from 'zod'
 
 const createLeadSchema = z.object({
@@ -36,7 +38,7 @@ export async function GET(req: NextRequest) {
   const urgency = searchParams.get('urgency') || ''
 
   const where: Record<string, unknown> = { tenantId: session.user.tenantId, archivedAt: null }
-  if (search) where.OR = [{ fullName: { contains: search } }, { email: { contains: search } }, { companyName: { contains: search } }]
+  if (search) where.OR = [{ fullName: { contains: search, mode: 'insensitive' as const } }, { email: { contains: search, mode: 'insensitive' as const } }, { companyName: { contains: search, mode: 'insensitive' as const } }]
   if (stageId) where.stageId = stageId
   if (assignedToId) where.assignedToId = assignedToId
   if (urgency) where.urgency = urgency
@@ -74,8 +76,7 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) return NextResponse.json({ success: false, error: parsed.error.flatten() }, { status: 422 })
 
     const { tenantId, id: userId } = session.user
-    const count = await prisma.lead.count({ where: { tenantId } })
-    const leadNumber = `LD-${String(count + 1).padStart(4, '0')}`
+    const leadNumber = await nextNumber(tenantId, 'lead')
 
     let { pipelineId, stageId } = parsed.data
     if (!pipelineId) {
@@ -121,6 +122,8 @@ export async function POST(req: NextRequest) {
     await prisma.auditLog.create({
       data: { tenantId, userId, action: 'CREATE', entityType: 'lead', entityId: lead.id, entityName: lead.fullName },
     })
+
+    logCreate(tenantId, 'lead', lead.id, lead.fullName, userId)
 
     return NextResponse.json({ success: true, data: lead }, { status: 201 })
   } catch (err) {

@@ -2,13 +2,16 @@ import { PrismaClient } from '@prisma/client'
 import { PrismaNeon } from '@prisma/adapter-neon'
 import bcrypt from 'bcryptjs'
 
-const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL! })
-const prisma = new PrismaClient({ adapter })
+const url = process.env.DATABASE_URL!
+const prisma = (url.includes('neon.tech') || url.includes('neon.database'))
+  ? new PrismaClient({ adapter: new PrismaNeon({ connectionString: url }) })
+  : new PrismaClient({ datasources: { db: { url } } })
 
 async function main() {
   console.log('🌱 Seeding database...')
 
   // Clean existing data (sequential — pooler doesn't support batch transactions)
+  await prisma.numberSequence.deleteMany()
   await prisma.activity.deleteMany()
   await prisma.auditLog.deleteMany()
   await prisma.notification.deleteMany()
@@ -645,14 +648,15 @@ async function main() {
   // ============================================================================
   // 13. EXPENSE CATEGORIES & TAX RATES
   // ============================================================================
-  const expCats = ['Office Supplies', 'Software & Tools', 'Marketing', 'Travel', 'Salaries', 'Professional Services', 'Hosting & Cloud', 'Miscellaneous']
-  for (const cat of expCats) {
-    await prisma.expenseCategory.create({
+  const expCatNames = ['Office Supplies', 'Software & Tools', 'Marketing', 'Travel', 'Salaries', 'Professional Services', 'Hosting & Cloud', 'Miscellaneous']
+  const expCatMap: Record<string, any> = {}
+  for (const cat of expCatNames) {
+    expCatMap[cat] = await prisma.expenseCategory.create({
       data: { tenantId: tenant.id, name: cat, isActive: true },
     })
   }
 
-  await prisma.taxRate.create({
+  const uaeVat = await prisma.taxRate.create({
     data: { tenantId: tenant.id, name: 'UAE VAT', rate: 5, isDefault: true, isInclusive: false },
   })
 
@@ -682,6 +686,687 @@ async function main() {
     })
   }
 
+  // ============================================================================
+  // 15. ADDITIONAL SERVICE CATEGORIES (Complete 17 ZainHub categories)
+  // ============================================================================
+  const moreCategories = [
+    {
+      name: 'Strategy & Consulting', nameAr: 'الاستراتيجية والاستشارات',
+      services: [
+        { name: 'Digital Strategy', nameAr: 'استراتيجية رقمية', pricingType: 'PROJECT_BASED' as const, basePrice: 20000 },
+        { name: 'Technology Consulting', nameAr: 'استشارات تقنية', pricingType: 'HOURLY' as const, basePrice: 800 },
+        { name: 'AI Readiness Assessment', nameAr: 'تقييم جاهزية الذكاء الاصطناعي', pricingType: 'FIXED' as const, basePrice: 10000 },
+      ],
+    },
+    {
+      name: 'E-Commerce', nameAr: 'التجارة الإلكترونية',
+      services: [
+        { name: 'Shopify Store', nameAr: 'متجر شوبيفاي', pricingType: 'FIXED' as const, basePrice: 15000 },
+        { name: 'WooCommerce Store', nameAr: 'متجر ووكومرس', pricingType: 'FIXED' as const, basePrice: 12000 },
+        { name: 'Marketplace Integration', nameAr: 'تكامل الأسواق', pricingType: 'PROJECT_BASED' as const, basePrice: 8000 },
+      ],
+    },
+    {
+      name: 'Mobile Apps', nameAr: 'تطبيقات الجوال',
+      services: [
+        { name: 'iOS App', nameAr: 'تطبيق iOS', pricingType: 'PROJECT_BASED' as const, basePrice: 40000 },
+        { name: 'Android App', nameAr: 'تطبيق أندرويد', pricingType: 'PROJECT_BASED' as const, basePrice: 35000 },
+        { name: 'Cross-Platform App', nameAr: 'تطبيق متعدد المنصات', pricingType: 'PROJECT_BASED' as const, basePrice: 50000 },
+      ],
+    },
+    {
+      name: 'Systems & Dashboards', nameAr: 'الأنظمة ولوحات المعلومات',
+      services: [
+        { name: 'Custom Dashboard', nameAr: 'لوحة معلومات مخصصة', pricingType: 'PROJECT_BASED' as const, basePrice: 25000 },
+        { name: 'ERP Integration', nameAr: 'تكامل ERP', pricingType: 'PROJECT_BASED' as const, basePrice: 30000 },
+        { name: 'Client Portal', nameAr: 'بوابة العملاء', pricingType: 'FIXED' as const, basePrice: 20000 },
+      ],
+    },
+    {
+      name: 'WhatsApp Business', nameAr: 'واتساب للأعمال',
+      services: [
+        { name: 'WhatsApp Chatbot', nameAr: 'روبوت واتساب', pricingType: 'PROJECT_BASED' as const, basePrice: 12000 },
+        { name: 'WhatsApp Catalog', nameAr: 'كتالوج واتساب', pricingType: 'FIXED' as const, basePrice: 5000 },
+        { name: 'WhatsApp Broadcast System', nameAr: 'نظام بث واتساب', pricingType: 'MONTHLY' as const, basePrice: 2000 },
+      ],
+    },
+    {
+      name: 'UI/UX Design', nameAr: 'تصميم واجهة وتجربة المستخدم',
+      services: [
+        { name: 'UX Audit', nameAr: 'تدقيق تجربة المستخدم', pricingType: 'FIXED' as const, basePrice: 8000 },
+        { name: 'UI Design System', nameAr: 'نظام تصميم واجهة', pricingType: 'PROJECT_BASED' as const, basePrice: 15000 },
+        { name: 'Prototyping & Wireframes', nameAr: 'النماذج الأولية', pricingType: 'FIXED' as const, basePrice: 6000 },
+      ],
+    },
+    {
+      name: 'Content & Writing', nameAr: 'المحتوى والكتابة',
+      services: [
+        { name: 'Copywriting', nameAr: 'كتابة المحتوى', pricingType: 'PROJECT_BASED' as const, basePrice: 4000 },
+        { name: 'Blog Content', nameAr: 'محتوى المدونة', pricingType: 'MONTHLY' as const, basePrice: 3000 },
+        { name: 'Video Production', nameAr: 'إنتاج الفيديو', pricingType: 'PROJECT_BASED' as const, basePrice: 10000 },
+      ],
+    },
+    {
+      name: 'Analytics & Reporting', nameAr: 'التحليلات والتقارير',
+      services: [
+        { name: 'GA4 Setup & Audit', nameAr: 'إعداد وتدقيق GA4', pricingType: 'FIXED' as const, basePrice: 5000 },
+        { name: 'Custom Reporting Dashboard', nameAr: 'لوحة تقارير مخصصة', pricingType: 'PROJECT_BASED' as const, basePrice: 12000 },
+        { name: 'Data Analytics Consulting', nameAr: 'استشارات تحليل البيانات', pricingType: 'HOURLY' as const, basePrice: 600 },
+      ],
+    },
+    {
+      name: 'Cloud & Digital Ops', nameAr: 'العمليات السحابية والرقمية',
+      services: [
+        { name: 'Cloud Migration', nameAr: 'نقل إلى السحابة', pricingType: 'PROJECT_BASED' as const, basePrice: 20000 },
+        { name: 'DevOps Setup', nameAr: 'إعداد DevOps', pricingType: 'PROJECT_BASED' as const, basePrice: 15000 },
+        { name: 'Infrastructure Monitoring', nameAr: 'مراقبة البنية التحتية', pricingType: 'MONTHLY' as const, basePrice: 3000 },
+      ],
+    },
+    {
+      name: 'B2B Sales Enablement', nameAr: 'تمكين مبيعات B2B',
+      services: [
+        { name: 'Sales Deck Design', nameAr: 'تصميم عرض المبيعات', pricingType: 'FIXED' as const, basePrice: 5000 },
+        { name: 'CRM Implementation', nameAr: 'تطبيق CRM', pricingType: 'PROJECT_BASED' as const, basePrice: 25000 },
+        { name: 'Sales Process Optimization', nameAr: 'تحسين عملية المبيعات', pricingType: 'PROJECT_BASED' as const, basePrice: 15000 },
+      ],
+    },
+    {
+      name: 'Sector-Specific Packages', nameAr: 'حزم القطاعات المتخصصة',
+      services: [
+        { name: 'Real Estate Digital Package', nameAr: 'حزمة العقارات الرقمية', pricingType: 'FIXED' as const, basePrice: 30000 },
+        { name: 'Healthcare Digital Package', nameAr: 'حزمة الرعاية الصحية', pricingType: 'FIXED' as const, basePrice: 35000 },
+        { name: 'F&B Digital Package', nameAr: 'حزمة الأغذية والمشروبات', pricingType: 'FIXED' as const, basePrice: 25000 },
+      ],
+    },
+  ]
+
+  for (const cat of moreCategories) {
+    const category = await prisma.serviceCategory.create({
+      data: { tenantId: tenant.id, name: cat.name, nameAr: cat.nameAr, isActive: true },
+    })
+    for (const svc of cat.services) {
+      serviceMap[svc.name] = await prisma.service.create({
+        data: {
+          tenantId: tenant.id,
+          categoryId: category.id,
+          name: svc.name,
+          nameAr: svc.nameAr,
+          pricingType: svc.pricingType,
+          basePrice: svc.basePrice,
+          currency: 'AED',
+          isActive: true,
+        },
+      })
+    }
+  }
+
+  // ============================================================================
+  // 16. PROJECTS
+  // ============================================================================
+  const projectsData = [
+    { projectNumber: 'PRJ-0001', name: 'Al Futtaim AI Chatbot', clientKey: 'Al Futtaim', ownerId: sarah.id, status: 'IN_PROGRESS' as const, healthStatus: 'ON_TRACK' as const, progressPercent: 65, budgetValue: 25000, startDate: daysAgo(30), targetEndDate: daysAgo(-15) },
+    { projectNumber: 'PRJ-0002', name: 'Dubai Holding Website Redesign', clientKey: 'Dubai Holding', ownerId: sarah.id, status: 'PLANNING' as const, healthStatus: 'ON_TRACK' as const, progressPercent: 15, budgetValue: 45000, startDate: daysAgo(10), targetEndDate: daysAgo(-45) },
+    { projectNumber: 'PRJ-0003', name: 'MAF Social Media Management', clientKey: 'MAF', ownerId: layla.id, status: 'IN_PROGRESS' as const, healthStatus: 'AT_RISK' as const, progressPercent: 40, budgetValue: 96000, startDate: daysAgo(20), targetEndDate: daysAgo(-30) },
+    { projectNumber: 'PRJ-0004', name: 'Arabian Adventures Brand Refresh', clientKey: 'Arabian Adventures', ownerId: omar.id, status: 'DELIVERED' as const, healthStatus: 'ON_TRACK' as const, progressPercent: 100, budgetValue: 12000, startDate: daysAgo(60), targetEndDate: daysAgo(5), actualEndDate: daysAgo(3) },
+    { projectNumber: 'PRJ-0005', name: 'Property Finder RAG Knowledge Bot', clientKey: 'Property Finder', ownerId: sarah.id, status: 'DISCOVERY' as const, healthStatus: 'ON_TRACK' as const, progressPercent: 10, budgetValue: 35000, startDate: daysAgo(5), targetEndDate: daysAgo(-40) },
+    { projectNumber: 'PRJ-0006', name: 'Kitopi Landing Pages', clientKey: 'Kitopi', ownerId: ahmed.id, status: 'IN_PROGRESS' as const, healthStatus: 'DELAYED' as const, progressPercent: 55, budgetValue: 9000, startDate: daysAgo(25), targetEndDate: daysAgo(-5) },
+  ]
+
+  const projectRecords: Record<string, any> = {}
+  for (const p of projectsData) {
+    const { clientKey, ...data } = p
+    projectRecords[p.projectNumber] = await prisma.project.create({
+      data: {
+        tenantId: tenant.id,
+        projectNumber: data.projectNumber,
+        name: data.name,
+        clientId: companyRecords[clientKey].id,
+        ownerId: data.ownerId,
+        status: data.status,
+        healthStatus: data.healthStatus,
+        progressPercent: data.progressPercent,
+        budgetValue: data.budgetValue,
+        currency: 'AED',
+        startDate: data.startDate,
+        targetEndDate: data.targetEndDate,
+        actualEndDate: data.actualEndDate || null,
+      },
+    })
+    // Add project members
+    await prisma.projectMember.create({
+      data: { projectId: projectRecords[p.projectNumber].id, userId: data.ownerId, role: 'Project Lead' },
+    })
+    await prisma.projectMember.create({
+      data: { projectId: projectRecords[p.projectNumber].id, userId: admin.id, role: 'Sponsor' },
+    })
+  }
+
+  // Add milestones to first 3 projects
+  const milestoneData = [
+    { projectKey: 'PRJ-0001', milestones: [
+      { name: 'Discovery & Requirements', order: 1, status: 'COMPLETED', completedAt: daysAgo(20) },
+      { name: 'Bot Design & Flow', order: 2, status: 'COMPLETED', completedAt: daysAgo(10) },
+      { name: 'Development', order: 3, status: 'IN_PROGRESS', dueDate: daysAgo(-5) },
+      { name: 'Testing & QA', order: 4, status: 'PENDING', dueDate: daysAgo(-10) },
+      { name: 'Launch & Training', order: 5, status: 'PENDING', dueDate: daysAgo(-15) },
+    ]},
+    { projectKey: 'PRJ-0002', milestones: [
+      { name: 'Sitemap & Wireframes', order: 1, status: 'COMPLETED', completedAt: daysAgo(3) },
+      { name: 'UI Design', order: 2, status: 'IN_PROGRESS', dueDate: daysAgo(-10) },
+      { name: 'Frontend Development', order: 3, status: 'PENDING', dueDate: daysAgo(-25) },
+      { name: 'Backend & CMS', order: 4, status: 'PENDING', dueDate: daysAgo(-35) },
+      { name: 'UAT & Launch', order: 5, status: 'PENDING', dueDate: daysAgo(-45) },
+    ]},
+    { projectKey: 'PRJ-0003', milestones: [
+      { name: 'Strategy & Calendar', order: 1, status: 'COMPLETED', completedAt: daysAgo(15) },
+      { name: 'Content Month 1', order: 2, status: 'IN_PROGRESS', dueDate: daysAgo(-5) },
+      { name: 'Content Month 2', order: 3, status: 'PENDING', dueDate: daysAgo(-20) },
+    ]},
+  ]
+  for (const pm of milestoneData) {
+    for (const m of pm.milestones) {
+      await prisma.projectMilestone.create({
+        data: {
+          projectId: projectRecords[pm.projectKey].id,
+          name: m.name,
+          order: m.order,
+          status: m.status,
+          dueDate: m.dueDate || null,
+          completedAt: m.completedAt || null,
+        },
+      })
+    }
+  }
+
+  // ============================================================================
+  // 17. CAMPAIGNS
+  // ============================================================================
+  const campaignsData = [
+    { name: 'Ramadan Digital Campaign 2026', type: 'SOCIAL' as const, status: 'COMPLETED' as const, platform: 'Instagram, LinkedIn', budget: 15000, actualSpend: 13500, startDate: daysAgo(45), endDate: daysAgo(15), ownerId: layla.id, leadsGenerated: 28, opportunitiesCreated: 5, revenueGenerated: 75000 },
+    { name: 'AI Solutions Launch', type: 'CONTENT_MARKETING' as const, status: 'ACTIVE' as const, platform: 'LinkedIn, Website', budget: 8000, actualSpend: 3200, startDate: daysAgo(10), endDate: daysAgo(-20), ownerId: sarah.id, leadsGenerated: 12, opportunitiesCreated: 3 },
+    { name: 'Google Ads — Website Services', type: 'ADS' as const, status: 'ACTIVE' as const, platform: 'Google Ads', budget: 5000, actualSpend: 2100, startDate: daysAgo(15), endDate: daysAgo(-15), ownerId: ahmed.id, leadsGenerated: 18, opportunitiesCreated: 2 },
+    { name: 'GITEX 2026 Event Booth', type: 'EVENT' as const, status: 'DRAFT' as const, platform: 'GITEX Global', budget: 50000, startDate: daysAgo(-120), endDate: daysAgo(-117), ownerId: admin.id },
+    { name: 'Referral Program Q2', type: 'REFERRAL' as const, status: 'ACTIVE' as const, budget: 3000, actualSpend: 800, startDate: daysAgo(30), endDate: daysAgo(-60), ownerId: omar.id, leadsGenerated: 6, opportunitiesCreated: 2, revenueGenerated: 40000 },
+    { name: 'WhatsApp Outreach — KSA', type: 'EMAIL' as const, status: 'PAUSED' as const, platform: 'WhatsApp', budget: 2000, actualSpend: 600, startDate: daysAgo(20), ownerId: omar.id, leadsGenerated: 4 },
+  ]
+
+  for (const c of campaignsData) {
+    await prisma.campaign.create({
+      data: {
+        tenantId: tenant.id,
+        name: c.name,
+        type: c.type,
+        status: c.status,
+        platform: c.platform || null,
+        budget: c.budget,
+        actualSpend: c.actualSpend || 0,
+        currency: 'AED',
+        startDate: c.startDate || null,
+        endDate: c.endDate || null,
+        ownerId: c.ownerId,
+        leadsGenerated: c.leadsGenerated || 0,
+        opportunitiesCreated: c.opportunitiesCreated || 0,
+        revenueGenerated: c.revenueGenerated || 0,
+      },
+    })
+  }
+
+  // ============================================================================
+  // 18. QUOTATIONS
+  // ============================================================================
+  const quotationsData = [
+    { quotationNumber: 'QUO-0001', title: 'AI Chatbot for Al Futtaim', companyKey: 'Al Futtaim', contactKey: 'CON-0001', ownerId: sarah.id, status: 'ACCEPTED' as const, subtotal: 25000, taxAmount: 1250, totalAmount: 26250, validUntil: daysAgo(-30), acceptedAt: daysAgo(15), createdAt: daysAgo(25) },
+    { quotationNumber: 'QUO-0002', title: 'Website Redesign — Dubai Holding', companyKey: 'Dubai Holding', contactKey: 'CON-0002', ownerId: sarah.id, status: 'SENT' as const, subtotal: 45000, taxAmount: 2250, totalAmount: 47250, validUntil: daysAgo(-15), createdAt: daysAgo(12) },
+    { quotationNumber: 'QUO-0003', title: 'CRM Automation for Noon', companyKey: 'Noon', contactKey: 'CON-0003', ownerId: omar.id, status: 'DRAFT' as const, subtotal: 18000, taxAmount: 900, totalAmount: 18900, createdAt: daysAgo(5) },
+    { quotationNumber: 'QUO-0004', title: 'Social Media Package — MAF', companyKey: 'MAF', contactKey: 'CON-0005', ownerId: layla.id, status: 'SENT' as const, subtotal: 96000, taxAmount: 4800, totalAmount: 100800, validUntil: daysAgo(-10), createdAt: daysAgo(18) },
+    { quotationNumber: 'QUO-0005', title: 'RAG Bot — Property Finder', companyKey: 'Property Finder', contactKey: 'CON-0010', ownerId: sarah.id, status: 'ACCEPTED' as const, subtotal: 35000, taxAmount: 1750, totalAmount: 36750, validUntil: daysAgo(-20), acceptedAt: daysAgo(5), createdAt: daysAgo(30) },
+    { quotationNumber: 'QUO-0006', title: 'Landing Pages — Kitopi', companyKey: 'Kitopi', contactKey: 'CON-0009', ownerId: ahmed.id, status: 'EXPIRED' as const, subtotal: 9000, taxAmount: 450, totalAmount: 9450, validUntil: daysAgo(3), createdAt: daysAgo(20) },
+  ]
+
+  const quotationRecords: Record<string, any> = {}
+  for (const q of quotationsData) {
+    const { companyKey, contactKey, ...data } = q
+    quotationRecords[q.quotationNumber] = await prisma.quotation.create({
+      data: {
+        tenantId: tenant.id,
+        quotationNumber: data.quotationNumber,
+        title: data.title,
+        companyId: companyRecords[companyKey].id,
+        contactId: contactRecords[contactKey].id,
+        ownerId: data.ownerId,
+        createdById: data.ownerId,
+        status: data.status,
+        subtotal: data.subtotal,
+        taxAmount: data.taxAmount,
+        totalAmount: data.totalAmount,
+        taxRateId: uaeVat.id,
+        validUntil: data.validUntil || null,
+        acceptedAt: data.acceptedAt || null,
+        createdAt: data.createdAt,
+        issueDate: data.createdAt,
+      },
+    })
+    // Add line items
+    await prisma.quotationItem.create({
+      data: {
+        quotationId: quotationRecords[q.quotationNumber].id,
+        description: data.title,
+        quantity: 1,
+        unitPrice: data.subtotal,
+        totalPrice: data.subtotal,
+        order: 1,
+        taxRate: 5,
+      },
+    })
+  }
+
+  // ============================================================================
+  // 19. PROPOSALS
+  // ============================================================================
+  const proposalsData = [
+    { proposalNumber: 'PRP-0001', title: 'AI-Powered Customer Service — Al Futtaim', companyKey: 'Al Futtaim', contactKey: 'CON-0001', ownerId: sarah.id, status: 'ACCEPTED' as const, subtotal: 25000, taxAmount: 1250, totalAmount: 26250, executiveSummary: 'Comprehensive AI chatbot solution to handle 80% of customer queries', scopeOfWork: 'Design, develop, test and deploy AI chatbot on website and WhatsApp', deliverables: 'AI Chatbot, Admin Dashboard, Training Documentation', timeline: '6 weeks from kickoff', createdAt: daysAgo(28), acceptedAt: daysAgo(18) },
+    { proposalNumber: 'PRP-0002', title: 'Digital Transformation — Dubai Holding', companyKey: 'Dubai Holding', contactKey: 'CON-0002', ownerId: sarah.id, status: 'SENT' as const, subtotal: 45000, taxAmount: 2250, totalAmount: 47250, executiveSummary: 'Complete website redesign with modern tech stack', scopeOfWork: 'UX research, UI design, Next.js development, CMS integration', deliverables: 'New website, CMS, Analytics setup', timeline: '8 weeks', createdAt: daysAgo(14) },
+    { proposalNumber: 'PRP-0003', title: 'Social Media Strategy — MAF', companyKey: 'MAF', contactKey: 'CON-0005', ownerId: layla.id, status: 'DRAFT' as const, subtotal: 96000, taxAmount: 4800, totalAmount: 100800, executiveSummary: '12-month social media management across all platforms', scopeOfWork: 'Content strategy, creation, scheduling, community management, reporting', createdAt: daysAgo(10) },
+    { proposalNumber: 'PRP-0004', title: 'STC Enterprise AI Platform', companyKey: 'STC', contactKey: 'CON-0008', ownerId: sarah.id, status: 'SENT' as const, subtotal: 120000, taxAmount: 6000, totalAmount: 126000, executiveSummary: 'Enterprise-grade custom AI platform for internal operations', scopeOfWork: 'Requirements analysis, architecture design, development, deployment, training', deliverables: 'AI Platform, API documentation, training materials', timeline: '16 weeks', createdAt: daysAgo(7) },
+  ]
+
+  for (const p of proposalsData) {
+    const { companyKey, contactKey, ...data } = p
+    const proposal = await prisma.proposal.create({
+      data: {
+        tenantId: tenant.id,
+        proposalNumber: data.proposalNumber,
+        title: data.title,
+        companyId: companyRecords[companyKey].id,
+        contactId: contactRecords[contactKey].id,
+        ownerId: data.ownerId,
+        createdById: data.ownerId,
+        status: data.status,
+        subtotal: data.subtotal,
+        taxAmount: data.taxAmount,
+        totalAmount: data.totalAmount,
+        executiveSummary: data.executiveSummary || null,
+        scopeOfWork: data.scopeOfWork || null,
+        deliverables: data.deliverables || null,
+        timeline: data.timeline || null,
+        createdAt: data.createdAt,
+        issueDate: data.createdAt,
+        acceptedAt: data.acceptedAt || null,
+      },
+    })
+    await prisma.proposalItem.create({
+      data: { proposalId: proposal.id, description: data.title, quantity: 1, unitPrice: data.subtotal, totalPrice: data.subtotal, order: 1 },
+    })
+  }
+
+  // ============================================================================
+  // 20. CONTRACTS
+  // ============================================================================
+  const contractsData = [
+    { contractNumber: 'CTR-0001', title: 'Al Futtaim AI Chatbot Service Agreement', type: 'SERVICE' as const, clientKey: 'Al Futtaim', status: 'ACTIVE' as const, startDate: daysAgo(15), endDate: daysAgo(-75), value: 26250, createdById: sarah.id },
+    { contractNumber: 'CTR-0002', title: 'Arabian Adventures Branding Contract', type: 'SERVICE' as const, clientKey: 'Arabian Adventures', status: 'ACTIVE' as const, startDate: daysAgo(55), endDate: daysAgo(5), value: 12000, signedAt: daysAgo(55), createdById: omar.id },
+    { contractNumber: 'CTR-0003', title: 'Property Finder NDA', type: 'NDA' as const, clientKey: 'Property Finder', status: 'ACTIVE' as const, startDate: daysAgo(35), endDate: daysAgo(-330), value: 0, signedAt: daysAgo(34), createdById: sarah.id },
+    { contractNumber: 'CTR-0004', title: 'MAF Social Media Retainer', type: 'RETAINER' as const, clientKey: 'MAF', status: 'DRAFT' as const, startDate: daysAgo(-5), endDate: daysAgo(-365), value: 96000, autoRenew: true, createdById: layla.id },
+    { contractNumber: 'CTR-0005', title: 'Dubai Holding Website Maintenance', type: 'MAINTENANCE' as const, clientKey: 'Dubai Holding', status: 'SENT' as const, startDate: daysAgo(-50), endDate: daysAgo(-415), value: 24000, autoRenew: true, createdById: sarah.id },
+  ]
+
+  for (const c of contractsData) {
+    const { clientKey, ...data } = c
+    await prisma.contract.create({
+      data: {
+        tenantId: tenant.id,
+        contractNumber: data.contractNumber,
+        title: data.title,
+        type: data.type,
+        clientId: companyRecords[clientKey].id,
+        status: data.status,
+        startDate: data.startDate,
+        endDate: data.endDate || null,
+        value: data.value,
+        autoRenew: data.autoRenew || false,
+        signedAt: data.signedAt || null,
+        currency: 'AED',
+        createdById: data.createdById,
+      },
+    })
+  }
+
+  // ============================================================================
+  // 21. INVOICES
+  // ============================================================================
+  const invoicesData = [
+    { invoiceNumber: 'INV-0001', clientKey: 'Al Futtaim', status: 'PARTIALLY_PAID' as const, subtotal: 13125, taxAmount: 656.25, totalAmount: 13781.25, amountPaid: 10000, dueDate: daysAgo(-10), issueDate: daysAgo(10), createdById: sarah.id },
+    { invoiceNumber: 'INV-0002', clientKey: 'Arabian Adventures', status: 'PAID' as const, subtotal: 12000, taxAmount: 600, totalAmount: 12600, amountPaid: 12600, dueDate: daysAgo(15), issueDate: daysAgo(45), createdById: omar.id },
+    { invoiceNumber: 'INV-0003', clientKey: 'Property Finder', status: 'SENT' as const, subtotal: 17500, taxAmount: 875, totalAmount: 18375, amountPaid: 0, dueDate: daysAgo(-20), issueDate: daysAgo(3), createdById: sarah.id },
+    { invoiceNumber: 'INV-0004', clientKey: 'MAF', status: 'DRAFT' as const, subtotal: 8000, taxAmount: 400, totalAmount: 8400, amountPaid: 0, dueDate: daysAgo(-30), issueDate: daysAgo(0), createdById: layla.id },
+    { invoiceNumber: 'INV-0005', clientKey: 'Kitopi', status: 'OVERDUE' as const, subtotal: 4500, taxAmount: 225, totalAmount: 4725, amountPaid: 0, dueDate: daysAgo(5), issueDate: daysAgo(35), createdById: ahmed.id },
+    { invoiceNumber: 'INV-0006', clientKey: 'Dubai Holding', status: 'SENT' as const, subtotal: 22500, taxAmount: 1125, totalAmount: 23625, amountPaid: 0, dueDate: daysAgo(-15), issueDate: daysAgo(5), createdById: sarah.id },
+  ]
+
+  const invoiceRecords: Record<string, any> = {}
+  for (const inv of invoicesData) {
+    const { clientKey, ...data } = inv
+    invoiceRecords[inv.invoiceNumber] = await prisma.invoice.create({
+      data: {
+        tenantId: tenant.id,
+        invoiceNumber: data.invoiceNumber,
+        clientId: companyRecords[clientKey].id,
+        status: data.status,
+        subtotal: data.subtotal,
+        taxAmount: data.taxAmount,
+        totalAmount: data.totalAmount,
+        amountPaid: data.amountPaid,
+        balanceDue: data.totalAmount - data.amountPaid,
+        dueDate: data.dueDate,
+        issueDate: data.issueDate,
+        taxRateId: uaeVat.id,
+        currency: 'AED',
+        createdById: data.createdById,
+      },
+    })
+    await prisma.invoiceItem.create({
+      data: {
+        invoiceId: invoiceRecords[inv.invoiceNumber].id,
+        description: `Services for ${clientKey}`,
+        quantity: 1,
+        unitPrice: data.subtotal,
+        totalPrice: data.subtotal,
+        order: 1,
+        taxRate: 5,
+      },
+    })
+  }
+
+  // ============================================================================
+  // 22. PAYMENTS
+  // ============================================================================
+  const paymentsData = [
+    { paymentNumber: 'PAY-0001', invoiceKey: 'INV-0001', clientKey: 'Al Futtaim', amount: 10000, paymentDate: daysAgo(5), paymentMethod: 'BANK_TRANSFER' as const, reference: 'TRF-2026-0401' },
+    { paymentNumber: 'PAY-0002', invoiceKey: 'INV-0002', clientKey: 'Arabian Adventures', amount: 12600, paymentDate: daysAgo(20), paymentMethod: 'BANK_TRANSFER' as const, reference: 'TRF-2026-0322' },
+    { paymentNumber: 'PAY-0003', invoiceKey: 'INV-0002', clientKey: 'Arabian Adventures', amount: 0, paymentDate: daysAgo(30), paymentMethod: 'CREDIT_CARD' as const, reference: 'CC-2026-0312' },
+  ]
+
+  for (const p of paymentsData) {
+    if (p.amount === 0) continue // skip zero-amount placeholder
+    const { invoiceKey, clientKey, ...data } = p
+    await prisma.payment.create({
+      data: {
+        tenantId: tenant.id,
+        paymentNumber: data.paymentNumber,
+        invoiceId: invoiceRecords[invoiceKey].id,
+        clientId: companyRecords[clientKey].id,
+        amount: data.amount,
+        currency: 'AED',
+        paymentDate: data.paymentDate,
+        paymentMethod: data.paymentMethod,
+        reference: data.reference,
+        createdById: admin.id,
+      },
+    })
+  }
+
+  // ============================================================================
+  // 23. EXPENSES
+  // ============================================================================
+  const expensesData = [
+    { expenseNumber: 'EXP-0001', vendorName: 'Vercel', catKey: 'Hosting & Cloud', amount: 1200, expenseDate: daysAgo(5), status: 'APPROVED' as const, description: 'Annual Vercel Pro plan', approvedById: admin.id },
+    { expenseNumber: 'EXP-0002', vendorName: 'Figma', catKey: 'Software & Tools', amount: 600, expenseDate: daysAgo(10), status: 'APPROVED' as const, description: 'Figma Organization plan - monthly', approvedById: admin.id },
+    { expenseNumber: 'EXP-0003', vendorName: 'Meta Ads', catKey: 'Marketing', amount: 3500, expenseDate: daysAgo(3), status: 'PAID' as const, description: 'Instagram ads for Ramadan campaign', paymentMethod: 'CREDIT_CARD' as const },
+    { expenseNumber: 'EXP-0004', vendorName: 'Emirates Airlines', catKey: 'Travel', amount: 2800, expenseDate: daysAgo(15), status: 'PENDING' as const, description: 'Flight to Riyadh for STC meeting' },
+    { expenseNumber: 'EXP-0005', vendorName: 'OpenAI', catKey: 'Software & Tools', amount: 450, expenseDate: daysAgo(1), status: 'APPROVED' as const, description: 'GPT-4 API usage - March', approvedById: admin.id },
+    { expenseNumber: 'EXP-0006', vendorName: 'Anthropic', catKey: 'Software & Tools', amount: 320, expenseDate: daysAgo(1), status: 'APPROVED' as const, description: 'Claude API usage - March', approvedById: admin.id },
+    { expenseNumber: 'EXP-0007', vendorName: 'WeWork', catKey: 'Professional Services', amount: 4500, expenseDate: daysAgo(0), status: 'PENDING' as const, description: 'Office space rent - April' },
+    { expenseNumber: 'EXP-0008', vendorName: 'Amazon AWS', catKey: 'Hosting & Cloud', amount: 890, expenseDate: daysAgo(7), status: 'APPROVED' as const, description: 'AWS infra - client projects', approvedById: admin.id },
+  ]
+
+  for (const e of expensesData) {
+    const { catKey, ...data } = e
+    const taxAmt = Math.round(data.amount * 0.05 * 100) / 100
+    await prisma.expense.create({
+      data: {
+        tenantId: tenant.id,
+        expenseNumber: data.expenseNumber,
+        vendorName: data.vendorName,
+        categoryId: expCatMap[catKey].id,
+        amount: data.amount,
+        taxAmount: taxAmt,
+        totalAmount: data.amount + taxAmt,
+        currency: 'AED',
+        expenseDate: data.expenseDate,
+        paymentMethod: data.paymentMethod || 'BANK_TRANSFER',
+        status: data.status,
+        description: data.description || null,
+        approvedById: data.approvedById || null,
+        approvedAt: data.approvedById ? data.expenseDate : null,
+        createdById: admin.id,
+      },
+    })
+  }
+
+  // ============================================================================
+  // 24. TICKETS
+  // ============================================================================
+  const ticketsData = [
+    { ticketNumber: 'TKT-0001', subject: 'Chatbot not responding after hours', clientKey: 'Al Futtaim', type: 'BUG' as const, priority: 'HIGH' as const, status: 'IN_PROGRESS' as const, assignedToId: omar.id, createdById: admin.id, slaDueAt: daysAgo(-1) },
+    { ticketNumber: 'TKT-0002', subject: 'Request multilingual support for website', clientKey: 'Dubai Holding', type: 'FEATURE_REQUEST' as const, priority: 'MEDIUM' as const, status: 'NEW' as const, assignedToId: null, createdById: layla.id },
+    { ticketNumber: 'TKT-0003', subject: 'Invoice PDF not generating correctly', clientKey: 'MAF', type: 'BUG' as const, priority: 'URGENT' as const, status: 'OPEN' as const, assignedToId: ahmed.id, createdById: layla.id, slaDueAt: daysAgo(-0.5) },
+    { ticketNumber: 'TKT-0004', subject: 'How to update brand colors?', clientKey: 'Arabian Adventures', type: 'QUESTION' as const, priority: 'LOW' as const, status: 'RESOLVED' as const, assignedToId: omar.id, createdById: omar.id, resolvedAt: daysAgo(2), resolutionSummary: 'Guided client through brand settings panel' },
+    { ticketNumber: 'TKT-0005', subject: 'Social media scheduler timezone issue', clientKey: 'MAF', type: 'BUG' as const, priority: 'MEDIUM' as const, status: 'WAITING_CLIENT' as const, assignedToId: layla.id, createdById: layla.id },
+    { ticketNumber: 'TKT-0006', subject: 'Add WhatsApp channel to chatbot', clientKey: 'Property Finder', type: 'CHANGE_REQUEST' as const, priority: 'HIGH' as const, status: 'NEW' as const, assignedToId: sarah.id, createdById: sarah.id, slaDueAt: daysAgo(-3) },
+  ]
+
+  for (const t of ticketsData) {
+    const { clientKey, ...data } = t
+    const ticket = await prisma.ticket.create({
+      data: {
+        tenantId: tenant.id,
+        ticketNumber: data.ticketNumber,
+        subject: data.subject,
+        clientId: companyRecords[clientKey].id,
+        type: data.type,
+        priority: data.priority,
+        status: data.status,
+        assignedToId: data.assignedToId,
+        createdById: data.createdById,
+        slaDueAt: data.slaDueAt || null,
+        resolvedAt: data.resolvedAt || null,
+        resolutionSummary: data.resolutionSummary || null,
+      },
+    })
+    // Add a comment to resolved tickets
+    if (data.resolutionSummary) {
+      await prisma.ticketComment.create({
+        data: { ticketId: ticket.id, authorId: data.assignedToId || admin.id, content: data.resolutionSummary, isInternal: false },
+      })
+    }
+  }
+
+  // ============================================================================
+  // 25. TASKS
+  // ============================================================================
+  const tasksData = [
+    { taskNumber: 'TSK-0001', title: 'Prepare discovery document for STC', assignedToId: sarah.id, priority: 'HIGH' as const, status: 'IN_PROGRESS' as const, dueDate: daysAgo(-2), projectKey: 'PRJ-0005', createdById: admin.id },
+    { taskNumber: 'TSK-0002', title: 'Design chatbot conversation flows', assignedToId: omar.id, priority: 'HIGH' as const, status: 'COMPLETED' as const, dueDate: daysAgo(5), completedAt: daysAgo(6), projectKey: 'PRJ-0001', createdById: sarah.id },
+    { taskNumber: 'TSK-0003', title: 'Review MAF content calendar', assignedToId: layla.id, priority: 'MEDIUM' as const, status: 'TODO' as const, dueDate: daysAgo(-3), projectKey: 'PRJ-0003', createdById: layla.id },
+    { taskNumber: 'TSK-0004', title: 'Update Al Futtaim chatbot training data', assignedToId: omar.id, priority: 'MEDIUM' as const, status: 'IN_PROGRESS' as const, dueDate: daysAgo(-5), projectKey: 'PRJ-0001', createdById: sarah.id },
+    { taskNumber: 'TSK-0005', title: 'Send Kitopi landing page mockups', assignedToId: ahmed.id, priority: 'HIGH' as const, status: 'TODO' as const, dueDate: daysAgo(-1), projectKey: 'PRJ-0006', createdById: ahmed.id },
+    { taskNumber: 'TSK-0006', title: 'Follow up with Noon on CRM requirements', assignedToId: omar.id, priority: 'MEDIUM' as const, status: 'TODO' as const, dueDate: daysAgo(-4), relatedType: 'opportunity', createdById: omar.id },
+    { taskNumber: 'TSK-0007', title: 'Prepare GITEX booth design brief', assignedToId: admin.id, priority: 'LOW' as const, status: 'TODO' as const, dueDate: daysAgo(-90), createdById: admin.id },
+    { taskNumber: 'TSK-0008', title: 'QA test Arabian Adventures brand assets', assignedToId: ahmed.id, priority: 'MEDIUM' as const, status: 'COMPLETED' as const, dueDate: daysAgo(8), completedAt: daysAgo(7), projectKey: 'PRJ-0004', createdById: omar.id },
+    { taskNumber: 'TSK-0009', title: 'Write Property Finder RAG integration spec', assignedToId: sarah.id, priority: 'HIGH' as const, status: 'IN_REVIEW' as const, dueDate: daysAgo(-1), projectKey: 'PRJ-0005', createdById: sarah.id },
+    { taskNumber: 'TSK-0010', title: 'Monthly expense report — March 2026', assignedToId: admin.id, priority: 'LOW' as const, status: 'COMPLETED' as const, dueDate: daysAgo(2), completedAt: daysAgo(1), createdById: admin.id },
+  ]
+
+  for (const t of tasksData) {
+    const { projectKey, ...data } = t
+    await prisma.task.create({
+      data: {
+        tenantId: tenant.id,
+        taskNumber: data.taskNumber,
+        title: data.title,
+        assignedToId: data.assignedToId,
+        priority: data.priority,
+        status: data.status,
+        dueDate: data.dueDate || null,
+        completedAt: data.completedAt || null,
+        projectId: projectKey ? projectRecords[projectKey].id : null,
+        relatedType: data.relatedType || null,
+        createdById: data.createdById,
+      },
+    })
+  }
+
+  // ============================================================================
+  // 26. DOCUMENTS
+  // ============================================================================
+  const documentsData = [
+    { name: 'Al Futtaim Chatbot Requirements.pdf', fileUrl: '/documents/alfuttaim-requirements.pdf', fileType: 'application/pdf', fileSize: 245000, category: 'BRIEF' as const, linkedEntityType: 'project', uploadedById: sarah.id },
+    { name: 'Dubai Holding Brand Guidelines.pdf', fileUrl: '/documents/dh-brand-guidelines.pdf', fileType: 'application/pdf', fileSize: 1200000, category: 'BRAND' as const, linkedEntityType: 'company', uploadedById: sarah.id },
+    { name: 'MAF Social Strategy Deck.pdf', fileUrl: '/documents/maf-social-strategy.pdf', fileType: 'application/pdf', fileSize: 890000, category: 'PROPOSAL' as const, linkedEntityType: 'proposal', uploadedById: layla.id },
+    { name: 'Property Finder NDA — Signed.pdf', fileUrl: '/documents/pf-nda-signed.pdf', fileType: 'application/pdf', fileSize: 156000, category: 'CONTRACT' as const, linkedEntityType: 'contract', uploadedById: sarah.id },
+    { name: 'Q1 2026 Financial Report.xlsx', fileUrl: '/documents/q1-2026-financials.xlsx', fileType: 'application/vnd.ms-excel', fileSize: 340000, category: 'REPORT' as const, uploadedById: admin.id },
+    { name: 'Arabian Adventures Logo — Final.ai', fileUrl: '/documents/aa-logo-final.ai', fileType: 'application/illustrator', fileSize: 2800000, category: 'ASSET' as const, linkedEntityType: 'project', uploadedById: omar.id },
+  ]
+
+  for (const d of documentsData) {
+    await prisma.document.create({
+      data: {
+        tenantId: tenant.id,
+        name: d.name,
+        fileUrl: d.fileUrl,
+        fileType: d.fileType,
+        fileSize: d.fileSize,
+        category: d.category,
+        linkedEntityType: d.linkedEntityType || null,
+        uploadedById: d.uploadedById,
+      },
+    })
+  }
+
+  // ============================================================================
+  // 27. ACTIVITIES (Recent timeline entries)
+  // ============================================================================
+  const activitiesData = [
+    { type: 'NOTE' as const, entityType: 'lead', title: 'Initial discovery call with Tariq', description: 'Discussed AI chatbot needs. Budget approved by board. Follow up Thursday.', performedById: omar.id, performedAt: daysAgo(1) },
+    { type: 'CALL' as const, entityType: 'lead', title: 'Follow-up call — Reem (Etisalat)', description: 'Confirmed meeting for next week. Very interested in AI Agent Workflow.', performedById: sarah.id, performedAt: daysAgo(0) },
+    { type: 'EMAIL' as const, entityType: 'opportunity', title: 'Sent Al Futtaim chatbot demo link', performedById: sarah.id, performedAt: daysAgo(2) },
+    { type: 'MEETING' as const, entityType: 'opportunity', title: 'Dubai Holding website kickoff meeting', description: '2-hour session. Stakeholders aligned on scope and timeline.', performedById: sarah.id, performedAt: daysAgo(8) },
+    { type: 'STATUS_CHANGE' as const, entityType: 'project', title: 'PRJ-0004 moved to Delivered', performedById: omar.id, performedAt: daysAgo(3) },
+    { type: 'TASK_COMPLETED' as const, entityType: 'task', title: 'Chatbot conversation flows completed', performedById: omar.id, performedAt: daysAgo(6) },
+    { type: 'DOCUMENT_UPLOADED' as const, entityType: 'project', title: 'Uploaded Al Futtaim Requirements.pdf', performedById: sarah.id, performedAt: daysAgo(25) },
+    { type: 'STAGE_CHANGE' as const, entityType: 'lead', title: 'Lead LD-0004 moved to Meeting Scheduled', performedById: sarah.id, performedAt: daysAgo(1) },
+    { type: 'ASSIGNMENT' as const, entityType: 'ticket', title: 'TKT-0003 assigned to Ahmed', performedById: layla.id, performedAt: daysAgo(0) },
+    { type: 'COMMENT' as const, entityType: 'ticket', title: 'Added comment on TKT-0001', description: 'Investigating the after-hours shutdown. Likely a cron job conflict.', performedById: omar.id, performedAt: daysAgo(0) },
+    { type: 'NOTE' as const, entityType: 'company', title: 'STC account note', description: 'VP Innovation very interested. Need to schedule exec demo with CTO.', performedById: sarah.id, performedAt: daysAgo(4) },
+    { type: 'CONVERSION' as const, entityType: 'lead', title: 'Lead LD-0010 (Tabby) converted to opportunity', performedById: sarah.id, performedAt: daysAgo(7) },
+    { type: 'EMAIL' as const, entityType: 'lead', title: 'Sent proposal to Yousef (Omantel)', performedById: omar.id, performedAt: daysAgo(3) },
+    { type: 'CALL' as const, entityType: 'lead', title: 'Discovery call with Sultan (Masdar)', description: 'Needs corporate website with AR/EN. Budget range 12-18K.', performedById: ahmed.id, performedAt: daysAgo(0) },
+    { type: 'SYSTEM' as const, entityType: 'invoice', title: 'Invoice INV-0005 marked as overdue', performedAt: daysAgo(0) },
+  ]
+
+  for (const a of activitiesData) {
+    await prisma.activity.create({
+      data: {
+        tenantId: tenant.id,
+        type: a.type,
+        entityType: a.entityType,
+        entityId: 'seed-placeholder',
+        title: a.title,
+        description: a.description || null,
+        performedById: a.performedById || null,
+        performedAt: a.performedAt,
+      },
+    })
+  }
+
+  // ============================================================================
+  // 28. NOTIFICATIONS
+  // ============================================================================
+  const notificationsData = [
+    { userId: sarah.id, type: 'task_assigned', title: 'New task assigned: Prepare discovery document for STC', entityType: 'task', actionUrl: '/tasks' },
+    { userId: omar.id, type: 'ticket_assigned', title: 'Ticket TKT-0001 assigned to you', entityType: 'ticket', actionUrl: '/tickets' },
+    { userId: ahmed.id, type: 'ticket_assigned', title: 'Urgent: TKT-0003 — Invoice PDF not generating', entityType: 'ticket', actionUrl: '/tickets' },
+    { userId: admin.id, type: 'invoice_overdue', title: 'Invoice INV-0005 (Kitopi) is overdue', entityType: 'invoice', actionUrl: '/invoices' },
+    { userId: sarah.id, type: 'lead_new', title: 'New hot lead: Sultan Al-Kendi (Masdar)', entityType: 'lead', actionUrl: '/leads' },
+    { userId: layla.id, type: 'project_at_risk', title: 'Project PRJ-0003 marked as At Risk', entityType: 'project', actionUrl: '/projects' },
+    { userId: admin.id, type: 'expense_pending', title: '2 expenses pending approval', entityType: 'expense', actionUrl: '/expenses' },
+    { userId: omar.id, type: 'lead_followup', title: 'Follow-up due: Tariq Al-Muhairi (Emirates NBD)', entityType: 'lead', actionUrl: '/leads', isRead: true, readAt: daysAgo(0) },
+    { userId: sarah.id, type: 'proposal_viewed', title: 'Proposal PRP-0004 viewed by STC', entityType: 'proposal', actionUrl: '/proposals' },
+    { userId: ahmed.id, type: 'task_due', title: 'Task TSK-0005 due tomorrow', entityType: 'task', actionUrl: '/tasks' },
+  ]
+
+  for (const n of notificationsData) {
+    await prisma.notification.create({
+      data: {
+        tenantId: tenant.id,
+        userId: n.userId,
+        type: n.type,
+        title: n.title,
+        entityType: n.entityType || null,
+        actionUrl: n.actionUrl || null,
+        isRead: n.isRead || false,
+        readAt: n.readAt || null,
+      },
+    })
+  }
+
+  // ============================================================================
+  // 29. NUMBER SEQUENCES (to keep auto-numbering consistent)
+  // ============================================================================
+  const sequences = [
+    { entityType: 'company', prefix: 'COM', lastNumber: 10 },
+    { entityType: 'contact', prefix: 'CON', lastNumber: 12 },
+    { entityType: 'lead', prefix: 'LD', lastNumber: 15 },
+    { entityType: 'opportunity', prefix: 'OPP', lastNumber: 10 },
+    { entityType: 'project', prefix: 'PRJ', lastNumber: 6 },
+    { entityType: 'quotation', prefix: 'QUO', lastNumber: 6 },
+    { entityType: 'proposal', prefix: 'PRP', lastNumber: 4 },
+    { entityType: 'contract', prefix: 'CTR', lastNumber: 5 },
+    { entityType: 'invoice', prefix: 'INV', lastNumber: 6 },
+    { entityType: 'payment', prefix: 'PAY', lastNumber: 3 },
+    { entityType: 'expense', prefix: 'EXP', lastNumber: 8 },
+    { entityType: 'ticket', prefix: 'TKT', lastNumber: 6 },
+    { entityType: 'task', prefix: 'TSK', lastNumber: 10 },
+  ]
+
+  for (const seq of sequences) {
+    await prisma.numberSequence.upsert({
+      where: { tenantId_entityType: { tenantId: tenant.id, entityType: seq.entityType } },
+      update: { lastNumber: seq.lastNumber, prefix: seq.prefix },
+      create: { tenantId: tenant.id, entityType: seq.entityType, prefix: seq.prefix, lastNumber: seq.lastNumber },
+    })
+  }
+
+  // ============================================================================
+  // 30. SETTINGS
+  // ============================================================================
+  const settingsData = [
+    { key: 'company.name', value: 'Zain Hub AI Solutions' },
+    { key: 'company.email', value: 'hello@zainhub.ae' },
+    { key: 'company.phone', value: '+971501234567' },
+    { key: 'company.address', value: 'Dubai Internet City, Dubai, UAE' },
+    { key: 'company.website', value: 'https://zainhub.ae' },
+    { key: 'company.taxNumber', value: 'TRN-100-123-456-789' },
+    { key: 'invoice.prefix', value: 'INV' },
+    { key: 'invoice.defaultTerms', value: 'Payment due within 30 days of invoice date. Late payments subject to 2% monthly interest.' },
+    { key: 'invoice.defaultNotes', value: 'Thank you for your business!' },
+    { key: 'quotation.prefix', value: 'QUO' },
+    { key: 'quotation.defaultValidity', value: 30 },
+    { key: 'proposal.prefix', value: 'PRP' },
+    { key: 'notification.email', value: true },
+    { key: 'notification.browser', value: true },
+    { key: 'locale.defaultLanguage', value: 'en' },
+    { key: 'locale.supportedLanguages', value: ['en', 'ar'] },
+    { key: 'theme.primaryColor', value: '#1E40AF' },
+    { key: 'theme.secondaryColor', value: '#3B82F6' },
+  ]
+
+  for (const s of settingsData) {
+    await prisma.setting.create({
+      data: { tenantId: tenant.id, key: s.key, value: s.value as any },
+    })
+  }
+
   console.log('✅ Seed complete!')
   console.log(`   Tenant: ${tenant.name}`)
   console.log(`   Users: 5 (admin@zainhub.ae / admin123)`)
@@ -690,6 +1375,16 @@ async function main() {
   console.log(`   Leads: ${leadsData.length}`)
   console.log(`   Opportunities: ${oppsData.length}`)
   console.log(`   Services: ${Object.keys(serviceMap).length}`)
+  console.log(`   Projects: ${projectsData.length}`)
+  console.log(`   Campaigns: ${campaignsData.length}`)
+  console.log(`   Quotations: ${quotationsData.length}`)
+  console.log(`   Proposals: ${proposalsData.length}`)
+  console.log(`   Contracts: ${contractsData.length}`)
+  console.log(`   Invoices: ${invoicesData.length}`)
+  console.log(`   Expenses: ${expensesData.length}`)
+  console.log(`   Tickets: ${ticketsData.length}`)
+  console.log(`   Tasks: ${tasksData.length}`)
+  console.log(`   Service Categories: 17 (6 original + 11 added)'`)
 }
 
 main()

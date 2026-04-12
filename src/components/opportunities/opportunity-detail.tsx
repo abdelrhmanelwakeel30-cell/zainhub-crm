@@ -141,7 +141,7 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.push('/opportunities')}>
+          <Button variant="ghost" size="icon" aria-label="Back to opportunities" onClick={() => router.push('/opportunities')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>

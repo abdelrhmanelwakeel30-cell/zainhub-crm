@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
+import { sanitizeUpdateBody } from '@/lib/api-helpers'
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getApiSession()
@@ -30,10 +31,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   try {
     const existing = await prisma.task.findFirst({ where: { id, tenantId: session.user.tenantId } })
     if (!existing) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
-    const body = await req.json()
-    if (body.dueDate) body.dueDate = new Date(body.dueDate)
+    const raw = await req.json()
+    const body = sanitizeUpdateBody<Record<string, unknown>>(raw, ['completedAt']) as Record<string, unknown>
+    if (body.dueDate) body.dueDate = new Date(body.dueDate as string)
     if (body.status === 'COMPLETED' && !existing.completedAt) body.completedAt = new Date()
-    if (body.status !== 'COMPLETED') body.completedAt = null
+    if (body.status !== undefined && body.status !== 'COMPLETED') body.completedAt = null
     const task = await prisma.task.update({ where: { id }, data: body })
     return NextResponse.json({ success: true, data: task })
   } catch (err) { console.error(err); return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 }) }

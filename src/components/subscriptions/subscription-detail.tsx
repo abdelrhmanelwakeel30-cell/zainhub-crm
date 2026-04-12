@@ -124,7 +124,7 @@ export function SubscriptionDetail({ subscriptionId }: SubscriptionDetailProps) 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.push('/subscriptions')}>
+          <Button variant="ghost" size="icon" aria-label="Back to subscriptions" onClick={() => router.push('/subscriptions')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>

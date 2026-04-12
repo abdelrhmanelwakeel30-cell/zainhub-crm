@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
+import { sanitizeUpdateBody } from '@/lib/api-helpers'
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getApiSession()
@@ -28,8 +29,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   try {
     const existing = await prisma.communicationLog.findFirst({ where: { id, tenantId: session.user.tenantId } })
     if (!existing) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
-    const body = await req.json()
-    if (body.loggedAt) body.loggedAt = new Date(body.loggedAt)
+    const raw = await req.json()
+    const body = sanitizeUpdateBody<Record<string, unknown>>(raw, ['loggedById']) as Record<string, unknown>
+    if (body.loggedAt) body.loggedAt = new Date(body.loggedAt as string)
     const log = await prisma.communicationLog.update({ where: { id }, data: body })
     await prisma.auditLog.create({ data: { tenantId: session.user.tenantId, userId: session.user.id, action: 'UPDATE', entityType: 'communicationLog', entityId: id, entityName: log.subject || log.type } })
     return NextResponse.json({ success: true, data: log })

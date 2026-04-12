@@ -5,24 +5,23 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 
 interface SourceCount {
-  sourceId: string | null
-  _count: { id: number }
+  name: string
+  count: number
 }
 
 interface LeadsBySourceChartProps {
   data?: SourceCount[]
-  sourcesMap?: Record<string, string>
 }
 
 const COLORS = ['#3B82F6', '#6366F1', '#10B981', '#22C55E', '#F59E0B', '#EC4899', '#8B5CF6', '#64748B']
 
-export function LeadsBySourceChart({ data, sourcesMap }: LeadsBySourceChartProps) {
+export function LeadsBySourceChart({ data }: LeadsBySourceChartProps) {
   const t = useTranslations('dashboard')
 
   const chartData = data && data.length > 0
     ? data.map((d, i) => ({
-        name: sourcesMap?.[d.sourceId ?? ''] ?? d.sourceId ?? 'Unknown',
-        value: d._count.id,
+        name: d.name ?? 'Unknown',
+        value: d.count,
         color: COLORS[i % COLORS.length],
       }))
     : [{ name: 'No data', value: 1, color: '#CBD5E1' }]

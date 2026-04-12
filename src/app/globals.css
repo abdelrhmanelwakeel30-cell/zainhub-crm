@@ -49,6 +49,12 @@
 }
 
 :root {
+  /* Tenant brand colors — overridden at runtime by TenantThemeProvider */
+  --tenant-primary: #1E40AF;
+  --tenant-secondary: #3B82F6;
+  --tenant-primary-hsl: 224 76% 40%;
+  --tenant-secondary-hsl: 217 91% 60%;
+
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);

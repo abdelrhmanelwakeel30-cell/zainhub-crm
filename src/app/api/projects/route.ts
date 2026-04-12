@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
+import { nextNumber } from '@/lib/number-sequence'
+import { logCreate } from '@/lib/activity'
 import { z } from 'zod'
 
 const createSchema = z.object({
@@ -28,7 +30,7 @@ export async function GET(req: NextRequest) {
   const status = searchParams.get('status') || ''
   const ownerId = searchParams.get('ownerId') || ''
   const where: Record<string, unknown> = { tenantId: session.user.tenantId, archivedAt: null }
-  if (search) where.OR = [{ name: { contains: search } }, { client: { displayName: { contains: search } } }]
+  if (search) where.OR = [{ name: { contains: search, mode: 'insensitive' as const } }, { client: { displayName: { contains: search, mode: 'insensitive' as const } } }]
   if (status) where.status = status
   if (ownerId) where.ownerId = ownerId
   try {
@@ -55,10 +57,10 @@ export async function POST(req: NextRequest) {
     const parsed = createSchema.safeParse(body)
     if (!parsed.success) return NextResponse.json({ success: false, error: parsed.error.flatten() }, { status: 422 })
     const { tenantId, id: userId } = session.user
-    const count = await prisma.project.count({ where: { tenantId } })
+    const projectNumber = await nextNumber(tenantId, 'project')
     const project = await prisma.project.create({
       data: {
-        tenantId, projectNumber: `PRJ-${String(count+1).padStart(4,'0')}`,
+        tenantId, projectNumber,
         name: parsed.data.name, description: parsed.data.description || null,
         clientId: parsed.data.clientId || null, opportunityId: parsed.data.opportunityId || null,
         serviceId: parsed.data.serviceId || null, ownerId: parsed.data.ownerId || userId,
@@ -72,6 +74,7 @@ export async function POST(req: NextRequest) {
       include: { client: { select: { id: true, displayName: true } }, owner: { select: { id: true, firstName: true, lastName: true } } },
     })
     await prisma.auditLog.create({ data: { tenantId, userId, action: 'CREATE', entityType: 'project', entityId: project.id, entityName: project.name } })
+    logCreate(tenantId, 'project', project.id, project.name, userId)
     return NextResponse.json({ success: true, data: project }, { status: 201 })
   } catch (err) { console.error(err); return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 }) }
 }

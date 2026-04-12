@@ -1,20 +1,24 @@
 'use client'
 
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { PageHeader } from '@/components/shared/page-header'
 import { KPICard } from '@/components/shared/kpi-card'
 import { ProposalsTable } from './proposals-table'
+import { ProposalFormDialog } from './proposal-form-dialog'
 import { Button } from '@/components/ui/button'
 import { Plus, Download, FileText, CheckCircle, Send } from 'lucide-react'
 
 export function ProposalsContent() {
+  const [showCreate, setShowCreate] = useState(false)
+
   const { data: proposalsResponse } = useQuery({
     queryKey: ['proposals'],
     queryFn: () => fetch('/api/proposals').then(r => r.json()),
   })
   const proposals = proposalsResponse?.data ?? []
 
-  const totalValue = proposals.reduce((s: number, p: { totalAmount: number }) => s + p.totalAmount, 0)
+  const totalValue = proposals.reduce((s: number, p: { totalAmount: number | string }) => s + Number(p.totalAmount ?? 0), 0)
   const accepted = proposals.filter((p: { status: string }) => p.status === 'ACCEPTED')
   const sent = proposals.filter((p: { status: string }) => p.status === 'SENT')
 
@@ -22,7 +26,9 @@ export function ProposalsContent() {
     <div className="space-y-6 animate-slide-in">
       <PageHeader title="Proposals" description={`${proposals.length} proposals`}>
         <Button variant="outline" size="sm"><Download className="h-4 w-4 me-2" /> Export</Button>
-        <Button size="sm"><Plus className="h-4 w-4 me-2" /> New Proposal</Button>
+        <Button size="sm" onClick={() => setShowCreate(true)}>
+          <Plus className="h-4 w-4 me-2" /> New Proposal
+        </Button>
       </PageHeader>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -33,6 +39,8 @@ export function ProposalsContent() {
       </div>
 
       <ProposalsTable />
+
+      <ProposalFormDialog open={showCreate} onOpenChange={setShowCreate} />
     </div>
   )
 }

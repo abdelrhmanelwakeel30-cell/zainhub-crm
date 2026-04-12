@@ -16,11 +16,12 @@ const ACTION_COLORS: Record<string, string> = {
 
 interface ActivityRecord {
   id: string
-  action: string
+  action?: string | null
   entityType: string
-  entityName?: string
+  entityName?: string | null
   createdAt: string
-  user?: { firstName: string; lastName: string }
+  user?: { firstName: string; lastName: string } | null
+  performedBy?: { firstName: string; lastName: string } | null
 }
 
 export function RecentActivity() {
@@ -52,11 +53,11 @@ export function RecentActivity() {
             </div>
           ))
         ) : activities.length > 0 ? activities.map((activity) => {
-          const colorClass = ACTION_COLORS[activity.action] ?? 'text-gray-600 bg-gray-50'
-          const userName = activity.user
-            ? `${activity.user.firstName} ${activity.user.lastName}`
-            : 'System'
-          const actionLabel = activity.action.charAt(0) + activity.action.slice(1).toLowerCase()
+          const action = activity.action ?? 'UPDATE'
+          const colorClass = ACTION_COLORS[action] ?? 'text-gray-600 bg-gray-50'
+          const actor = activity.user ?? activity.performedBy
+          const userName = actor ? `${actor.firstName} ${actor.lastName}` : 'System'
+          const actionLabel = action.charAt(0) + action.slice(1).toLowerCase()
           return (
             <div key={activity.id} className="flex items-start gap-3">
               <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${colorClass}`}>

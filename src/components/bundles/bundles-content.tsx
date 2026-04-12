@@ -94,6 +94,7 @@ export function BundlesContent() {
                     <Button
                       variant="ghost"
                       size="icon"
+                      aria-label="Edit bundle"
                       className="h-7 w-7"
                       onClick={() => setEditingBundle(bundle)}
                     >
@@ -102,6 +103,7 @@ export function BundlesContent() {
                     <Button
                       variant="ghost"
                       size="icon"
+                      aria-label="Delete bundle"
                       className="h-7 w-7 text-red-500 hover:text-red-600"
                       onClick={() => deleteMutation.mutate(bundle.id)}
                       disabled={deleteMutation.isPending}

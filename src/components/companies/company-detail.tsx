@@ -64,7 +64,7 @@ export function CompanyDetail({ companyId }: CompanyDetailProps) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.push('/companies')}>
+          <Button variant="ghost" size="icon" aria-label="Back to companies" onClick={() => router.push('/companies')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <Skeleton className="h-12 w-12 rounded-xl" />
@@ -109,7 +109,7 @@ export function CompanyDetail({ companyId }: CompanyDetailProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.push('/companies')}>
+          <Button variant="ghost" size="icon" aria-label="Back to companies" onClick={() => router.push('/companies')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800">

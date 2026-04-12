@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
+import { nextNumber } from '@/lib/number-sequence'
 import { z } from 'zod'
 
 const createBillingSchema = z.object({
@@ -50,8 +51,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     let invoiceId: string | undefined
     if (parsed.data.createInvoice) {
-      const count = await prisma.invoice.count({ where: { tenantId } })
-      const invoiceNumber = `INV-${String(count + 1).padStart(4, '0')}`
+      const invoiceNumber = await nextNumber(tenantId, 'invoice')
       const invoice = await prisma.invoice.create({
         data: {
           tenantId,

@@ -90,6 +90,7 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
                 type="button"
                 variant="ghost"
                 size="icon"
+                aria-label="Move field up"
                 className="h-6 w-6"
                 onClick={() => moveField(index, 'up')}
                 disabled={index === 0}
@@ -100,6 +101,7 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
                 type="button"
                 variant="ghost"
                 size="icon"
+                aria-label="Move field down"
                 className="h-6 w-6"
                 onClick={() => moveField(index, 'down')}
                 disabled={index === fields.length - 1}
@@ -110,6 +112,7 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
                 type="button"
                 variant="ghost"
                 size="icon"
+                aria-label="Remove field"
                 className="h-6 w-6 text-red-500 hover:text-red-600"
                 onClick={() => removeField(index)}
               >
@@ -190,6 +193,7 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
                       type="button"
                       variant="ghost"
                       size="icon"
+                      aria-label="Delete option"
                       className="h-7 w-7 text-red-500"
                       onClick={() => removeOption(index, optIndex)}
                     >

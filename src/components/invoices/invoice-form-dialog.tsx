@@ -168,6 +168,7 @@ export function InvoiceFormDialog({ open, onOpenChange, defaultValues }: Invoice
                       type="button"
                       variant="ghost"
                       size="icon"
+                      aria-label="Remove item"
                       className="h-9 w-9 text-muted-foreground hover:text-red-600"
                       onClick={() => remove(index)}
                     >

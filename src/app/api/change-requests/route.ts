@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSession, unauthorized, serverError, paginatedOk, parsePagination, serializeDecimals } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
+import { nextNumber } from '@/lib/number-sequence'
 
 const CreateSchema = z.object({
   title: z.string().min(1),
@@ -36,7 +37,7 @@ export async function GET(req: NextRequest) {
 
     const where: Record<string, unknown> = {
       tenantId: session.user.tenantId,
-      ...(search && { OR: [{ title: { contains: search } }, { crNumber: { contains: search } }] }),
+      ...(search && { OR: [{ title: { contains: search, mode: 'insensitive' as const } }, { crNumber: { contains: search, mode: 'insensitive' as const } }] }),
       ...(status && { status }),
       ...(companyId && { companyId }),
       ...(type && { type }),
@@ -77,8 +78,7 @@ export async function POST(req: NextRequest) {
     }
 
     const tenantId = session.user.tenantId
-    const count = await prisma.changeRequest.count({ where: { tenantId } })
-    const crNumber = `CR-${String(count + 1).padStart(4, '0')}`
+    const crNumber = await nextNumber(tenantId, 'changeRequest')
 
     const { dueDate, estimatedHours, estimatedCost, ...rest } = parsed.data
 

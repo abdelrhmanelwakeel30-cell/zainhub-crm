@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSession, unauthorized, serverError, paginatedOk, parsePagination, serializeDecimals } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
+import { nextNumber } from '@/lib/number-sequence'
 
 const CreateSchema = z.object({
   companyId: z.string().optional(),
@@ -39,8 +40,8 @@ export async function GET(req: NextRequest) {
       tenantId: session.user.tenantId,
       ...(search && {
         OR: [
-          { serviceName: { contains: search } },
-          { clientServiceNumber: { contains: search } },
+          { serviceName: { contains: search, mode: 'insensitive' as const } },
+          { clientServiceNumber: { contains: search, mode: 'insensitive' as const } },
         ],
       }),
       ...(status && { status }),
@@ -84,8 +85,7 @@ export async function POST(req: NextRequest) {
     }
 
     const tenantId = session.user.tenantId
-    const count = await prisma.clientService.count({ where: { tenantId } })
-    const clientServiceNumber = `SVC-${String(count + 1).padStart(4, '0')}`
+    const clientServiceNumber = await nextNumber(tenantId, 'clientService')
 
     const { startDate, endDate, renewalDate, supportEndDate, ...rest } = parsed.data
 

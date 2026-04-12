@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
+import { nextNumber } from '@/lib/number-sequence'
+import { logCreate } from '@/lib/activity'
 import { z } from 'zod'
 
 const createSchema = z.object({
@@ -29,7 +31,7 @@ export async function GET(req: NextRequest) {
   const assignedToId = searchParams.get('assignedToId') || ''
   const projectId = searchParams.get('projectId') || ''
   const where: Record<string, unknown> = { tenantId: session.user.tenantId, parentTaskId: null }
-  if (search) where.OR = [{ title: { contains: search } }]
+  if (search) where.OR = [{ title: { contains: search, mode: 'insensitive' as const } }]
   if (status) where.status = status
   if (assignedToId) where.assignedToId = assignedToId
   if (projectId) where.projectId = projectId
@@ -57,10 +59,10 @@ export async function POST(req: NextRequest) {
     const parsed = createSchema.safeParse(body)
     if (!parsed.success) return NextResponse.json({ success: false, error: parsed.error.flatten() }, { status: 422 })
     const { tenantId, id: userId } = session.user
-    const count = await prisma.task.count({ where: { tenantId } })
+    const taskNumber = await nextNumber(tenantId, 'task')
     const task = await prisma.task.create({
       data: {
-        tenantId, taskNumber: `TSK-${String(count+1).padStart(4,'0')}`,
+        tenantId, taskNumber,
         title: parsed.data.title, description: parsed.data.description || null,
         assignedToId: parsed.data.assignedToId || null, priority: parsed.data.priority,
         dueDate: parsed.data.dueDate ? new Date(parsed.data.dueDate) : null,
@@ -74,6 +76,7 @@ export async function POST(req: NextRequest) {
       include: { assignedTo: { select: { id: true, firstName: true, lastName: true } }, project: { select: { id: true, name: true } } },
     })
     await prisma.auditLog.create({ data: { tenantId, userId, action: 'CREATE', entityType: 'task', entityId: task.id, entityName: task.title } })
+    logCreate(tenantId, 'task', task.id, task.title, userId)
     return NextResponse.json({ success: true, data: task }, { status: 201 })
   } catch (err) { console.error(err); return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 }) }
 }

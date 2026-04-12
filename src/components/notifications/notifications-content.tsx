@@ -110,6 +110,7 @@ export function NotificationsContent() {
                     <Button
                       variant="ghost"
                       size="icon"
+                      aria-label="Mark as read"
                       className="shrink-0"
                       onClick={() => markReadMutation.mutate(n.id)}
                       disabled={markReadMutation.isPending}

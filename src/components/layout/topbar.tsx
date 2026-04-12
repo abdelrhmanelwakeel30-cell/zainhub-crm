@@ -4,7 +4,8 @@ import { useState, useTransition } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useTranslations } from 'next-intl'
 import { useTheme } from 'next-themes'
-import { Search, Bell, Globe, Moon, Sun, LogOut, User, Settings, ChevronDown, Menu } from 'lucide-react'
+import { Search, Globe, Moon, Sun, LogOut, User, Settings, ChevronDown, Menu } from 'lucide-react'
+import { NotificationDropdown } from '@/components/layout/notification-dropdown'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
@@ -83,12 +84,7 @@ export function Topbar({ onSearchOpen, onMobileMenuToggle }: TopbarProps) {
         </Button>
 
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative" aria-label="Notifications, 5 unread">
-          <Bell className="h-4 w-4" />
-          <span className="absolute -top-0.5 -end-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white" aria-hidden="true">
-            5
-          </span>
-        </Button>
+        <NotificationDropdown />
 
         {/* User menu */}
         <DropdownMenu>

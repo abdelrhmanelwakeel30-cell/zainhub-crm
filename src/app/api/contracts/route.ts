@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSession, unauthorized, serverError, paginatedOk, parsePagination, serializeDecimals } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
+import { nextNumber } from '@/lib/number-sequence'
+import { logCreate } from '@/lib/activity'
 
 const CreateSchema = z.object({
   title: z.string().min(1),
@@ -33,7 +35,7 @@ export async function GET(req: NextRequest) {
 
     const where: Record<string, unknown> = {
       tenantId: session.user.tenantId,
-      ...(search && { OR: [{ title: { contains: search } }, { contractNumber: { contains: search } }] }),
+      ...(search && { OR: [{ title: { contains: search, mode: 'insensitive' as const } }, { contractNumber: { contains: search, mode: 'insensitive' as const } }] }),
       ...(status && { status }),
       ...(clientId && { clientId }),
     }
@@ -71,8 +73,7 @@ export async function POST(req: NextRequest) {
     }
 
     const tenantId = session.user.tenantId
-    const count = await prisma.contract.count({ where: { tenantId } })
-    const contractNumber = `CTR-${String(count + 1).padStart(4, '0')}`
+    const contractNumber = await nextNumber(tenantId, 'contract')
 
     const { startDate, endDate, renewalDate, ...rest } = parsed.data
 
@@ -91,6 +92,8 @@ export async function POST(req: NextRequest) {
     await prisma.auditLog.create({
       data: { tenantId, userId: session.user.id, action: 'CREATE', entityType: 'Contract', entityId: contract.id, entityName: contract.contractNumber },
     })
+
+    logCreate(tenantId, 'contract', contract.id, contract.title, session.user.id)
 
     return NextResponse.json({ success: true, data: serializeDecimals(contract) }, { status: 201 })
   } catch (err) {

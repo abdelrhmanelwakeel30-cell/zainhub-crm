@@ -604,6 +604,9 @@ model Company {
   @@index([tenantId])
   @@index([tenantId, lifecycleStage])
   @@index([tenantId, accountOwnerId])
+  @@index([tenantId, archivedAt])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, displayName])
 }
 
 model Contact {
@@ -647,6 +650,9 @@ model Contact {
   @@unique([tenantId, contactNumber])
   @@index([tenantId])
   @@index([tenantId, email])
+  @@index([tenantId, archivedAt])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, lastName, firstName])
 }
 
 model CompanyContact {
@@ -878,6 +884,11 @@ model Opportunity {
   @@index([tenantId, stageId])
   @@index([tenantId, ownerId])
   @@index([tenantId, expectedCloseDate])
+  @@index([tenantId, archivedAt])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, pipelineId, stageId])
+  @@index([tenantId, companyId])
+  @@index([tenantId, forecastMonth])
 }
 
 model OpportunityService {
@@ -1034,6 +1045,10 @@ model Project {
   @@index([tenantId, status])
   @@index([tenantId, ownerId])
   @@index([tenantId, clientId])
+  @@index([tenantId, archivedAt])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, healthStatus])
+  @@index([tenantId, targetEndDate])
 }
 
 model ProjectMember {
@@ -1422,6 +1437,9 @@ model Invoice {
   @@index([tenantId, status])
   @@index([tenantId, clientId])
   @@index([tenantId, dueDate])
+  @@index([tenantId, issueDate])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, status, dueDate])
 }
 
 model InvoiceItem {
@@ -1464,6 +1482,9 @@ model Payment {
   @@unique([tenantId, paymentNumber])
   @@index([tenantId])
   @@index([invoiceId])
+  @@index([tenantId, clientId])
+  @@index([tenantId, paymentDate])
+  @@index([tenantId, paymentMethod])
 }
 
 // ============================================================================
@@ -1502,6 +1523,8 @@ model Expense {
   @@index([tenantId])
   @@index([tenantId, categoryId])
   @@index([tenantId, expenseDate])
+  @@index([tenantId, status])
+  @@index([tenantId, linkedProjectId])
 }
 
 model ExpenseCategory {
@@ -1576,6 +1599,8 @@ model Ticket {
   @@index([tenantId, status])
   @@index([tenantId, assignedToId])
   @@index([tenantId, clientId])
+  @@index([tenantId, priority])
+  @@index([tenantId, slaDueAt])
 }
 
 model TicketComment {
@@ -1638,6 +1663,8 @@ model Task {
   @@index([tenantId, assignedToId])
   @@index([tenantId, dueDate])
   @@index([tenantId, projectId])
+  @@index([tenantId, parentTaskId])
+  @@index([tenantId, relatedType, relatedId])
 }
 
 model TaskComment {
@@ -1773,23 +1800,45 @@ model Notification {
 // ============================================================================
 
 model AuditLog {
-  id         String      @id @default(cuid())
-  tenantId   String
-  tenant     Tenant      @relation(fields: [tenantId], references: [id])
-  userId     String?
-  user       User?       @relation(fields: [userId], references: [id])
-  action     AuditAction
-  entityType String
-  entityId   String
-  entityName String?
-  changes    Json?       // { field: { old: value, new: value } }
-  ipAddress  String?
-  userAgent  String?
-  createdAt  DateTime    @default(now())
+  id           String      @id @default(cuid())
+  tenantId     String
+  tenant       Tenant      @relation(fields: [tenantId], references: [id])
+  userId       String?
+  user         User?       @relation(fields: [userId], references: [id])
+  action       AuditAction
+  entityType   String
+  entityId     String
+  entityName   String?
+  changes      Json?       // { field: { old: value, new: value } }
+  beforeValue  Json?       // full snapshot before change
+  afterValue   Json?       // full snapshot after change
+  sourceModule String?     // e.g. "leads", "opportunities"
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime    @default(now())
 
   @@index([tenantId, entityType, entityId])
   @@index([tenantId, createdAt])
   @@index([tenantId, userId])
+  @@index([tenantId, action, createdAt])
+}
+
+// ============================================================================
+// NUMBER SEQUENCES — atomic per-tenant per-entity counters
+// Used to generate human-friendly document numbers (LD-0001, INV-0042…)
+// without race conditions from count()+1 patterns.
+// ============================================================================
+
+model NumberSequence {
+  tenantId   String
+  entityType String   // "lead", "invoice", "opportunity", etc.
+  lastNumber Int      @default(0)
+  prefix     String?  // optional override (e.g. "INV")
+  padLength  Int      @default(4)
+  updatedAt  DateTime @updatedAt
+
+  @@id([tenantId, entityType])
+  @@index([tenantId])
 }
 
 // ============================================================================

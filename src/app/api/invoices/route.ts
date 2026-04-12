@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
+import { nextNumber } from '@/lib/number-sequence'
+import { logCreate } from '@/lib/activity'
 import { z } from 'zod'
 
 const lineItemSchema = z.object({
@@ -42,7 +44,7 @@ export async function GET(req: NextRequest) {
   const status = searchParams.get('status') || ''
   const clientId = searchParams.get('clientId') || ''
   const where: Record<string, unknown> = { tenantId: session.user.tenantId }
-  if (search) where.OR = [{ invoiceNumber: { contains: search } }, { client: { displayName: { contains: search } } }]
+  if (search) where.OR = [{ invoiceNumber: { contains: search, mode: 'insensitive' as const } }, { client: { displayName: { contains: search, mode: 'insensitive' as const } } }]
   if (status) where.status = status
   if (clientId) where.clientId = clientId
   try {
@@ -70,8 +72,7 @@ export async function POST(req: NextRequest) {
     const parsed = createSchema.safeParse(body)
     if (!parsed.success) return NextResponse.json({ success: false, error: parsed.error.flatten() }, { status: 422 })
     const { tenantId, id: userId } = session.user
-    const count = await prisma.invoice.count({ where: { tenantId } })
-    const invoiceNumber = `INV-${String(count+1).padStart(4,'0')}`
+    const invoiceNumber = await nextNumber(tenantId, 'invoice')
 
     const subtotal = parsed.data.items.reduce((sum, item) => {
       const itemTotal = item.quantity * item.unitPrice * (1 - (item.discountPercent || 0) / 100)
@@ -117,6 +118,7 @@ export async function POST(req: NextRequest) {
       },
     })
     await prisma.auditLog.create({ data: { tenantId, userId, action: 'CREATE', entityType: 'invoice', entityId: invoice.id, entityName: invoice.invoiceNumber } })
+    logCreate(tenantId, 'invoice', invoice.id, invoice.invoiceNumber, userId)
     return NextResponse.json({ success: true, data: invoice }, { status: 201 })
   } catch (err) { console.error(err); return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 }) }
 }

@@ -78,6 +78,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           tenantId: user.tenantId,
           tenantName: user.tenant.name,
           tenantSlug: user.tenant.slug,
+          primaryColor: user.tenant.primaryColor ?? '#1E40AF',
+          secondaryColor: user.tenant.secondaryColor ?? '#3B82F6',
           roles,
           permissions,
         }
@@ -93,6 +95,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.tenantSlug = user.tenantSlug
         token.firstName = user.firstName
         token.lastName = user.lastName
+        token.primaryColor = user.primaryColor
+        token.secondaryColor = user.secondaryColor
         token.roles = user.roles
         token.permissions = user.permissions
       }
@@ -105,6 +109,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.tenantSlug = token.tenantSlug as string
       session.user.firstName = token.firstName as string
       session.user.lastName = token.lastName as string
+      session.user.primaryColor = token.primaryColor as string
+      session.user.secondaryColor = token.secondaryColor as string
       session.user.roles = token.roles as string[]
       session.user.permissions = token.permissions as string[]
       return session

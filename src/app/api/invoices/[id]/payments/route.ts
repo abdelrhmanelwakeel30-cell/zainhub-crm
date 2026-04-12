@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
+import { sendPaymentConfirmation } from '@/lib/email'
 import { z } from 'zod'
 
 const paymentSchema = z.object({
@@ -57,6 +58,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     })
 
     await prisma.auditLog.create({ data: { tenantId, userId, action: 'CREATE', entityType: 'payment', entityId: result.id, entityName: result.paymentNumber } })
+
+    // Fire-and-forget payment confirmation email
+    const client = await prisma.company.findUnique({ where: { id: invoice.clientId }, select: { email: true } })
+    const tenant = await prisma.tenant.findUnique({ where: { id: tenantId }, select: { name: true } })
+    if (client?.email && tenant) {
+      sendPaymentConfirmation(client.email, invoice.invoiceNumber, parsed.data.amount, invoice.currency, tenant.name)
+    }
+
     return NextResponse.json({ success: true, data: result }, { status: 201 })
   } catch (err) { console.error(err); return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 }) }
 }

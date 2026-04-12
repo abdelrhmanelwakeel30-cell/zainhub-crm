@@ -10,7 +10,7 @@ import { StatusBadge } from '@/components/shared/status-badge'
 import { formatDate, formatRelativeDate } from '@/lib/utils'
 import {
   ArrowLeft, Edit, Building2, CalendarDays, DollarSign, FileText,
-  AlertTriangle, Receipt,
+  AlertTriangle, Receipt, Download,
 } from 'lucide-react'
 
 interface ContractDetailProps { contractId: string }
@@ -68,7 +68,7 @@ export function ContractDetail({ contractId }: ContractDetailProps) {
     <div className="space-y-6 animate-slide-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.push('/contracts')}><ArrowLeft className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="icon" aria-label="Back to contracts" onClick={() => router.push('/contracts')}><ArrowLeft className="h-4 w-4" /></Button>
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold">{ctr.title}</h1>
@@ -79,6 +79,14 @@ export function ContractDetail({ contractId }: ContractDetailProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <a
+            href={`/api/pdf/contract/${contractId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center rounded-lg border border-border bg-background hover:bg-muted hover:text-foreground h-7 gap-1 px-2.5 text-[0.8rem] font-medium transition-all"
+          >
+            <Download className="h-3.5 w-3.5 me-2" /> Download PDF
+          </a>
           <Button variant="outline" size="sm"><Receipt className="h-4 w-4 me-2" /> Create Invoice</Button>
           <Button variant="outline" size="sm"><Edit className="h-4 w-4 me-2" /> Edit</Button>
         </div>

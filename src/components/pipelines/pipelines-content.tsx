@@ -1,11 +1,13 @@
 'use client'
 
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { StatusBadge } from '@/components/shared/status-badge'
+import { PipelineFormDialog } from './pipeline-form-dialog'
 import { Plus, ArrowRight } from 'lucide-react'
 
 interface Stage {
@@ -28,6 +30,7 @@ interface Pipeline {
 }
 
 export function PipelinesContent() {
+  const [showCreate, setShowCreate] = useState(false)
   const { data: pipelinesData, isLoading: pipelinesLoading } = useQuery({
     queryKey: ['pipelines'],
     queryFn: () => fetch('/api/pipelines').then(r => r.json()),
@@ -56,8 +59,12 @@ export function PipelinesContent() {
   return (
     <div className="space-y-6 animate-slide-in">
       <PageHeader title="Pipelines" description="Sales pipeline configuration & overview">
-        <Button size="sm"><Plus className="h-4 w-4 me-2" /> New Pipeline</Button>
+        <Button size="sm" onClick={() => setShowCreate(true)}>
+          <Plus className="h-4 w-4 me-2" /> New Pipeline
+        </Button>
       </PageHeader>
+
+      <PipelineFormDialog open={showCreate} onOpenChange={setShowCreate} />
 
       {isLoading ? (
         <div className="space-y-4">

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { verifyPortalToken, extractBearerToken } from '@/lib/portal-auth'
 import { prisma as _prisma } from '@/lib/prisma'
+import { nextNumber } from '@/lib/number-sequence'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const prisma = _prisma as any
 
@@ -74,9 +75,7 @@ export async function POST(req: NextRequest) {
 
     const { title, description, clientServiceId } = parsed.data
 
-    // Auto-generate CR number
-    const count = await prisma.changeRequest.count({ where: { tenantId: user.tenantId } })
-    const crNumber = `CR-${String(count + 1).padStart(4, '0')}`
+    const crNumber = await nextNumber(user.tenantId, 'changeRequest')
 
     const cr = await prisma.changeRequest.create({
       data: {

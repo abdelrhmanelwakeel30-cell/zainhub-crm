@@ -131,6 +131,7 @@ export function FormsContent() {
           <Button
             variant="ghost"
             size="icon"
+            aria-label="View submissions"
             className="h-7 w-7"
             title="View Submissions"
             onClick={() => setViewSubmissions(row.original)}
@@ -140,6 +141,7 @@ export function FormsContent() {
           <Button
             variant="ghost"
             size="icon"
+            aria-label="Delete form"
             className="h-7 w-7 text-red-500 hover:text-red-600"
             onClick={() => deleteMutation.mutate(row.original.id)}
             disabled={deleteMutation.isPending}

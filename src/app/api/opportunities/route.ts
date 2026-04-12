@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
+import { nextNumber } from '@/lib/number-sequence'
+import { logCreate } from '@/lib/activity'
 import { z } from 'zod'
 
 const createSchema = z.object({
@@ -31,7 +33,7 @@ export async function GET(req: NextRequest) {
   const stageId = searchParams.get('stageId') || ''
   const ownerId = searchParams.get('ownerId') || ''
   const where: Record<string, unknown> = { tenantId: session.user.tenantId, archivedAt: null }
-  if (search) where.OR = [{ title: { contains: search } }, { company: { displayName: { contains: search } } }]
+  if (search) where.OR = [{ title: { contains: search, mode: 'insensitive' as const } }, { company: { displayName: { contains: search, mode: 'insensitive' as const } } }]
   if (stageId) where.stageId = stageId
   if (ownerId) where.ownerId = ownerId
   try {
@@ -61,7 +63,7 @@ export async function POST(req: NextRequest) {
     const parsed = createSchema.safeParse(body)
     if (!parsed.success) return NextResponse.json({ success: false, error: parsed.error.flatten() }, { status: 422 })
     const { tenantId, id: userId } = session.user
-    const count = await prisma.opportunity.count({ where: { tenantId } })
+    const opportunityNumber = await nextNumber(tenantId, 'opportunity')
 
     let { pipelineId, stageId } = parsed.data
     if (!pipelineId) {
@@ -73,7 +75,7 @@ export async function POST(req: NextRequest) {
     const expectedValue = parsed.data.expectedValue
     const opportunity = await prisma.opportunity.create({
       data: {
-        tenantId, opportunityNumber: `OPP-${String(count+1).padStart(4,'0')}`,
+        tenantId, opportunityNumber,
         title: parsed.data.title, description: parsed.data.description || null,
         companyId: parsed.data.companyId || null, primaryContactId: parsed.data.primaryContactId || null,
         ownerId: parsed.data.ownerId || userId,
@@ -88,6 +90,7 @@ export async function POST(req: NextRequest) {
       include: { company: { select: { id: true, displayName: true } }, owner: { select: { id: true, firstName: true, lastName: true } }, stage: { select: { id: true, name: true, color: true } } },
     })
     await prisma.auditLog.create({ data: { tenantId, userId, action: 'CREATE', entityType: 'opportunity', entityId: opportunity.id, entityName: opportunity.title } })
+    logCreate(tenantId, 'opportunity', opportunity.id, opportunity.title, userId)
     return NextResponse.json({ success: true, data: opportunity }, { status: 201 })
   } catch (err) { console.error(err); return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 }) }
 }

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSession, unauthorized, serverError, paginatedOk, parsePagination, serializeDecimals } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
+import { nextNumber } from '@/lib/number-sequence'
+import { logCreate } from '@/lib/activity'
 
 const CreateSchema = z.object({
   subject: z.string().min(1),
@@ -30,7 +32,7 @@ export async function GET(req: NextRequest) {
 
     const where: Record<string, unknown> = {
       tenantId: session.user.tenantId,
-      ...(search && { OR: [{ subject: { contains: search } }, { ticketNumber: { contains: search } }] }),
+      ...(search && { OR: [{ subject: { contains: search, mode: 'insensitive' as const } }, { ticketNumber: { contains: search, mode: 'insensitive' as const } }] }),
       ...(status && { status }),
       ...(priority && { priority }),
       ...(assignedToId && { assignedToId }),
@@ -71,8 +73,7 @@ export async function POST(req: NextRequest) {
     }
 
     const tenantId = session.user.tenantId
-    const count = await prisma.ticket.count({ where: { tenantId } })
-    const ticketNumber = `TKT-${String(count + 1).padStart(4, '0')}`
+    const ticketNumber = await nextNumber(tenantId, 'ticket')
 
     const { slaDueAt, ...rest } = parsed.data
 
@@ -89,6 +90,8 @@ export async function POST(req: NextRequest) {
     await prisma.auditLog.create({
       data: { tenantId, userId: session.user.id, action: 'CREATE', entityType: 'Ticket', entityId: ticket.id, entityName: ticket.ticketNumber },
     })
+
+    logCreate(tenantId, 'ticket', ticket.id, ticket.subject, session.user.id)
 
     return NextResponse.json({ success: true, data: serializeDecimals(ticket) }, { status: 201 })
   } catch (err) {

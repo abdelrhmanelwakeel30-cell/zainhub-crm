@@ -8,11 +8,29 @@ declare global {
 }
 
 function createPrismaClient(): PrismaClientType {
-  const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL! })
-  return new PrismaClient({ adapter }) as unknown as PrismaClientType
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not defined')
+  }
+  const log = process.env.NODE_ENV === 'development' ? (['error', 'warn'] as const) : (['error'] as const)
+  // Use Neon serverless adapter for Neon-hosted databases (production/staging).
+  // Fall back to plain PrismaClient for local PostgreSQL (direct pg driver).
+  if (process.env.DATABASE_URL.includes('neon.tech') || process.env.DATABASE_URL.includes('neon.database')) {
+    const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL })
+    return new PrismaClient({ adapter, log }) as unknown as PrismaClientType
+  }
+  return new PrismaClient({
+    datasources: { db: { url: process.env.DATABASE_URL } },
+    log,
+  }) as unknown as PrismaClientType
 }
 
+// Cache the client on globalThis for ALL environments. On Vercel/Next.js the
+// same Node process can be reused across requests (route handlers, ISR,
+// background tasks), so re-creating a Neon-backed Prisma client per request
+// would exhaust connection pools. globalThis survives module re-evaluation
+// within a single instance but is scoped per serverless function instance,
+// which is exactly what we want.
 export const prisma: PrismaClientType =
   globalThis.__prisma ?? createPrismaClient()
 
-if (process.env.NODE_ENV !== 'production') globalThis.__prisma = prisma
+globalThis.__prisma = prisma

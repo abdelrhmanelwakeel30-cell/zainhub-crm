@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
+import { nextNumber } from '@/lib/number-sequence'
+import { logCreate } from '@/lib/activity'
 import { z } from 'zod'
 
 const createSchema = z.object({
@@ -31,7 +33,7 @@ export async function GET(req: NextRequest) {
   const search = searchParams.get('search') || ''
   const lifecycleStage = searchParams.get('lifecycleStage') || ''
   const where: Record<string, unknown> = { tenantId: session.user.tenantId, archivedAt: null }
-  if (search) where.OR = [{ displayName: { contains: search } }, { legalName: { contains: search } }, { email: { contains: search } }]
+  if (search) where.OR = [{ displayName: { contains: search, mode: 'insensitive' as const } }, { legalName: { contains: search, mode: 'insensitive' as const } }, { email: { contains: search, mode: 'insensitive' as const } }]
   if (lifecycleStage) where.lifecycleStage = lifecycleStage
   try {
     const [data, total] = await Promise.all([
@@ -50,11 +52,12 @@ export async function POST(req: NextRequest) {
     const parsed = createSchema.safeParse(body)
     if (!parsed.success) return NextResponse.json({ success: false, error: parsed.error.flatten() }, { status: 422 })
     const { tenantId, id: userId } = session.user
-    const count = await prisma.company.count({ where: { tenantId } })
+    const companyNumber = await nextNumber(tenantId, 'company')
     const company = await prisma.company.create({
-      data: { tenantId, companyNumber: `COM-${String(count+1).padStart(4,'0')}`, ...parsed.data, email: parsed.data.email || null, accountOwnerId: parsed.data.accountOwnerId || userId },
+      data: { tenantId, companyNumber, ...parsed.data, email: parsed.data.email || null, accountOwnerId: parsed.data.accountOwnerId || userId },
     })
     await prisma.auditLog.create({ data: { tenantId, userId, action: 'CREATE', entityType: 'company', entityId: company.id, entityName: company.displayName } })
+    logCreate(tenantId, 'company', company.id, company.displayName, userId)
     return NextResponse.json({ success: true, data: company }, { status: 201 })
   } catch (err) { console.error(err); return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 }) }
 }

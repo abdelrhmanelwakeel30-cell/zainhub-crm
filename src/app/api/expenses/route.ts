@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSession, unauthorized, serverError, paginatedOk, parsePagination, serializeDecimals } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
+import { nextNumber } from '@/lib/number-sequence'
+import { logCreate } from '@/lib/activity'
 
 const CreateExpenseSchema = z.object({
   vendorName: z.string().min(1),
@@ -34,9 +36,9 @@ export async function GET(req: NextRequest) {
       tenantId: session.user.tenantId,
       ...(search && {
         OR: [
-          { vendorName: { contains: search } },
-          { description: { contains: search } },
-          { expenseNumber: { contains: search } },
+          { vendorName: { contains: search, mode: 'insensitive' as const } },
+          { description: { contains: search, mode: 'insensitive' as const } },
+          { expenseNumber: { contains: search, mode: 'insensitive' as const } },
         ],
       }),
       ...(status && { status }),
@@ -78,8 +80,7 @@ export async function POST(req: NextRequest) {
     }
 
     const tenantId = session.user.tenantId
-    const count = await prisma.expense.count({ where: { tenantId } })
-    const expenseNumber = `EXP-${String(count + 1).padStart(4, '0')}`
+    const expenseNumber = await nextNumber(tenantId, 'expense')
 
     const { expenseDate, ...rest } = parsed.data
 
@@ -106,6 +107,8 @@ export async function POST(req: NextRequest) {
         entityName: expense.expenseNumber,
       },
     })
+
+    logCreate(tenantId, 'expense', expense.id, expense.expenseNumber, session.user.id)
 
     return NextResponse.json({ success: true, data: serializeDecimals(expense) }, { status: 201 })
   } catch (err) {

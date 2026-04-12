@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSession, unauthorized, serverError, paginatedOk, parsePagination, serializeDecimals } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
+import { nextNumber } from '@/lib/number-sequence'
+import { logCreate } from '@/lib/activity'
 
 const ItemSchema = z.object({
   description: z.string().min(1),
@@ -49,7 +51,7 @@ export async function GET(req: NextRequest) {
 
     const where: Record<string, unknown> = {
       tenantId: session.user.tenantId,
-      ...(search && { OR: [{ title: { contains: search } }, { proposalNumber: { contains: search } }] }),
+      ...(search && { OR: [{ title: { contains: search, mode: 'insensitive' as const } }, { proposalNumber: { contains: search, mode: 'insensitive' as const } }] }),
       ...(status && { status }),
       ...(companyId && { companyId }),
     }
@@ -87,8 +89,7 @@ export async function POST(req: NextRequest) {
     }
 
     const tenantId = session.user.tenantId
-    const count = await prisma.proposal.count({ where: { tenantId } })
-    const proposalNumber = `PRP-${String(count + 1).padStart(4, '0')}`
+    const proposalNumber = await nextNumber(tenantId, 'proposal')
 
     const { items, issueDate, validUntil, ...rest } = parsed.data
 
@@ -114,6 +115,8 @@ export async function POST(req: NextRequest) {
     await prisma.auditLog.create({
       data: { tenantId, userId: session.user.id, action: 'CREATE', entityType: 'Proposal', entityId: proposal.id, entityName: proposal.proposalNumber },
     })
+
+    logCreate(tenantId, 'proposal', proposal.id, proposal.title, session.user.id)
 
     return NextResponse.json({ success: true, data: serializeDecimals(proposal) }, { status: 201 })
   } catch (err) {

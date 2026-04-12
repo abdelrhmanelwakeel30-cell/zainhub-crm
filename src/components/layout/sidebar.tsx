@@ -215,11 +215,11 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
                       className={cn(
                         'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                         isActive
-                          ? 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300'
+                          ? 'bg-[hsl(var(--tenant-primary-hsl)/0.1)] text-[var(--tenant-primary)] dark:bg-[hsl(var(--tenant-primary-hsl)/0.15)] dark:text-[var(--tenant-secondary)]'
                           : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                       )}
                     >
-                      <Icon className={cn('h-5 w-5 shrink-0', isActive ? 'text-blue-600' : '')} />
+                      <Icon className={cn('h-5 w-5 shrink-0', isActive ? 'text-[var(--tenant-primary)]' : '')} />
                       {showExpanded && (
                         <>
                           <span className="flex-1 truncate">{t(item.titleKey)}</span>
@@ -260,7 +260,7 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
           aria-expanded={!collapsed}
           className="flex w-full items-center justify-center rounded-lg p-2 text-muted-foreground hover:bg-muted"
         >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          {collapsed ? <ChevronRight className="h-4 w-4 rtl:rotate-180" /> : <ChevronLeft className="h-4 w-4 rtl:rotate-180" />}
         </button>
       </div>
     </aside>

@@ -11,13 +11,13 @@ interface Payment {
   paymentNumber: string
   amount: number
   currency: string
-  method: string
+  paymentMethod: string
   paymentDate: string
   invoice: {
     invoiceNumber: string
     client: { displayName: string }
   } | null
-  recordedBy: { firstName: string; lastName: string } | null
+  createdBy: { firstName: string; lastName: string } | null
 }
 
 interface PaymentsApiResponse {
@@ -68,9 +68,9 @@ export function PaymentsTable() {
       ),
     },
     {
-      accessorKey: 'method',
+      accessorKey: 'paymentMethod',
       header: 'Method',
-      cell: ({ row }) => <StatusBadge status={row.original.method} />,
+      cell: ({ row }) => <StatusBadge status={row.original.paymentMethod} />,
     },
     {
       accessorKey: 'paymentDate',
@@ -80,10 +80,10 @@ export function PaymentsTable() {
       ),
     },
     {
-      accessorKey: 'recordedBy',
+      accessorKey: 'createdBy',
       header: 'Recorded By',
       cell: ({ row }) => {
-        const rb = row.original.recordedBy
+        const rb = row.original.createdBy
         return (
           <span className="text-xs text-muted-foreground">
             {rb ? `${rb.firstName} ${rb.lastName}` : '-'}

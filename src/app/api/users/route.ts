@@ -20,8 +20,8 @@ export async function GET(req: NextRequest) {
           status: 'ACTIVE',
           ...(search && {
             OR: [
-              { firstName: { contains: search } },
-              { lastName: { contains: search } },
+              { firstName: { contains: search, mode: 'insensitive' as const } },
+              { lastName: { contains: search, mode: 'insensitive' as const } },
             ],
           }),
         },
@@ -40,9 +40,9 @@ export async function GET(req: NextRequest) {
       ...(status && { status: status as UserStatus }),
       ...(search && {
         OR: [
-          { firstName: { contains: search } },
-          { lastName: { contains: search } },
-          { email: { contains: search } },
+          { firstName: { contains: search, mode: 'insensitive' as const } },
+          { lastName: { contains: search, mode: 'insensitive' as const } },
+          { email: { contains: search, mode: 'insensitive' as const } },
         ],
       }),
     }

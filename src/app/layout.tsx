@@ -6,6 +6,7 @@ import { ThemeProvider } from 'next-themes'
 import { SessionProvider } from '@/components/providers/session-provider'
 import { QueryProvider } from '@/components/providers/query-provider'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { TenantThemeProvider } from '@/components/providers/tenant-theme-provider'
 import { Toaster } from '@/components/ui/sonner'
 import { localeDirections } from '@/i18n/config'
 import type { Locale } from '@/i18n/config'
@@ -53,10 +54,12 @@ export default async function RootLayout({
           <NextIntlClientProvider messages={messages}>
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
               <QueryProvider>
-                <TooltipProvider>
-                  {children}
-                  <Toaster position="top-right" richColors />
-                </TooltipProvider>
+                <TenantThemeProvider>
+                  <TooltipProvider>
+                    {children}
+                    <Toaster position="top-right" richColors />
+                  </TooltipProvider>
+                </TenantThemeProvider>
               </QueryProvider>
             </ThemeProvider>
           </NextIntlClientProvider>

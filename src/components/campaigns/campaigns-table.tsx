@@ -14,10 +14,11 @@ interface Campaign {
   description?: string
   type: string
   status: string
-  budget: number
-  actualSpend: number
+  budget: number | null
+  actualSpend: number | null
   platform: string | null
-  leads: number
+  leadsGenerated: number
+  _count?: { leads: number; contentItems: number }
   startDate: string | null
   endDate: string | null
 }
@@ -68,7 +69,7 @@ export function CampaignsTable() {
       header: t('budget'),
       cell: ({ row }) => (
         <span className="text-sm font-semibold">
-          AED {(row.original.budget ?? 0).toLocaleString()}
+          AED {Number(row.original.budget ?? 0).toLocaleString()}
         </span>
       ),
     },
@@ -77,7 +78,7 @@ export function CampaignsTable() {
       header: t('actualSpend'),
       cell: ({ row }) => (
         <span className="text-sm text-muted-foreground">
-          AED {(row.original.actualSpend ?? 0).toLocaleString()}
+          AED {Number(row.original.actualSpend ?? 0).toLocaleString()}
         </span>
       ),
     },
@@ -91,10 +92,12 @@ export function CampaignsTable() {
       ),
     },
     {
-      accessorKey: 'leads',
+      accessorKey: 'leadsGenerated',
       header: t('leadsGenerated'),
       cell: ({ row }) => (
-        <span className="text-sm font-semibold">{row.original.leads ?? 0}</span>
+        <span className="text-sm font-semibold">
+          {row.original._count?.leads ?? row.original.leadsGenerated ?? 0}
+        </span>
       ),
     },
     {

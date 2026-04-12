@@ -68,19 +68,23 @@ export async function GET(req: NextRequest) {
         },
         orderBy: { order: 'asc' },
       }),
-      // Leads by source
-      prisma.lead.groupBy({
-        by: ['sourceId'],
-        where: { tenantId, archivedAt: null },
-        _count: { id: true },
-      }),
-      // Monthly revenue for last 6 months (from payments)
+      // Leads by source (with source name)
+      prisma.$queryRaw<Array<{ name: string; count: number }>>`
+        SELECT COALESCE(ls."name", 'Unknown') as name, COUNT(l.id)::int as count
+        FROM "Lead" l
+        LEFT JOIN "LeadSource" ls ON l."sourceId" = ls.id
+        WHERE l."tenantId" = ${tenantId} AND l."archivedAt" IS NULL
+        GROUP BY ls."name"
+        ORDER BY count DESC
+      `,
+      // Monthly revenue for last 6 months (from payments) — PostgreSQL syntax
       prisma.$queryRaw<Array<{ month: string; total: number }>>`
-        SELECT strftime('%Y-%m', createdAt) as month, SUM(CAST(amount as REAL)) as total
-        FROM Payment
-        WHERE tenantId = ${tenantId}
-          AND createdAt >= date('now', '-6 months')
-        GROUP BY strftime('%Y-%m', createdAt)
+        SELECT to_char("paymentDate", 'YYYY-MM') as month,
+               SUM("amount")::float as total
+        FROM "Payment"
+        WHERE "tenantId" = ${tenantId}
+          AND "paymentDate" >= (NOW() - INTERVAL '6 months')
+        GROUP BY to_char("paymentDate", 'YYYY-MM')
         ORDER BY month ASC
       `,
       prisma.notification.count({ where: { tenantId, userId: session.user.id, isRead: false } }),

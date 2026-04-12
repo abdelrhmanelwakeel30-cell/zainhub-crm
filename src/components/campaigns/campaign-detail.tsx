@@ -56,7 +56,7 @@ export function CampaignDetail({ campaignId }: CampaignDetailProps) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.push('/campaigns')}>
+          <Button variant="ghost" size="icon" aria-label="Back to campaigns" onClick={() => router.push('/campaigns')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="space-y-2">
@@ -112,7 +112,7 @@ export function CampaignDetail({ campaignId }: CampaignDetailProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.push('/campaigns')}>
+          <Button variant="ghost" size="icon" aria-label="Back to campaigns" onClick={() => router.push('/campaigns')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
