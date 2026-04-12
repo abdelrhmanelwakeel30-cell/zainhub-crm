@@ -32,9 +32,9 @@ interface OpportunityDetailProps {
 interface Opportunity {
   id: string
   opportunityNumber: string
-  name: string
+  title: string
   company?: { id: string; displayName: string } | null
-  contact?: { id: string; firstName: string; lastName: string } | null
+  primaryContact?: { id: string; firstName: string; lastName: string } | null
   stage?: { name: string; color?: string } | null
   expectedValue: number
   weightedValue: number
@@ -45,9 +45,9 @@ interface Opportunity {
   createdAt: string
   wonAt?: string | null
   lostAt?: string | null
-  lostReason?: string | null
-  services?: { id: string; name: string }[]
-  quotations?: { id: string; quotationNumber: string; title: string; totalAmount: number; status: string; issueDate: string; version?: number }[]
+  lostReason?: { name: string } | null
+  opportunityServices?: { service: { id: string; name: string } }[]
+  quotations?: { id: string; quotationNumber: string; totalAmount: number; status: string }[]
   projects?: { id: string; name: string; status: string }[]
 }
 
@@ -115,7 +115,7 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
   const isClosed = isWon || isLost
 
   const ownerName = `${opp.owner.firstName} ${opp.owner.lastName}`
-  const contactName = opp.contact ? `${opp.contact.firstName} ${opp.contact.lastName}` : null
+  const contactName = opp.primaryContact ? `${opp.primaryContact.firstName} ${opp.primaryContact.lastName}` : null
 
   const relatedQuotations = opp.quotations ?? []
   const relatedProjects = opp.projects ?? []
@@ -146,7 +146,7 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
           </Button>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold">{opp.name}</h1>
+              <h1 className="text-2xl font-bold">{opp.title}</h1>
               {stageName && <StatusBadge status={stageName} />}
             </div>
             <p className="text-sm text-muted-foreground mt-1">
@@ -188,7 +188,7 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
         <div className="flex items-center gap-3 p-3 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800">
           <AlertTriangle className="h-4 w-4 text-red-600" />
           <div>
-            <p className="text-sm font-medium text-red-700 dark:text-red-300">Lost Reason: {opp.lostReason}</p>
+            <p className="text-sm font-medium text-red-700 dark:text-red-300">Lost Reason: {opp.lostReason?.name}</p>
           </div>
         </div>
       )}
@@ -238,8 +238,8 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
                 <CardContent className="p-6">
                   <div className="grid grid-cols-2 gap-4">
                     <InfoRow icon={<Building2 className="h-4 w-4" />} label={t('company')} value={opp.company?.displayName} href={opp.company ? `/companies/${opp.company.id}` : undefined} />
-                    <InfoRow icon={<UserCircle className="h-4 w-4" />} label={t('contact')} value={contactName} href={opp.contact ? `/contacts/${opp.contact.id}` : undefined} />
-                    <InfoRow icon={<Briefcase className="h-4 w-4" />} label={t('services')} value={opp.services?.map(s => s.name).join(', ') ?? '-'} />
+                    <InfoRow icon={<UserCircle className="h-4 w-4" />} label={t('contact')} value={contactName} href={opp.primaryContact ? `/contacts/${opp.primaryContact.id}` : undefined} />
+                    <InfoRow icon={<Briefcase className="h-4 w-4" />} label={t('services')} value={opp.opportunityServices?.map(os => os.service.name).join(', ') ?? '-'} />
                     <InfoRow icon={<Target className="h-4 w-4" />} label={t('stage')} value={stageName} />
                     <InfoRow icon={<CalendarDays className="h-4 w-4" />} label="Created" value={formatDate(opp.createdAt)} />
                     {opp.wonAt && <InfoRow icon={<TrendingUp className="h-4 w-4" />} label={t('wonDate')} value={formatDate(opp.wonAt)} />}
@@ -270,9 +270,9 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
                       {relatedQuotations.map(q => (
                         <div key={q.id} className="flex items-center justify-between p-3 rounded-lg border">
                           <div>
-                            <p className="text-sm font-medium">{q.quotationNumber} - {q.title}</p>
+                            <p className="text-sm font-medium">{q.quotationNumber}</p>
                             <p className="text-xs text-muted-foreground">
-                              {q.version !== undefined ? `v${q.version} · ` : ''}AED {q.totalAmount.toLocaleString()} · {formatDate(q.issueDate)}
+                              AED {Number(q.totalAmount ?? 0).toLocaleString()}
                             </p>
                           </div>
                           <StatusBadge status={q.status} />
@@ -319,7 +319,7 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
                     {[
                       { action: 'Opportunity created', detail: `AED ${opp.expectedValue.toLocaleString()}`, time: opp.createdAt },
                       ...(opp.wonAt ? [{ action: 'Deal won!', detail: `Closed at AED ${opp.expectedValue.toLocaleString()}`, time: opp.wonAt }] : []),
-                      ...(opp.lostAt ? [{ action: 'Deal lost', detail: opp.lostReason ? `Reason: ${opp.lostReason}` : 'Opportunity closed', time: opp.lostAt }] : []),
+                      ...(opp.lostAt ? [{ action: 'Deal lost', detail: opp.lostReason?.name ? `Reason: ${opp.lostReason.name}` : 'Opportunity closed', time: opp.lostAt }] : []),
                     ].reverse().map((event, i, arr) => (
                       <div key={i} className="flex gap-3">
                         <div className="flex flex-col items-center">
@@ -412,7 +412,7 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <p className="text-sm text-muted-foreground">
-              Closing <strong>{opp.name}</strong> for <strong>AED {opp.expectedValue.toLocaleString()}</strong>.
+              Closing <strong>{opp.title}</strong> for <strong>AED {opp.expectedValue.toLocaleString()}</strong>.
             </p>
             <p className="text-sm text-muted-foreground">
               This will:
@@ -444,7 +444,7 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <p className="text-sm text-muted-foreground">
-              Losing <strong>{opp.name}</strong> ({opp.company?.displayName}).
+              Losing <strong>{opp.title}</strong> ({opp.company?.displayName}).
             </p>
             <div className="space-y-2">
               <Label>Lost Reason *</Label>

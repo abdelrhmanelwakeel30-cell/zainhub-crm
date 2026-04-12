@@ -31,11 +31,11 @@ type ProjectDetail = {
   owner: { firstName: string; lastName: string }
   status: string
   startDate?: string
-  endDate?: string
-  budget: number
+  targetEndDate?: string
+  budgetValue: number | null
   currency: string
   milestones: Milestone[]
-  tasks?: number | { count: number }
+  tasks?: number | { count?: number } | { id: string; title: string; status: string }[]
   members: Member[]
   invoices?: unknown[]
   description?: string
@@ -94,9 +94,11 @@ export function ProjectDetail({ projectId }: ProjectDetailProps) {
   }
 
   const ownerName = project.owner ? `${project.owner.firstName} ${project.owner.lastName}` : '-'
-  const taskCount = typeof project.tasks === 'number'
-    ? project.tasks
-    : (project.tasks as { count?: number })?.count ?? 0
+  const taskCount = Array.isArray(project.tasks)
+    ? project.tasks.length
+    : typeof project.tasks === 'number'
+      ? project.tasks
+      : (project.tasks as { count?: number })?.count ?? 0
 
   return (
     <div className="space-y-6 animate-slide-in">
@@ -128,7 +130,7 @@ export function ProjectDetail({ projectId }: ProjectDetailProps) {
         <SummaryCard
           icon={<DollarSign className="h-4 w-4" />}
           label={t('budget')}
-          value={formatCurrency(project.budget, project.currency)}
+          value={formatCurrency(project.budgetValue ?? 0, project.currency)}
         />
         <SummaryCard
           icon={<Target className="h-4 w-4" />}
@@ -143,7 +145,7 @@ export function ProjectDetail({ projectId }: ProjectDetailProps) {
         <SummaryCard
           icon={<Calendar className="h-4 w-4" />}
           label={t('targetEndDate')}
-          value={project.endDate ? formatDate(project.endDate) : '-'}
+          value={project.targetEndDate ? formatDate(project.targetEndDate) : '-'}
         />
       </div>
 
@@ -271,7 +273,7 @@ export function ProjectDetail({ projectId }: ProjectDetailProps) {
                 <InfoRow
                   icon={<Calendar className="h-4 w-4" />}
                   label={t('targetEndDate')}
-                  value={project.endDate ? formatDate(project.endDate) : 'Not set'}
+                  value={project.targetEndDate ? formatDate(project.targetEndDate) : 'Not set'}
                 />
               </div>
             </CardContent>

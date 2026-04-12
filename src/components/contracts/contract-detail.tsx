@@ -24,11 +24,10 @@ interface Contract {
   status: string
   startDate: string
   endDate: string | null
-  totalValue: number | null
+  value: number | null
   currency: string
   description?: string | null
-  signedDate?: string | null
-  signedByClient?: boolean
+  signedAt?: string | null
 }
 
 export function ContractDetail({ contractId }: ContractDetailProps) {
@@ -112,7 +111,7 @@ export function ContractDetail({ contractId }: ContractDetailProps) {
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                 <div>
                   <p className="text-xs text-muted-foreground">Value</p>
-                  <p className="text-xl font-bold mt-1">{ctr.totalValue ? `${ctr.currency} ${ctr.totalValue.toLocaleString()}` : 'N/A'}</p>
+                  <p className="text-xl font-bold mt-1">{ctr.value ? `${ctr.currency} ${Number(ctr.value).toLocaleString()}` : 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Start Date</p>
@@ -124,7 +123,7 @@ export function ContractDetail({ contractId }: ContractDetailProps) {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Signed</p>
-                  <p className="text-sm font-medium mt-1">{ctr.signedDate ? formatDate(ctr.signedDate) : 'Pending'}</p>
+                  <p className="text-sm font-medium mt-1">{ctr.signedAt ? formatDate(ctr.signedAt) : 'Pending'}</p>
                 </div>
               </div>
             </CardContent>
@@ -137,7 +136,7 @@ export function ContractDetail({ contractId }: ContractDetailProps) {
                 <InfoRow icon={<Building2 className="h-4 w-4" />} label="Client" value={ctr.client.displayName} />
                 <InfoRow icon={<FileText className="h-4 w-4" />} label="Type" value={ctr.type} />
                 <InfoRow icon={<DollarSign className="h-4 w-4" />} label="Currency" value={ctr.currency} />
-                <InfoRow icon={<CalendarDays className="h-4 w-4" />} label="Signed by Client" value={ctr.signedByClient ? 'Yes' : 'No'} />
+                <InfoRow icon={<CalendarDays className="h-4 w-4" />} label="Signed At" value={ctr.signedAt ? formatDate(ctr.signedAt) : 'Pending'} />
               </div>
               {ctr.description && (
                 <div className="mt-4 pt-4 border-t">
@@ -154,8 +153,8 @@ export function ContractDetail({ contractId }: ContractDetailProps) {
             <CardHeader className="pb-3"><CardTitle className="text-base">Status</CardTitle></CardHeader>
             <CardContent>
               <StatusBadge status={ctr.status} />
-              {ctr.signedDate && (
-                <p className="text-xs text-muted-foreground mt-2">Signed {formatRelativeDate(ctr.signedDate)}</p>
+              {ctr.signedAt && (
+                <p className="text-xs text-muted-foreground mt-2">Signed {formatRelativeDate(ctr.signedAt)}</p>
               )}
             </CardContent>
           </Card>
@@ -164,7 +163,7 @@ export function ContractDetail({ contractId }: ContractDetailProps) {
             <CardContent className="space-y-3">
               <div className="flex justify-between text-sm"><span className="text-muted-foreground">Start</span><span className="font-medium">{formatDate(ctr.startDate)}</span></div>
               <div className="flex justify-between text-sm"><span className="text-muted-foreground">End</span><span className="font-medium">{ctr.endDate ? formatDate(ctr.endDate) : 'Indefinite'}</span></div>
-              {ctr.signedDate && <div className="flex justify-between text-sm"><span className="text-muted-foreground">Signed</span><span className="font-medium">{formatDate(ctr.signedDate)}</span></div>}
+              {ctr.signedAt && <div className="flex justify-between text-sm"><span className="text-muted-foreground">Signed</span><span className="font-medium">{formatDate(ctr.signedAt)}</span></div>}
             </CardContent>
           </Card>
         </div>

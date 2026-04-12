@@ -22,14 +22,15 @@ interface ExpenseDetailProps {
 interface Expense {
   id: string
   expenseNumber: string
-  description: string
+  vendorName: string
+  description?: string | null
   amount: number
   currency: string
   category: { name: string }
   expenseDate: string
   status: string
-  paidBy: { firstName: string; lastName: string }
-  project: { id: string; name: string } | null
+  createdBy: { firstName: string; lastName: string }
+  linkedProject: { id: string; name: string } | null
   receiptUrl?: string | null
   notes?: string | null
 }
@@ -68,7 +69,7 @@ export function ExpenseDetail({ expenseId }: ExpenseDetailProps) {
   }
 
   const isPending = expense.status === 'PENDING'
-  const paidByName = `${expense.paidBy.firstName} ${expense.paidBy.lastName}`
+  const paidByName = `${expense.createdBy.firstName} ${expense.createdBy.lastName}`
 
   return (
     <div className="space-y-6 animate-slide-in">
@@ -80,7 +81,7 @@ export function ExpenseDetail({ expenseId }: ExpenseDetailProps) {
           </Button>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold">{expense.description}</h1>
+              <h1 className="text-2xl font-bold">{expense.vendorName}</h1>
               <StatusBadge status={expense.status} />
             </div>
             <p className="text-sm text-muted-foreground mt-1">
@@ -141,8 +142,8 @@ export function ExpenseDetail({ expenseId }: ExpenseDetailProps) {
                 <InfoRow
                   icon={<FolderKanban className="h-4 w-4" />}
                   label={t('project')}
-                  value={expense.project?.name}
-                  href={expense.project ? `/projects/${expense.project.id}` : undefined}
+                  value={expense.linkedProject?.name}
+                  href={expense.linkedProject ? `/projects/${expense.linkedProject.id}` : undefined}
                 />
               </div>
               {expense.description && (
@@ -198,7 +199,7 @@ export function ExpenseDetail({ expenseId }: ExpenseDetailProps) {
             <CardContent>
               <div className="space-y-4">
                 {[
-                  { action: 'Expense created', detail: `${expense.description} · ${expense.currency} ${expense.amount.toLocaleString()}`, time: expense.expenseDate },
+                  { action: 'Expense created', detail: `${expense.vendorName} · ${expense.currency} ${expense.amount.toLocaleString()}`, time: expense.expenseDate },
                   ...(expense.status === 'APPROVED' ? [{ action: 'Expense approved', detail: `Approved for ${expense.currency} ${expense.amount.toLocaleString()}`, time: expense.expenseDate }] : []),
                   ...(expense.status === 'PAID' ? [
                     { action: 'Expense approved', detail: `Approved for ${expense.currency} ${expense.amount.toLocaleString()}`, time: expense.expenseDate },
@@ -272,17 +273,17 @@ export function ExpenseDetail({ expenseId }: ExpenseDetailProps) {
           </Card>
 
           {/* Project */}
-          {expense.project && (
+          {expense.linkedProject && (
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">{t('project')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <Link
-                  href={`/projects/${expense.project.id}`}
+                  href={`/projects/${expense.linkedProject.id}`}
                   className="text-sm text-blue-600 hover:underline font-medium"
                 >
-                  {expense.project.name}
+                  {expense.linkedProject.name}
                 </Link>
               </CardContent>
             </Card>

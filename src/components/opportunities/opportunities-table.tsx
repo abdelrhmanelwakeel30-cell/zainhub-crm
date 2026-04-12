@@ -13,9 +13,9 @@ import { getInitials, formatDate } from '@/lib/utils'
 type Opportunity = {
   id: string
   opportunityNumber: string
-  name: string
+  title: string
   company?: { id: string; displayName: string } | null
-  contact?: { id: string; firstName: string; lastName: string } | null
+  primaryContact?: { id: string; firstName: string; lastName: string } | null
   stage?: { id: string; name: string; color?: string | null } | null
   expectedValue: number
   weightedValue?: number | null
@@ -45,11 +45,11 @@ export function OpportunitiesTable() {
       size: 100,
     },
     {
-      accessorKey: 'name',
+      accessorKey: 'title',
       header: t('dealName'),
       cell: ({ row }) => (
         <div>
-          <p className="font-medium">{row.original.name}</p>
+          <p className="font-medium">{row.original.title}</p>
           <p className="text-xs text-muted-foreground">{row.original.company?.displayName}</p>
         </div>
       ),
@@ -100,10 +100,10 @@ export function OpportunitiesTable() {
       },
     },
     {
-      accessorKey: 'contact',
+      accessorKey: 'primaryContact',
       header: t('contact') ?? 'Contact',
       cell: ({ row }) => {
-        const contact = row.original.contact
+        const contact = row.original.primaryContact
         if (!contact) return <span className="text-sm text-muted-foreground">-</span>
         return (
           <span className="text-sm text-muted-foreground">

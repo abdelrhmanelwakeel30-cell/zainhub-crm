@@ -20,6 +20,8 @@ export async function GET(req: NextRequest) {
       totalContacts,
       openOpportunities,
       totalOpportunityValue,
+      wonOpportunities,
+      totalOpportunitiesEver,
       activeProjects,
       overdueTasks,
       openTickets,
@@ -39,6 +41,8 @@ export async function GET(req: NextRequest) {
       prisma.contact.count({ where: { tenantId, archivedAt: null } }),
       prisma.opportunity.count({ where: { tenantId, wonAt: null, lostAt: null, archivedAt: null } }),
       prisma.opportunity.aggregate({ where: { tenantId, wonAt: null, lostAt: null, archivedAt: null }, _sum: { weightedValue: true } }),
+      prisma.opportunity.count({ where: { tenantId, wonAt: { not: null }, archivedAt: null } }),
+      prisma.opportunity.count({ where: { tenantId, archivedAt: null } }),
       prisma.project.count({ where: { tenantId, status: { in: ['IN_PROGRESS', 'NOT_STARTED'] }, archivedAt: null } }),
       prisma.task.count({ where: { tenantId, status: { in: ['TODO', 'IN_PROGRESS'] }, dueDate: { lt: now } } }),
       prisma.ticket.count({ where: { tenantId, status: { in: ['OPEN', 'IN_PROGRESS', 'WAITING_CLIENT'] } } }),
@@ -94,6 +98,10 @@ export async function GET(req: NextRequest) {
       ? (((Number(monthlyRevenue._sum.totalAmount ?? 0) - Number(lastMonthRevenue._sum.totalAmount)) / Number(lastMonthRevenue._sum.totalAmount)) * 100).toFixed(1)
       : null
 
+    const conversionRate = totalOpportunitiesEver > 0
+      ? Number(((wonOpportunities / totalOpportunitiesEver) * 100).toFixed(1))
+      : 0
+
     return ok({
       kpis: {
         totalLeads,
@@ -107,6 +115,7 @@ export async function GET(req: NextRequest) {
         openTickets,
         monthlyRevenue: Number(monthlyRevenue._sum.totalAmount ?? 0),
         revenueGrowth,
+        conversionRate,
         paidInvoicesThisMonth,
         overdueInvoices,
         unreadNotifications,

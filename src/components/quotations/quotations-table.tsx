@@ -12,7 +12,7 @@ type Quotation = {
   id: string
   quotationNumber: string
   title: string
-  client?: { displayName: string }
+  company?: { displayName: string }
   totalAmount: number
   status: string
   issueDate: string
@@ -43,7 +43,7 @@ export function QuotationsTable() {
       cell: ({ row }) => (
         <div>
           <p className="font-medium">{row.original.title}</p>
-          <p className="text-xs text-muted-foreground">{row.original.client?.displayName}</p>
+          <p className="text-xs text-muted-foreground">{row.original.company?.displayName}</p>
         </div>
       ),
     },

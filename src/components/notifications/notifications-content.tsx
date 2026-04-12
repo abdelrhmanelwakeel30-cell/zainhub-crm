@@ -52,7 +52,11 @@ export function NotificationsContent() {
 
   const markReadMutation = useMutation({
     mutationFn: (id: string) =>
-      fetch(`/api/notifications/${id}/read`, { method: 'PATCH' }).then(r => r.json()),
+      fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      }).then(r => r.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] })
     },
@@ -60,7 +64,7 @@ export function NotificationsContent() {
 
   const markAllReadMutation = useMutation({
     mutationFn: () =>
-      fetch('/api/notifications/read-all', { method: 'PATCH' }).then(r => r.json()),
+      fetch('/api/notifications/read-all', { method: 'POST' }).then(r => r.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] })
     },

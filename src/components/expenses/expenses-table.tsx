@@ -14,7 +14,8 @@ import Link from 'next/link'
 interface Expense {
   id: string
   expenseNumber: string
-  description: string
+  vendorName: string
+  description: string | null
   amount: number
   currency: string
   category: { name: string } | null
@@ -45,10 +46,10 @@ export function ExpensesTable() {
       size: 100,
     },
     {
-      accessorKey: 'description',
+      accessorKey: 'vendorName',
       header: t('vendor'),
       cell: ({ row }) => (
-        <span className="font-medium text-sm">{row.original.description}</span>
+        <span className="font-medium text-sm">{row.original.vendorName}</span>
       ),
     },
     {

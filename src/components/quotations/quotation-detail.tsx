@@ -16,15 +16,15 @@ type QuotationDetail = {
   id: string
   quotationNumber: string
   title: string
-  client?: { id: string; displayName: string }
+  company?: { id: string; displayName: string }
   totalAmount: number
   status: string
   issueDate: string
-  expiryDate?: string
+  validUntil?: string | null
   currency: string
-  items?: { description: string; quantity: number; unitPrice: number; total: number }[]
-  notes?: string
-  terms?: string
+  items?: { description: string; quantity: number; unitPrice: number; totalPrice: number }[]
+  notes?: string | null
+  terms?: string | null
   subtotal?: number
   discountAmount?: number
   taxAmount?: number
@@ -87,7 +87,7 @@ export function QuotationDetail({ quotationId }: QuotationDetailProps) {
               <StatusBadge status={quo.status} />
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-              {quo.quotationNumber} · {quo.client?.displayName}{quo.version != null ? ` · v${quo.version}` : ''}
+              {quo.quotationNumber} · {quo.company?.displayName}{quo.version != null ? ` · v${quo.version}` : ''}
             </p>
           </div>
         </div>
@@ -133,10 +133,10 @@ export function QuotationDetail({ quotationId }: QuotationDetailProps) {
             <CardHeader className="pb-3"><CardTitle className="text-base">Details</CardTitle></CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
-                <InfoRow icon={<Building2 className="h-4 w-4" />} label="Client" value={quo.client?.displayName} href={quo.client ? `/companies/${quo.client.id}` : undefined} />
+                <InfoRow icon={<Building2 className="h-4 w-4" />} label="Client" value={quo.company?.displayName} href={quo.company ? `/companies/${quo.company.id}` : undefined} />
                 <InfoRow icon={<UserCircle className="h-4 w-4" />} label="Contact" value={contactName} />
                 <InfoRow icon={<CalendarDays className="h-4 w-4" />} label="Issue Date" value={formatDate(quo.issueDate)} />
-                <InfoRow icon={<CalendarDays className="h-4 w-4" />} label="Expiry Date" value={quo.expiryDate ? formatDate(quo.expiryDate) : '-'} />
+                <InfoRow icon={<CalendarDays className="h-4 w-4" />} label="Expiry Date" value={quo.validUntil ? formatDate(quo.validUntil) : '-'} />
                 <InfoRow icon={<DollarSign className="h-4 w-4" />} label="Currency" value={quo.currency} />
                 {quo.version != null && <InfoRow icon={<FileText className="h-4 w-4" />} label="Version" value={`v${quo.version}`} />}
               </div>
@@ -154,7 +154,7 @@ export function QuotationDetail({ quotationId }: QuotationDetailProps) {
                         <p className="text-sm font-medium">{item.description}</p>
                         <p className="text-xs text-muted-foreground">Qty: {item.quantity} × {quo.currency} {item.unitPrice.toLocaleString()}</p>
                       </div>
-                      <p className="text-sm font-semibold">{quo.currency} {item.total.toLocaleString()}</p>
+                      <p className="text-sm font-semibold">{quo.currency} {item.totalPrice.toLocaleString()}</p>
                     </div>
                   ))}
                 </div>

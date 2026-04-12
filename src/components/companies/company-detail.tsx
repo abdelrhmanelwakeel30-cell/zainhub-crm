@@ -40,11 +40,11 @@ type CompanyDetail = {
   annualRevenue?: number
   healthScore?: number
   accountOwner?: { firstName: string; lastName: string }
-  contacts?: { id: string; firstName: string; lastName: string; jobTitle?: string; decisionRole?: string }[]
-  leads?: { id: string; title?: string; firstName?: string; lastName?: string; status?: string }[]
-  opportunities?: { id: string; opportunityNumber?: string; title: string; value?: number; stage?: string }[]
+  companyContacts?: { contact: { id: string; firstName: string; lastName: string; jobTitle?: string } }[]
+  leads?: { id: string; leadNumber?: string; fullName?: string; urgency?: string }[]
+  opportunities?: { id: string; opportunityNumber?: string; title: string; expectedValue?: number; currency?: string }[]
   invoices?: { id: string; invoiceNumber: string; dueDate: string; totalAmount: number; status: string }[]
-  projects?: { id: string; projectNumber: string; name: string; status: string; startDate?: string }[]
+  projects?: { id: string; projectNumber: string; name: string; status: string; progressPercent?: number }[]
 }
 
 export function CompanyDetail({ companyId }: CompanyDetailProps) {
@@ -99,7 +99,7 @@ export function CompanyDetail({ companyId }: CompanyDetailProps) {
     ? `${company.accountOwner.firstName} ${company.accountOwner.lastName}`
     : '-'
 
-  const companyContacts = company.contacts ?? []
+  const companyContacts = (company.companyContacts ?? []).map(cc => cc.contact)
   const companyOpportunities = company.opportunities ?? []
   const companyProjects = company.projects ?? []
   const companyInvoices = company.invoices ?? []
@@ -196,8 +196,7 @@ export function CompanyDetail({ companyId }: CompanyDetailProps) {
                             {opp.opportunityNumber && <p className="text-xs text-muted-foreground">{opp.opportunityNumber}</p>}
                           </div>
                           <div className="text-end">
-                            {opp.value != null && <p className="text-sm font-semibold">AED {opp.value.toLocaleString()}</p>}
-                            {opp.stage && <StatusBadge status={opp.stage} />}
+                            {opp.expectedValue != null && <p className="text-sm font-semibold">{opp.currency ?? 'AED'} {opp.expectedValue.toLocaleString()}</p>}
                           </div>
                         </Link>
                       ))}
@@ -220,7 +219,7 @@ export function CompanyDetail({ companyId }: CompanyDetailProps) {
                             <FolderOpen className="h-4 w-4 text-muted-foreground" />
                             <div>
                               <p className="text-sm font-medium">{proj.name}</p>
-                              <p className="text-xs text-muted-foreground">{proj.projectNumber}{proj.startDate ? ` · ${formatDate(proj.startDate)}` : ''}</p>
+                              <p className="text-xs text-muted-foreground">{proj.projectNumber}</p>
                             </div>
                           </div>
                           <div className="text-end">

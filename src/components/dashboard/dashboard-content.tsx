@@ -33,7 +33,8 @@ interface DashboardKPIs {
   overdueTasks: number
   openTickets: number
   monthlyRevenue: number
-  revenueGrowth: number
+  revenueGrowth: number | null
+  conversionRate: number
   paidInvoicesThisMonth: number
   overdueInvoices: number
   unreadNotifications: number
@@ -111,7 +112,7 @@ export function DashboardContent({ user }: DashboardContentProps) {
         />
         <KPICard
           title={t('conversionRate')}
-          value={isLoading ? '—' : `${kpis?.revenueGrowth ?? 0}%`}
+          value={isLoading ? '—' : `${kpis?.conversionRate ?? 0}%`}
           icon={<TrendingUp className="h-5 w-5" />}
         />
       </div>

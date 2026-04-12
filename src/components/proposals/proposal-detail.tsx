@@ -16,19 +16,19 @@ type ProposalDetail = {
   id: string
   proposalNumber: string
   title: string
-  client?: { id: string; displayName: string }
+  company?: { id: string; displayName: string }
   totalAmount: number
   status: string
   createdAt: string
-  expiryDate?: string
+  validUntil?: string | null
   subtotal?: number
   currency?: string
   version?: number
   opportunity?: { id: string; title: string }
   contact?: { id: string; firstName: string; lastName: string }
-  items?: { description: string; quantity: number; unitPrice: number; total: number }[]
-  notes?: string
-  terms?: string
+  items?: { description: string; quantity: number; unitPrice: number; totalPrice: number }[]
+  notes?: string | null
+  terms?: string | null
 }
 
 export function ProposalDetail({ proposalId }: ProposalDetailProps) {
@@ -86,7 +86,7 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
               <StatusBadge status={prp.status} />
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-              {prp.proposalNumber} · {prp.client?.displayName}{prp.version != null ? ` · v${prp.version}` : ''}
+              {prp.proposalNumber} · {prp.company?.displayName}{prp.version != null ? ` · v${prp.version}` : ''}
             </p>
           </div>
         </div>
@@ -132,8 +132,8 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
                   <div className="text-muted-foreground mt-0.5"><Building2 className="h-4 w-4" /></div>
                   <div>
                     <p className="text-xs text-muted-foreground">Client</p>
-                    {prp.client ? (
-                      <Link href={`/companies/${prp.client.id}`} className="text-sm font-medium text-blue-600 hover:underline">{prp.client.displayName}</Link>
+                    {prp.company ? (
+                      <Link href={`/companies/${prp.company.id}`} className="text-sm font-medium text-blue-600 hover:underline">{prp.company.displayName}</Link>
                     ) : (
                       <p className="text-sm font-medium">-</p>
                     )}
@@ -157,7 +157,7 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
                   <div className="text-muted-foreground mt-0.5"><CalendarDays className="h-4 w-4" /></div>
                   <div>
                     <p className="text-xs text-muted-foreground">Expiry Date</p>
-                    <p className="text-sm font-medium">{prp.expiryDate ? formatDate(prp.expiryDate) : '-'}</p>
+                    <p className="text-sm font-medium">{prp.validUntil ? formatDate(prp.validUntil) : '-'}</p>
                   </div>
                 </div>
               </div>
@@ -175,7 +175,7 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
                         <p className="text-sm font-medium">{item.description}</p>
                         <p className="text-xs text-muted-foreground">Qty: {item.quantity} × {currency} {item.unitPrice.toLocaleString()}</p>
                       </div>
-                      <p className="text-sm font-semibold">{currency} {item.total.toLocaleString()}</p>
+                      <p className="text-sm font-semibold">{currency} {item.totalPrice.toLocaleString()}</p>
                     </div>
                   ))}
                 </div>

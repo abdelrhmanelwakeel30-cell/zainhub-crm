@@ -1,0 +1,2671 @@
+﻿test scenarios
+
+
+phase 1
+
+Scope of CRM Test Coverage
+استنادًا إلى الصورة، التغطية تشمل على الأقل:
+    • Dashboard
+    • Notifications
+    • Leads
+    • Opportunities
+    • Companies
+    • Contacts
+    • Services
+    • Pipelines
+    • Projects
+    • Tasks
+    • Client Services
+    • Deliverables
+    • Preview Links
+    • Communication Log
+    • Account Health
+    • Onboarding
+    • Quotations
+    • Proposals
+    • Contracts
+    • Invoices
+    • Payments
+    • Expenses
+    • Subscriptions
+    • Content Calendar
+    • Social Accounts
+    • Campaigns
+    • Tickets
+    • Change Requests
+    • Approvals
+    • Service Bundles
+    • Lead Forms
+    • Users
+    • Roles & Permissions
+    • Settings
+    • Audit Logs
+    • Reports
+وبالإضافة إلى:
+    • Search
+    • Global navigation
+    • Filters / sort / pagination
+    • Export / import
+    • Attachments
+    • Comments / notes
+    • Activity history
+    • Notifications
+    • Workflow / status transitions
+    • Data relations بين الموديولات
+    • Tenant isolation
+    • Localization
+    • Theme behavior
+    • Responsive behavior
+
+2) Test Design Strategy
+لكي يكون الاختبار قويًا فعلًا، اختبر كل موديول من 10 زوايا ثابتة:
+    1. Access
+    2. Create
+    3. Read/View
+    4. Update
+    5. Delete / Archive / Restore
+    6. Search / Filter / Sort
+    7. Validation / Negative
+    8. Workflow / Status
+    9. Relations / Integrations
+    10. Audit / Notifications / Reporting
+هذه القاعدة تطبق تقريبًا على كل شاشة.
+
+3) Master Cross-System Test Scenarios
+A. Authentication & Session
+AUTH-01 Login with valid credentials
+    • أدخل username/password صحيحين
+    • Expected:
+        ◦ دخول ناجح
+        ◦ توجيه للـ dashboard
+        ◦ session يبدأ بشكل صحيح
+        ◦ username/display name يظهر أعلى الصفحة
+AUTH-02 Login with invalid password
+    • Expected:
+        ◦ رسالة خطأ واضحة
+        ◦ لا يتم الدخول
+        ◦ لا يتم كشف هل المستخدم موجود أم لا إذا كان هناك security requirement
+AUTH-03 Locked/inactive user login
+    • Expected:
+        ◦ منع الدخول
+        ◦ رسالة مناسبة
+AUTH-04 Session timeout
+    • اترك المستخدم بدون نشاط
+    • Expected:
+        ◦ انتهاء الجلسة حسب policy
+        ◦ حفظ غير المحفوظ: warning إن وجد
+        ◦ redirect login
+AUTH-05 Multiple sessions
+    • سجل دخول من جهازين
+    • Expected:
+        ◦ حسب policy: يسمح أو يمنع أو يُظهر active sessions
+AUTH-06 Logout
+    • Expected:
+        ◦ إنهاء الجلسة
+        ◦ back button لا يعيد الدخول
+        ◦ token invalidated if applicable
+AUTH-07 Password reset / change password
+    • Expected:
+        ◦ تحقق من السياسات
+        ◦ invalidation of old sessions إذا مطلوب
+
+B. Role-Based Access Control (RBAC)
+RBAC-01 Menu visibility by role
+    • لكل role:
+        ◦ Super Admin
+        ◦ Admin
+        ◦ Manager
+        ◦ Sales
+        ◦ Finance
+        ◦ Support
+        ◦ Marketing
+        ◦ Viewer
+    • Expected:
+        ◦ كل مستخدم يرى فقط الموديولات المصرح بها
+RBAC-02 Screen-level access
+    • جرب فتح module URL مباشرة بدون صلاحية
+    • Expected:
+        ◦ Access denied
+        ◦ لا يتم عرض البيانات
+RBAC-03 Action-level permissions
+    • Create/Edit/Delete/Approve/Export/Assign
+    • Expected:
+        ◦ إظهار/إخفاء الأزرار حسب الصلاحية
+        ◦ حتى لو الزر غير ظاهر، API يرفض العملية أيضًا
+RBAC-04 Field-level permissions
+    • أمثلة:
+        ◦ discount
+        ◦ contract value
+        ◦ payment status
+        ◦ approval decision
+    • Expected:
+        ◦ بعض الحقول read-only أو hidden حسب role
+RBAC-05 Record ownership restriction
+    • Sales rep لا يرى إلا عملاءه أو leads الخاصة به
+    • Manager يرى الفريق
+    • Admin يرى الكل
+RBAC-06 Approval authority
+    • المستخدم غير المخول لا يستطيع approve/reject حتى لو حاول عبر API/UI hack
+
+C. Multi-Tenant Isolation
+TEN-01 Tenant A cannot view Tenant B data
+    • أنشئ بيانات في workspace A
+    • ادخل workspace B
+    • Expected:
+        ◦ لا يوجد أي تسرب بيانات
+TEN-02 Search isolation
+    • global search لا يرجع نتائج من tenant آخر
+TEN-03 Report isolation
+    • reports, dashboards, exports تخص نفس tenant فقط
+TEN-04 Shared config behavior
+    • إذا هناك إعدادات tenant-specific
+    • Expected:
+        ◦ التعديل في tenant لا يؤثر على tenant آخر
+
+D. Global UI / Navigation
+UI-01 Sidebar navigation
+    • Expected:
+        ◦ كل العناصر تفتح الشاشات الصحيحة
+        ◦ active state صحيح
+        ◦ collapse/expand يعمل إن وجد
+UI-02 Breadcrumbs / page title consistency
+    • اسم الصفحة يجب أن يعكس الموديول الصحيح
+UI-03 Command palette / global search
+    • افتح Cmd+K
+    • ابحث عن leads / invoices / users / settings
+    • Expected:
+        ◦ نتائج دقيقة
+        ◦ فتح الصفحة أو السجل الصحيح
+UI-04 Search bar behavior
+    • normal search
+    • partial match
+    • case-insensitive
+    • Arabic
+    • English
+    • symbols
+    • spaces
+    • Expected:
+        ◦ نتائج منطقية بدون crash
+UI-05 Pagination
+    • next/prev
+    • page size
+    • go to page
+    • Expected:
+        ◦ أعداد صحيحة
+        ◦ لا duplication ولا missing rows
+UI-06 Sorting
+    • asc/desc على text/date/number/status
+    • Expected:
+        ◦ sorting correct and stable
+UI-07 Filters
+    • single filter
+    • multiple filters
+    • clear filter
+    • saved filters إن وجدت
+    • Expected:
+        ◦ نتائج صحيحة
+        ◦ counters صحيحة
+UI-08 Empty states
+    • شاشة بدون بيانات
+    • Expected:
+        ◦ No data state واضح
+        ◦ CTA مناسب مثل Create / Import
+UI-09 Loading states
+    • Expected:
+        ◦ skeleton/spinner
+        ◦ no flickering
+        ◦ no duplicate requests
+UI-10 Error states
+    • API fails / timeout / server error
+    • Expected:
+        ◦ رسالة مفهومة
+        ◦ retry option إن أمكن
+        ◦ عدم كسر الصفحة
+UI-11 Dark mode / Light mode
+    • Expected:
+        ◦ contrast جيد
+        ◦ charts readable
+        ◦ icons واضحة
+        ◦ no invisible text
+UI-12 RTL / Arabic layout
+    • Expected:
+        ◦ alignment صحيح
+        ◦ tables, forms, labels, buttons متسقة
+        ◦ mixed Arabic/English text لا ينكسر
+UI-13 Responsive behavior
+    • Desktop
+    • Laptop
+    • Tablet
+    • Narrow width
+    • Expected:
+        ◦ no overlap
+        ◦ no cut-off text
+        ◦ table usability preserved
+
+E. Notifications
+NOTIF-01 Bell icon unread count
+    • Expected:
+        ◦ count increases on new event
+        ◦ decreases after read
+NOTIF-02 Click notification opens correct record
+    • lead / ticket / invoice / approval
+    • Expected:
+        ◦ deep-link صحيح
+NOTIF-03 Mark as read / unread
+    • Expected:
+        ◦ state updates immediately
+NOTIF-04 Real-time delivery
+    • أنشئ task أو approval من مستخدم آخر
+    • Expected:
+        ◦ recipient receives alert live or on refresh حسب التصميم
+NOTIF-05 Permission-safe notifications
+    • لا تُرسل notification عن record المستخدم ليس له حق رؤيته
+NOTIF-06 Bulk notifications / high volume
+    • Expected:
+        ◦ no UI lag
+        ◦ no duplicate alerts
+
+F. Audit Logs / Traceability
+AUD-01 Create event logged
+AUD-02 Edit event logged
+AUD-03 Delete/archive event logged
+AUD-04 Approval action logged
+AUD-05 Login/logout logged
+AUD-06 Export logged
+AUD-07 Assignment change logged
+AUD-08 Status transition logged
+AUD-09 Old value/new value visible where applicable
+AUD-10 User/time/module/entity tracked accurately
+AUD-11 Audit entries cannot be edited by normal users
+AUD-12 Audit search/filter by user/date/module/action works
+
+4) Dashboard Test Scenarios
+DASH-01 Dashboard loads for authorized user
+    • Expected:
+        ◦ كل widgets تظهر
+        ◦ no broken charts
+DASH-02 KPI cards accuracy
+Cards الظاهرة:
+    • Total Leads
+    • Active Opportunities
+    • Pipeline Value
+    • Conversion Rate
+    • Monthly Revenue
+    • Overdue Invoices
+    • Active Projects
+    • Pending Tasks
+    • Expected:
+        ◦ كل رقم مطابق للبيانات الفعلية
+DASH-03 Dashboard reflects data changes
+    • أنشئ lead / invoice / task
+    • Expected:
+        ◦ counters تتحدث فورًا أو بعد refresh حسب design
+DASH-04 Revenue Overview chart
+    • تحقق من:
+        ◦ date range
+        ◦ labels
+        ◦ tooltip
+        ◦ values
+        ◦ zero-data behavior
+DASH-05 Leads by Source chart
+    • Expected:
+        ◦ aggregation correct
+        ◦ source counts صحيحة
+        ◦ unknown/null source handled
+DASH-06 Pipeline Overview chart
+    • expected by stage/value/count
+DASH-07 Top Performers widget
+    • Expected:
+        ◦ ranking صحيح
+        ◦ يعتمد على metric واضح
+        ◦ no user found state يعمل بشكل صحيح
+DASH-08 Needs Attention panel
+    • Expected:
+        ◦ overdue tasks
+        ◦ unpaid invoices
+        ◦ stalled leads
+        ◦ urgent tickets
+        ◦ whichever rules apply
+DASH-09 Recent Activity panel
+    • Expected:
+        ◦ latest actions only
+        ◦ correct timestamps
+        ◦ correct actor and action
+DASH-10 Dashboard by role
+    • Finance يرى finance-heavy data
+    • Sales يرى sales-heavy data
+    • Viewer limited
+    • Expected:
+        ◦ personalization/security صحيحين
+
+5) Leads Module
+Lead CRUD
+LEAD-01 Create lead with mandatory fields only
+LEAD-02 Create lead with all fields
+LEAD-03 Edit lead basic info
+LEAD-04 Edit ownership/assignee
+LEAD-05 Delete/archive lead
+LEAD-06 Restore archived lead if supported
+LEAD-07 Prevent duplicate lead based on email/phone/company rules
+LEAD-08 Merge duplicate leads if supported
+Lead Fields & Validation
+LEAD-09 Mandatory field validation
+LEAD-10 Invalid email format
+LEAD-11 Invalid phone format
+LEAD-12 Unsupported country code
+LEAD-13 Long text field max length
+LEAD-14 Special characters / XSS payload in text fields
+LEAD-15 Arabic names / English names / mixed text
+LEAD-16 Empty spaces only
+LEAD-17 Date validation
+LEAD-18 Source required/optional behavior
+Lead Lifecycle
+LEAD-19 Lead status progression
+مثال:
+    • New
+    • Contacted
+    • Qualified
+    • Proposal Sent
+    • Won
+    • Lost
+    • Expected:
+        ◦ transitions حسب business rules
+LEAD-20 Invalid backward transition
+LEAD-21 Lost lead requires reason
+LEAD-22 Won lead converts to company/contact/opportunity/project if designed
+LEAD-23 Reopen lost lead if supported
+LEAD-24 Lead aging/SLA indicators
+Lead Operations
+LEAD-25 Search by name/email/company/phone
+LEAD-26 Filter by source/status/owner/date/urgency
+LEAD-27 Sort by created date/value/score/name
+LEAD-28 Bulk assign
+LEAD-29 Bulk export
+LEAD-30 Bulk delete/archive
+LEAD-31 Bulk status update with mixed valid/invalid records
+LEAD-32 Add notes/comments
+LEAD-33 Add attachments
+LEAD-34 View activity timeline
+LEAD-35 Link lead to company/contact
+LEAD-36 Convert lead to opportunity
+LEAD-37 Lead scoring calculation
+LEAD-38 Source attribution accuracy
+LEAD-39 Urgency flag behavior
+LEAD-40 Owner reassignment triggers notifications/audit
+
+6) Opportunities Module
+OPP-01 Create opportunity from scratch
+OPP-02 Create opportunity from lead
+OPP-03 Link to company/contact
+OPP-04 Mandatory fields validation
+OPP-05 Value/probability numeric validation
+OPP-06 Expected close date validation
+OPP-07 Stage transition rules
+OPP-08 Weighted value calculation
+OPP-09 Pipeline assignment
+OPP-10 Change pipeline stage by drag/drop if available
+OPP-11 Lost opportunity requires reason
+OPP-12 Won opportunity triggers downstream flow
+OPP-13 Opportunity history/timeline
+OPP-14 Opportunity tasks and reminders
+OPP-15 Opportunity notes/attachments
+OPP-16 Search/filter/sort/export
+OPP-17 Currency handling
+OPP-18 Large value handling
+OPP-19 Forecast report inclusion
+OPP-20 Duplicate prevention
+
+7) Companies Module
+COMP-01 Create company
+COMP-02 Unique company name rules
+COMP-03 Duplicate detection by name/domain/registration no.
+COMP-04 Edit company info
+COMP-05 Archive company
+COMP-06 Link contacts
+COMP-07 Link opportunities
+COMP-08 Link contracts/invoices/projects
+COMP-09 Parent-child company hierarchy if supported
+COMP-10 Company owner assignment
+COMP-11 Industry / size / region filters
+COMP-12 Company 360 view accuracy
+COMP-13 Deleting company with linked records
+COMP-14 Prevent orphaned records
+COMP-15 Account health rollup on company level
+
+8) Contacts Module
+CONT-01 Create contact under company
+CONT-02 Create independent contact
+CONT-03 Duplicate detection by email/phone
+CONT-04 Multiple phone/email handling
+CONT-05 Primary contact designation
+CONT-06 Edit title/department
+CONT-07 Communication preferences
+CONT-08 Contact activity history
+CONT-09 Contact linked opportunities/projects/tickets
+CONT-10 Search/filter/export
+CONT-11 Archive contact
+CONT-12 Prevent deleting primary contact if restricted
+
+9) Services & Service Bundles
+SERV-01 Create service
+SERV-02 Edit service pricing/duration/category/status
+SERV-03 Active/inactive service visibility
+SERV-04 Service dependency rules
+SERV-05 Bundle creation with multiple services
+SERV-06 Bundle pricing calculation
+SERV-07 Duplicate service in bundle handling
+SERV-08 Bundle eligibility rules
+SERV-09 Link service to quotation/proposal/contract/project
+SERV-10 Search/filter/sort/export
+SERV-11 Archived service behavior in old records
+SERV-12 Service tax/discount handling if applicable
+
+10) Pipelines
+PIPE-01 Create pipeline
+PIPE-02 Add stages
+PIPE-03 Reorder stages
+PIPE-04 Rename stage
+PIPE-05 Set stage color/probability
+PIPE-06 Delete stage with existing records
+PIPE-07 Move records between stages
+PIPE-08 Default pipeline assignment
+PIPE-09 Pipeline for leads vs opportunities
+PIPE-10 Stage-specific required fields
+PIPE-11 Stage SLA timers
+PIPE-12 Drag-and-drop persistence
+PIPE-13 Kanban/list consistency
+PIPE-14 Unauthorized pipeline editing blocked
+
+11) Projects Module
+PROJ-01 Create project from won opportunity
+PROJ-02 Create manual project
+PROJ-03 Assign project owner/team
+PROJ-04 Project status lifecycle
+PROJ-05 Start/end date validation
+PROJ-06 Budget tracking
+PROJ-07 Link client/company/contact
+PROJ-08 Link deliverables/tasks/contracts/invoices
+PROJ-09 Project progress percentage calculation
+PROJ-10 Delay/overdue indicators
+PROJ-11 Notes/files/comments
+PROJ-12 Search/filter/export
+PROJ-13 Archive/close/reopen project
+
+12) Tasks Module
+TASK-01 Create task
+TASK-02 Mandatory fields validation
+TASK-03 Due date validation
+TASK-04 Assign to self/other
+TASK-05 Reassign task
+TASK-06 Task status change
+TASK-07 Priority handling
+TASK-08 Overdue task highlighting
+TASK-09 Recurring tasks if supported
+TASK-10 Related entity link
+TASK-11 Comments/checklists/attachments
+TASK-12 Reminder notifications
+TASK-13 Complete/reopen task
+TASK-14 Bulk actions
+TASK-15 Personal task visibility vs team visibility
+
+13) Client Services / Deliverables / Preview Links
+Client Services
+CS-01 Create client service record
+CS-02 Link to service/project/client
+CS-03 Status transitions
+CS-04 SLA monitoring
+CS-05 Owner/team assignment
+CS-06 Completion/closure rules
+Deliverables
+DEL-01 Create deliverable
+DEL-02 Versioning if available
+DEL-03 Due date and submission date
+DEL-04 Approval required before complete
+DEL-05 Client-visible vs internal-only
+DEL-06 Attachment upload/download/version replace
+DEL-07 Reject and resubmit flow
+Preview Links
+PREV-01 Create preview link
+PREV-02 Expiry date behavior
+PREV-03 Access control/public-private link
+PREV-04 Click tracking
+PREV-05 Disable/expire link
+PREV-06 Invalid link access handling
+
+14) Communication Log
+COMM-01 Log email
+COMM-02 Log call
+COMM-03 Log WhatsApp/manual communication
+COMM-04 Link communication to lead/contact/company/project
+COMM-05 Timestamp accuracy
+COMM-06 Notes body formatting
+COMM-07 Attachment support
+COMM-08 Search/filter by type/date/user/entity
+COMM-09 Edit restrictions after save
+COMM-10 Audit trail on communication changes
+
+15) Account Health
+AH-01 Health score calculation
+AH-02 Missing-data handling in score
+AH-03 Risk flags trigger correctly
+AH-04 Payment delays impact score
+AH-05 Open tickets impact score
+AH-06 Renewal/contract expiry impact score
+AH-07 Trend visualization
+AH-08 Drill-down explanation available
+AH-09 Role-based visibility
+AH-10 Dashboard/account page consistency
+
+16) Onboarding
+ONB-01 Create onboarding case
+ONB-02 Mandatory checklist items
+ONB-03 Stage progression
+ONB-04 Document requirement validation
+ONB-05 Approval dependency
+ONB-06 Kickoff tasks auto-generated if designed
+ONB-07 Delay/escalation rules
+ONB-08 Client notification triggers
+ONB-09 Completion closure criteria
+ONB-10 Reopen onboarding if missing docs later
+
+17) Quotations / Proposals / Contracts
+Quotations
+QUO-01 Create quotation
+QUO-02 Add multiple line items
+QUO-03 Tax calculation
+QUO-04 Discount rules
+QUO-05 Currency handling
+QUO-06 Expiry date validation
+QUO-07 Draft/sent/accepted/rejected lifecycle
+QUO-08 PDF preview/download
+QUO-09 Convert quotation to proposal/contract
+QUO-10 Duplicate quotation from existing
+Proposals
+PROP-01 Create proposal
+PROP-02 Attach quotation/services
+PROP-03 Rich text formatting
+PROP-04 Versioning
+PROP-05 Approval before sending
+PROP-06 Client acceptance capture
+PROP-07 Rejected proposal handling
+PROP-08 Convert to contract/project
+Contracts
+CONT-CTR-01 Create contract
+CONT-CTR-02 Contract number uniqueness
+CONT-CTR-03 Start/end date validation
+CONT-CTR-04 Renewal reminders
+CONT-CTR-05 Attach signed copy
+CONT-CTR-06 Amendment/change history
+CONT-CTR-07 Contract status lifecycle
+CONT-CTR-08 Expired contract behavior
+CONT-CTR-09 Linked billing/subscription creation
+CONT-CTR-10 Restricted edit after signing
+
+18) Invoices / Payments / Expenses / Subscriptions
+Invoices
+INV-01 Create invoice manually
+INV-02 Create from contract/project/proposal
+INV-03 Line items/tax/discount calculations
+INV-04 Due date validation
+INV-05 Invoice numbering
+INV-06 Draft/issued/partially paid/paid/overdue/cancelled statuses
+INV-07 Prevent editing paid invoice except by authorized role
+INV-08 Credit note / reversal if supported
+INV-09 PDF/export/share
+INV-10 Aging bucket accuracy
+Payments
+PAY-01 Record full payment
+PAY-02 Record partial payment
+PAY-03 Overpayment handling
+PAY-04 Payment method validation
+PAY-05 Apply payment to correct invoice
+PAY-06 Unapply/reverse payment if allowed
+PAY-07 Audit trail
+PAY-08 Invoice status auto-update
+PAY-09 Multi-payment same invoice
+PAY-10 Reconciliation reference fields
+Expenses
+EXP-01 Create expense
+EXP-02 Category validation
+EXP-03 Amount/date validation
+EXP-04 Attach receipt
+EXP-05 Approval workflow if applicable
+EXP-06 Reimbursement/payment state
+EXP-07 Edit/delete/archive rules
+EXP-08 Reporting inclusion
+Subscriptions
+SUB-01 Create recurring subscription
+SUB-02 Billing cycle validation
+SUB-03 Auto-renew behavior
+SUB-04 Pause/resume/cancel
+SUB-05 Renewal reminders
+SUB-06 Price change impact
+SUB-07 Next billing date calculation
+SUB-08 Contract/invoice linkage
+
+19) Marketing Module
+Content Calendar
+MKT-CAL-01 Create content item
+MKT-CAL-02 Date/time scheduling
+MKT-CAL-03 Status lifecycle draft/scheduled/published/cancelled
+MKT-CAL-04 Calendar vs list view consistency
+MKT-CAL-05 Team assignment and approvals
+MKT-CAL-06 Search/filter by channel/campaign/owner/status
+Social Accounts
+SOC-01 Add social account
+SOC-02 Permission/auth state
+SOC-03 Active/disconnected status
+SOC-04 Account owner/team visibility
+SOC-05 Remove account safely
+SOC-06 Posting permission restrictions
+Campaigns
+CAMP-01 Create campaign
+CAMP-02 Budget/date validation
+CAMP-03 Channel selection
+CAMP-04 Lead source attribution from campaign
+CAMP-05 Campaign status lifecycle
+CAMP-06 ROI reporting
+CAMP-07 Link leads/opportunities to campaign
+CAMP-08 Duplicate campaign handling
+
+20) Support Module
+Tickets
+TICK-01 Create ticket manually
+TICK-02 Create from client/account
+TICK-03 Severity/priority rules
+TICK-04 Category/subcategory logic
+TICK-05 SLA timers
+TICK-06 Assignment and reassignment
+TICK-07 Status transitions
+TICK-08 Resolution mandatory fields
+TICK-09 Escalation triggers
+TICK-10 Reopen closed ticket
+TICK-11 Comments/internal vs external notes
+TICK-12 Attachments
+TICK-13 Search/filter/reporting
+Change Requests
+CR-01 Create change request
+CR-02 Impact/urgency/risk fields
+CR-03 Approval workflow
+CR-04 Attach specs/files
+CR-05 Link to project/ticket/client
+CR-06 Approved vs rejected paths
+CR-07 Implementation status tracking
+CR-08 Audit trail
+Approvals
+APPR-01 Create approval request
+APPR-02 Multi-level approvals
+APPR-03 Approve action
+APPR-04 Reject action with mandatory reason
+APPR-05 Delegation/substitute approver if supported
+APPR-06 Expired approval
+APPR-07 Notification on pending approval
+APPR-08 Unauthorized approval blocked
+APPR-09 Final decision reflected on source record
+
+21) Growth & Acquisition
+Lead Forms
+LF-01 Create form
+LF-02 Add fields
+LF-03 Field mandatory/optional
+LF-04 Validation rules
+LF-05 Form submission creates lead
+LF-06 Duplicate submission handling
+LF-07 Spam/bot protection if applicable
+LF-08 Source tagging
+LF-09 Form analytics
+LF-10 Inactive form behavior
+
+22) Administration
+Users
+USER-01 Create user
+USER-02 Edit user profile
+USER-03 Activate/deactivate user
+USER-04 Reset password/invite user
+USER-05 Assign role
+USER-06 Assign team/manager
+USER-07 Prevent duplicate email/username
+USER-08 Cannot delete user with owned records unless reassigned
+USER-09 User list search/filter/export
+USER-10 Last login / status accuracy
+Roles & Permissions
+ROLE-01 Create role
+ROLE-02 Clone role
+ROLE-03 Edit permissions
+ROLE-04 Prevent invalid permission combinations if applicable
+ROLE-05 Assign role to users
+ROLE-06 Delete role in use
+ROLE-07 Screen/action/field permission consistency
+ROLE-08 Permission changes take effect immediately or on re-login حسب التصميم
+Settings
+SET-01 General settings save
+SET-02 Currency/timezone/date format
+SET-03 Theme/language settings
+SET-04 Notification preferences
+SET-05 Module-level config
+SET-06 Email templates if present
+SET-07 Numbering config for invoices/contracts/etc.
+SET-08 Save/cancel/reset defaults
+SET-09 Tenant-specific settings
+SET-10 Unauthorized setting change blocked
+Reports
+REP-01 Report data accuracy
+REP-02 Report filter combinations
+REP-03 Date range validation
+REP-04 Export CSV/XLS/PDF
+REP-05 Large data report performance
+REP-06 Role-based report access
+REP-07 Drill-down links
+REP-08 Empty report state
+REP-09 Scheduled report if supported
+REP-10 Consistency with dashboard KPIs
+
+23) File Handling / Attachments
+FILE-01 Upload valid file types
+FILE-02 Reject invalid file types
+FILE-03 Reject oversized files
+FILE-04 File name with Arabic
+FILE-05 File name with special characters
+FILE-06 Download attachment
+FILE-07 Preview attachment
+FILE-08 Replace attachment/versioning
+FILE-09 Delete attachment permission
+FILE-10 Malware/script upload handling if applicable
+
+24) Search, Filter, Export, Import
+Search
+SRCH-01 Global search exact match
+SRCH-02 Partial match
+SRCH-03 Arabic search
+SRCH-04 English search
+SRCH-05 Mixed language
+SRCH-06 Searching deleted/archived behavior
+Filters
+FIL-01 Single filter
+FIL-02 Multi-filter intersection
+FIL-03 Reset filters
+FIL-04 Saved filter if supported
+FIL-05 Filter persistence after navigation
+Export
+EXPOR-01 Export current filtered data only
+EXPOR-02 Export full dataset by permission
+EXPOR-03 Column order/header correctness
+EXPOR-04 Arabic export encoding
+EXPOR-05 Large export handling
+EXPOR-06 Unauthorized export blocked
+Import
+IMP-01 Valid template import
+IMP-02 Missing mandatory columns
+IMP-03 Invalid data types
+IMP-04 Duplicate rows
+IMP-05 Partial success report
+IMP-06 Rollback or error summary behavior
+IMP-07 Mapping fields
+IMP-08 Audit log of import
+
+25) Negative & Edge Cases
+NEG-01 Save form with all mandatory fields empty
+NEG-02 Save with only spaces
+NEG-03 Extremely long text
+NEG-04 Special characters
+NEG-05 HTML/script injection
+NEG-06 SQL-like input
+NEG-07 Simultaneous edit by two users
+NEG-08 Deleted related record while open in another tab
+NEG-09 Browser refresh during save
+NEG-10 Double-click submit
+NEG-11 Network interruption during transaction
+NEG-12 Server 500 on save
+NEG-13 Session expires while editing
+NEG-14 Attachment upload interrupted
+NEG-15 Date/timezone mismatch around midnight
+NEG-16 Leap year / month-end dates
+NEG-17 Invalid decimal precision
+NEG-18 Negative financial amounts where not allowed
+NEG-19 Bulk operation with partial unauthorized records
+NEG-20 Archived/inactive master data referenced in new transaction
+
+26) Integration Scenarios Between Modules
+هذه من أهم الزوايا التي كثير من الفرق تنساها.
+INT-01 Lead -> Opportunity conversion
+INT-02 Opportunity Won -> Project creation
+INT-03 Opportunity/Service -> Quotation
+INT-04 Quotation Accepted -> Proposal/Contract
+INT-05 Contract Active -> Subscription/Invoice
+INT-06 Invoice Paid -> Dashboard/account health/report update
+INT-07 Ticket escalated -> Approval / notification
+INT-08 Project delayed -> dashboard needs attention
+INT-09 Account health recalculates after unpaid invoice / open ticket
+INT-10 Campaign-generated lead retains source through opportunity
+INT-11 Company/contact updates reflect across linked records
+INT-12 User deactivation affects assignment dropdowns/open items
+INT-13 Deleted master service not breaking old proposals/contracts
+INT-14 Approval result updates source module status
+INT-15 Audit logs reflect chained actions correctly
+
+27) Security Test Scenarios
+SEC-01 Unauthorized API access
+SEC-02 Horizontal privilege escalation
+SEC-03 Vertical privilege escalation
+SEC-04 Direct object reference
+SEC-05 Hidden button still callable via API
+SEC-06 XSS in notes/comments/names
+SEC-07 CSRF protection if web app supports state-changing operations
+SEC-08 Sensitive data masking where required
+SEC-09 Secure file access URLs
+SEC-10 Session fixation / token invalidation on logout
+SEC-11 Brute force protection / login throttling
+SEC-12 Audit tamper resistance
+SEC-13 Export of restricted financial/client data
+SEC-14 Cross-tenant data leakage via search/report/export/API
+SEC-15 Browser storage not exposing secrets
+
+28) Performance & Reliability
+PERF-01 Initial dashboard load under normal data
+PERF-02 Dashboard load under heavy data
+PERF-03 Search performance large dataset
+PERF-04 Filter/sort performance
+PERF-05 Bulk update 100/500/1000 rows
+PERF-06 Export large file
+PERF-07 Report generation with wide date range
+PERF-08 Concurrent users on same module
+PERF-09 Concurrent task/invoice/lead creation
+PERF-10 Notification storm handling
+PERF-11 Long-running save no duplicate records
+PERF-12 Memory/browser freeze checks
+PERF-13 Auto-refresh behavior
+PERF-14 Recovery after server restart
+PERF-15 No data corruption after concurrent updates
+
+29) Localization & Language Scenarios
+LANG-01 Full English UI
+LANG-02 Full Arabic UI
+LANG-03 Toggle language while inside record
+LANG-04 Arabic labels not truncated
+LANG-05 Mixed Arabic/English values display correctly
+LANG-06 Date/number/currency formatting per locale
+LANG-07 Export in Arabic readable correctly
+LANG-08 Validation messages translated
+LANG-09 Notifications translated
+LANG-10 PDF/print documents language accuracy
+
+30) UAT Business-Critical End-to-End Scenarios
+هذه أهم جزء لو أردت التأكد أن الـ CRM usable فعلاً.
+E2E-01 New lead to cash
+    1. Create lead
+    2. Qualify lead
+    3. Convert to opportunity
+    4. Add services
+    5. Create quotation
+    6. Get approval if needed
+    7. Convert to proposal
+    8. Create contract
+    9. Create invoice
+    10. Record payment
+    11. Dashboard/report updated
+E2E-02 Client onboarding delivery flow
+    1. Won opportunity
+    2. Create onboarding
+    3. Assign project
+    4. Create tasks
+    5. Add deliverables
+    6. Share preview link
+    7. Client feedback logged
+    8. Final approval
+    9. Project close
+E2E-03 Support and change request flow
+    1. Open ticket
+    2. Assign severity
+    3. Escalate
+    4. Raise change request
+    5. Approval
+    6. Implement
+    7. Close
+    8. Account health updates
+E2E-04 Finance control flow
+    1. Create quotation
+    2. Contract
+    3. Subscription
+    4. Recurring invoice
+    5. Partial payment
+    6. Overdue
+    7. Reminder/alert
+    8. Final payment
+    9. Reports reconcile
+E2E-05 User administration lifecycle
+    1. Create user
+    2. Assign role
+    3. Verify menu/action permissions
+    4. Reassign ownership
+    5. Deactivate user
+    6. Confirm no broken open records
+    7. Audit trail verified
+
+31) Recommended Test Data Matrix
+اختبر دائمًا بهذه الأنواع من البيانات:
+    • Arabic names
+    • English names
+    • Mixed names
+    • Long company names
+    • Duplicate email
+    • Duplicate phone
+    • Null optional fields
+    • Boundary dates
+    • High-value invoice
+    • Zero-value opportunity if allowed
+    • Expired contract
+    • Overdue invoice
+    • Closed project
+    • Reopened ticket
+    • Archived service
+    • Inactive user as assignee
+    • Lead from campaign
+    • Contact without company
+    • Company with many contacts/opportunities/projects
+    • Multiple tenants
+    • Multiple roles
+
+32) Suggested Test Case Template
+استخدم هذا القالب لكل test case:
+Test Case ID: CRM-LEAD-001
+Module: Leads
+Scenario Title: Create lead with mandatory fields only
+Preconditions: User logged in with create lead permission
+Test Data: Name, email, phone, source
+Steps:
+    1. Open Leads
+    2. Click Create Lead
+    3. Fill mandatory fields
+    4. Click Save
+Expected Result:
+    • Lead created successfully
+    • Unique lead ID generated
+    • Lead appears in list
+    • Audit log created
+    • Notification sent if configured
+Priority: High
+Type: Functional / Positive
+Role Coverage: Sales, Admin
+
+33) Priority Recommendation
+
+P1 – Critical
+    • Login / access
+    • Dashboard accuracy
+    • Leads
+    • Opportunities
+    • Companies
+    • Contacts
+    • Quotations
+    • Contracts
+    • Invoices
+    • Payments
+    • Tasks
+    • Approvals
+    • Users / Roles
+    • Audit logs
+    • Reports
+    • Multi-tenant isolation
+P2 – High
+    • Projects
+    • Onboarding
+    • Tickets
+    • Change requests
+    • Services / bundles
+    • Notifications
+    • Search/filter/export/import
+    • Localization
+    • Attachments
+P3 – Medium
+    • Marketing modules
+    • Preview links
+    • Advanced dashboard widgets
+    • UI polish / responsiveness
+    • Advanced analytics
+
+34) Final QA Note
+لازم تختبر أيضًا:
+    • module-to-module flow
+    • permission conflicts
+    • data consistency between cards, tables, charts, and reports
+    • negative + concurrency + audit
+    • Arabic/English + dark/light + RTL
+    • bulk actions
+    • tenant isolation
+    • financial calculations
+    • approval governance
+
+
+phase 2
+
+1) Data Migration / Legacy Data Scenarios
+These matter if the CRM is seeded, imported, or migrated from another system.
+MIG-01 Legacy record import with missing optional fields
+MIG-02 Legacy record import with invalid status values
+MIG-03 Old records mapped to new pipeline stages
+MIG-04 Historic activities preserved after migration
+MIG-05 Attachments linked to correct migrated entities
+MIG-06 Duplicate IDs from old system handled safely
+MIG-07 Owner mapping for users no longer active
+MIG-08 Currency/date format transformation correctness
+MIG-09 Relationship preservation after migration
+MIG-10 Migration rollback / partial failure reporting
+
+2) Background Jobs / Scheduled Logic
+Very often forgotten.
+JOB-01 Daily dashboard refresh job runs correctly
+JOB-02 SLA overdue calculation job updates records correctly
+JOB-03 Renewal reminder scheduler triggers on exact date rules
+JOB-04 Subscription billing job generates expected invoices
+JOB-05 Notification digest job excludes irrelevant users
+JOB-06 Failed scheduled job logs clear error details
+JOB-07 Retried job does not duplicate records
+JOB-08 Timezone-sensitive scheduled jobs run correctly
+JOB-09 Month-end / year-end scheduled jobs behave correctly
+JOB-10 Disabled jobs do not execute accidentally
+
+3) Concurrency / Record Locking
+Especially important in CRM teams.
+CON-01 Two users edit same lead at same time
+CON-02 One user deletes while another edits
+CON-03 One user changes status while another assigns owner
+CON-04 Simultaneous bulk update on same dataset
+CON-05 Simultaneous payment posting on same invoice
+CON-06 Opportunity value changed while quote is being generated
+CON-07 Contract approved while user still editing draft
+CON-08 Activity timeline stays consistent under concurrent actions
+CON-09 Last write wins vs conflict warning behaves as designed
+CON-10 No silent overwrite of critical financial fields
+
+4) Browser / Device / Client Compatibility
+Often skipped until production.
+COMPAT-01 Chrome latest
+COMPAT-02 Safari latest
+COMPAT-03 Edge latest
+COMPAT-04 Firefox latest
+COMPAT-05 Different screen resolutions
+COMPAT-06 Browser zoom 80%, 100%, 125%, 150%
+COMPAT-07 Mac vs Windows rendering
+COMPAT-08 Keyboard-only navigation
+COMPAT-09 Clipboard copy/paste behavior across browsers
+COMPAT-10 File upload behavior across browsers
+
+5) Accessibility Scenarios
+Very important for enterprise readiness.
+A11Y-01 Full keyboard navigation
+A11Y-02 Focus state always visible
+A11Y-03 Tab order logical across forms
+A11Y-04 Screen reader label coverage
+A11Y-05 Buttons/icons have accessible names
+A11Y-06 Form validation errors announced clearly
+A11Y-07 Color contrast passes minimum requirement
+A11Y-08 Charts have text alternatives or summaries
+A11Y-09 Modals trap focus correctly
+A11Y-10 No inaccessible drag/drop-only critical action
+
+6) Printing / PDF / Document Output
+CRMs usually fail here.
+DOC-01 Quotation PDF matches UI totals
+DOC-02 Proposal PDF formatting correct in English
+DOC-03 Proposal PDF formatting correct in Arabic
+DOC-04 Contract PDF line wrapping correct for long text
+DOC-05 Print view excludes hidden/internal fields
+DOC-06 Printed dates/currency match locale rules
+DOC-07 Watermark/draft labels show correctly
+DOC-08 Logo/branding loads correctly in generated documents
+DOC-09 Multi-page PDF page breaks are clean
+DOC-10 Special characters and Arabic render correctly in exported documents
+
+7) Advanced Financial Integrity Scenarios
+These go beyond normal invoice testing.
+FIN-ADV-01 Rounding rules consistent across UI, PDF, export, reports
+FIN-ADV-02 Tax calculated before vs after discount as per business rule
+FIN-ADV-03 Mixed taxable and non-taxable line items
+FIN-ADV-04 Zero-value invoice behavior
+FIN-ADV-05 Credit note impact on revenue reports
+FIN-ADV-06 Cancelled invoice excluded from revenue dashboard
+FIN-ADV-07 Partial payment reflected correctly in aging
+FIN-ADV-08 Invoice reversal keeps full audit trail
+FIN-ADV-09 Backdated payment affects correct reporting period
+FIN-ADV-10 Multi-currency historical records remain accurate after rate changes
+
+8) Master Data / Reference Data Governance
+Things like lists, categories, statuses, service catalogs.
+MD-01 Deactivating a status used by old records
+MD-02 Renaming a service updates display without corrupting history
+MD-03 Deleting a category linked to live records blocked or handled safely
+MD-04 Sorting of dropdown values consistent
+MD-05 Inactive master data hidden from new forms but visible in old records
+MD-06 Mandatory default values applied correctly
+MD-07 Cross-module reuse of master data remains consistent
+MD-08 Duplicate reference values prevented
+MD-09 Translations of master data show correctly
+MD-10 Role-based control over who may edit reference data
+
+9) Notification Edge Cases
+Beyond normal notification testing.
+NEDGE-01 Notification generated for record later deleted
+NEDGE-02 Notification link to unauthorized record blocked safely
+NEDGE-03 Duplicate notifications prevented for repeated same event
+NEDGE-04 User preference mute settings respected
+NEDGE-05 Notification queue recovery after outage
+NEDGE-06 Bulk action sends summary instead of spam burst if designed
+NEDGE-07 Read/unread sync across sessions
+NEDGE-08 Notification ordering by timestamp correct
+NEDGE-09 Notifications for delegated approvals route properly
+NEDGE-10 Mention/tag notifications work correctly in comments if supported
+
+10) Search Relevance / Indexing Scenarios
+Search quality is a major hidden risk.
+SEARCH-ADV-01 Newly created record becomes searchable quickly
+SEARCH-ADV-02 Updated record search index refreshes correctly
+SEARCH-ADV-03 Archived record search behavior is correct
+SEARCH-ADV-04 Search by partial phone/email/company domain
+SEARCH-ADV-05 Exact phrase vs broad match behavior
+SEARCH-ADV-06 Search ranking relevance makes sense
+SEARCH-ADV-07 Search ignores unauthorized fields/records
+SEARCH-ADV-08 Typos/fuzzy search behavior if supported
+SEARCH-ADV-09 Arabic normalization behavior
+SEARCH-ADV-10 Search performance under large dataset
+
+11) Comment / Notes / Collaboration Scenarios
+Usually under-tested.
+COLLAB-01 Add internal note
+COLLAB-02 Edit own note only vs others' note permissions
+COLLAB-03 Delete note permission rules
+COLLAB-04 Mentions/tags in notes
+COLLAB-05 Rich text formatting retained after save
+COLLAB-06 Attachment inside note comment
+COLLAB-07 Timestamp and author accuracy
+COLLAB-08 Note order sorting
+COLLAB-09 Audit log for edited/deleted note
+COLLAB-10 XSS-safe rendering in comments
+
+12) Workflow Engine / Business Rule Automation
+Especially if workflows are configurable.
+WF-01 Auto-assignment rule triggers correctly
+WF-02 Auto-stage movement triggers only when conditions match
+WF-03 Conditional mandatory field enforcement
+WF-04 Escalation workflow fires after SLA breach
+WF-05 Duplicate suppression rule works correctly
+WF-06 Rule priority resolution when multiple rules match
+WF-07 Disabled workflow stops affecting records
+WF-08 Workflow edit does not break existing open records
+WF-09 Workflow audit trail shows why automation occurred
+WF-10 Manual override behavior when automation already acted
+
+13) API / Integration Contract Scenarios
+Even if this is UI-first, APIs must be tested.
+API-01 Create entity via API reflects in UI
+API-02 Update entity via UI reflects in API response
+API-03 Validation rules consistent between UI and API
+API-04 Unauthorized API request rejected
+API-05 Rate limiting if applicable
+API-06 Idempotency for repeated create requests if supported
+API-07 API pagination correctness
+API-08 API sorting/filtering correctness
+API-09 API error codes meaningful and consistent
+API-10 Audit logs generated for API actions as well
+
+14) Recovery / Resilience Scenarios
+Enterprise systems need this.
+RES-01 Refresh page during save
+RES-02 Network reconnect after temporary outage
+RES-03 Browser crash and reopen
+RES-04 Server restart while users are logged in
+RES-05 Long-running export interrupted
+RES-06 Attachment upload retry after failure
+RES-07 Partial data save prevented on transactional operations
+RES-08 User sees safe retry path after timeout
+RES-09 No duplicate transaction after retry
+RES-10 System returns gracefully after dependency outage
+
+15) Audit / Compliance Edge Cases
+More advanced than normal audit logging.
+AUD-EDGE-01 Failed attempts are logged where required
+AUD-EDGE-02 Rejected approvals logged with reason
+AUD-EDGE-03 Field-level old/new values captured for critical fields
+AUD-EDGE-04 Export/download actions logged
+AUD-EDGE-05 Sensitive data masking in audit logs
+AUD-EDGE-06 System-generated actions distinguishable from human actions
+AUD-EDGE-07 Timezone consistency in audit timestamps
+AUD-EDGE-08 Audit retention rules behave correctly
+AUD-EDGE-09 Audit search for historic deleted records works
+AUD-EDGE-10 Audit immutability enforced
+
+16) Data Quality / Data Integrity Scenarios
+These are gold for CRM quality.
+DQ-01 No orphan opportunity without valid company/contact if rule requires
+DQ-02 No orphan invoice without valid source entity
+DQ-03 Deleting parent record does not corrupt child records
+DQ-04 Rollup counts match actual linked records
+DQ-05 Dashboard totals reconcile with reports
+DQ-06 Revenue totals reconcile with invoices and payments
+DQ-07 Activity counts match actual timeline entries
+DQ-08 Status-specific required fields always populated
+DQ-09 Invalid stale references cleaned up safely
+DQ-10 Data remains consistent after bulk import/update/delete
+
+17) Tenant Setup / Configuration Provisioning
+If each tenant can be configured differently.
+TENCFG-01 New tenant created with default modules correctly
+TENCFG-02 Tenant-specific branding applied correctly
+TENCFG-03 Tenant-specific currency/timezone reflected everywhere
+TENCFG-04 Tenant-specific numbering sequences isolated
+TENCFG-05 Tenant-specific permission templates work correctly
+TENCFG-06 Tenant config changes do not leak to others
+TENCFG-07 Disabling a module in one tenant hides it completely there only
+TENCFG-08 Tenant-specific pipeline definitions work independently
+TENCFG-09 Tenant-specific document templates generate correctly
+TENCFG-10 Tenant deactivation/archive handled safely
+
+18) Advanced End-of-Period Scenarios
+These reveal many defects.
+PERIOD-01 Month-end invoice totals correct
+PERIOD-02 Month-end overdue calculation correct
+PERIOD-03 Quarterly dashboard numbers reconcile with reports
+PERIOD-04 Year-end date boundaries handled correctly
+PERIOD-05 Leap day logic
+PERIOD-06 Daylight saving / timezone shift impact if applicable
+PERIOD-07 Backdated record included in correct period
+PERIOD-08 Future-dated contract/invoice not counted too early
+PERIOD-09 Period close lock behavior if any
+PERIOD-10 Scheduled reports across date boundaries remain accurate
+
+19) Fraud / Abuse / Misuse Scenarios
+Rarely listed, but useful.
+ABUSE-01 User tries to mass export all records without permission
+ABUSE-02 User injects script in customer-facing field
+ABUSE-03 User uploads deceptive file type
+ABUSE-04 User attempts forced browsing to hidden records
+ABUSE-05 User changes URL IDs manually
+ABUSE-06 Repeated approval rejection without reason blocked
+ABUSE-07 User attempts duplicate billing by repeated submit
+ABUSE-08 User manipulates browser data to bypass readonly fields
+ABUSE-09 User floods comments/notes
+ABUSE-10 Spam lead submission through public lead form
+
+20) Operational / Admin Support Scenarios
+Useful after go-live.
+OPS-01 Admin can identify stuck workflow items
+OPS-02 Admin can reassign records from inactive user
+OPS-03 Admin can view failed job/error queue if supported
+OPS-04 Admin can regenerate documents safely
+OPS-05 Admin can re-send notification/email safely
+OPS-06 Admin can unlock user/account if supported
+OPS-07 Admin can trace full lifecycle of a record
+OPS-08 Admin support tools respect tenant boundaries
+OPS-09 Support mode / impersonation logged if supported
+OPS-10 Admin corrective action keeps clean audit trail
+
+21) Test Scenarios for Things Hidden in the Screenshot but Commonly Existing
+Since you said to assume all possible buttons/options exist, these should also be considered:
+COMMON-01 Duplicate / clone record
+COMMON-02 Archive vs delete difference
+COMMON-03 Pin / favorite / watch record
+COMMON-04 Share record link internally
+COMMON-05 Copy record ID/reference number
+COMMON-06 Import from CSV/Excel
+COMMON-07 Export selected rows only
+COMMON-08 Mass assignment
+COMMON-09 Bulk status update with validation conflicts
+COMMON-10 Reopen closed record
+COMMON-11 Print current screen/report
+COMMON-12 Save draft vs submit final
+COMMON-13 Cancel edits and discard unsaved changes
+COMMON-14 Unsaved changes warning on navigation
+COMMON-15 Sticky filters / remembered user preferences
+
+22) What is usually still missing even after a “full” CRM test pack
+The most commonly forgotten areas are:
+    • concurrency conflicts
+    • background jobs
+    • indexing/search freshness
+    • audit edge cases
+    • accessibility
+    • print/PDF behavior
+    • tenant provisioning
+    • data migration
+    • recovery after failures
+    • data reconciliation across dashboard, reports, exports, and finance
+
+
+phase 3
+
+1) Draft / Autosave / Unsaved Changes
+إذا النظام فيه forms طويلة أو records معقدة، هذه مهمة جدًا.
+DRAFT-01 حفظ كسودة ثم الإكمال لاحقًا
+DRAFT-02 autosave يعمل أثناء الإدخال
+DRAFT-03 autosave لا ينشئ record مكرر
+DRAFT-04 استرجاع draft بعد refresh
+DRAFT-05 تحذير عند الخروج مع unsaved changes
+DRAFT-06 discard draft يعمل بشكل صحيح
+DRAFT-07 draft visibility حسب الصلاحية
+DRAFT-08 draft لا يظهر في reports النهائية قبل submit
+DRAFT-09 تعارض بين draft قديم ونسخة محدثة
+DRAFT-10 autosave مع network interruption
+
+2) Soft Delete / Archive / Restore Depth
+ليس فقط delete، بل كل lifecycle للحذف المؤقت.
+DELX-01 archive record يبقيه خارج القوائم الافتراضية
+DELX-02 archived record يظهر في filtered archived view
+DELX-03 restore يعيد record بكل علاقاته
+DELX-04 archived parent وتأثيره على child records
+DELX-05 منع التعاملات الجديدة على archived entity
+DELX-06 delete permanent للمخولين فقط
+DELX-07 permanent delete يمنع restore
+DELX-08 archived records في search behavior
+DELX-09 archived records في reports behavior
+DELX-10 audit كامل لعمليات archive/restore/delete
+
+3) Sequence / Number Generation
+خاصة للفواتير والعقود والعروض.
+SEQ-01 invoice number auto-generation unique
+SEQ-02 quote number unique across concurrent creates
+SEQ-03 numbering resets حسب السنة/الشهر إذا مطلوب
+SEQ-04 manual override numbering للمخول فقط
+SEQ-05 deleted record number لا يعاد استخدامه
+SEQ-06 failed create لا يحرق الرقم أو يحرقه حسب policy
+SEQ-07 tenant-specific numbering isolation
+SEQ-08 prefix/suffix configuration reflected correctly
+SEQ-09 numbering after migration/import
+SEQ-10 numbering under bulk generation
+
+4) Time / Date / Clock Logic
+هذه طبقة كاملة وحدها في الأنظمة المؤسسية.
+TIME-01 created_at / updated_at accuracy
+TIME-02 user timezone vs tenant timezone
+TIME-03 due dates at midnight boundaries
+TIME-04 reminders before due date
+TIME-05 overdue calculation right after boundary time
+TIME-06 date filter inclusive/exclusive correctness
+TIME-07 same-day records across timezones
+TIME-08 future-dated records behavior
+TIME-09 past-dated restricted actions
+TIME-10 server time drift impact if any
+
+5) State Machine Integrity
+مهم جدًا إذا عندكم statuses كثيرة.
+STATE-01 record cannot skip mandatory intermediate states
+STATE-02 terminal state cannot be edited except by policy
+STATE-03 reopen allowed only from specific states
+STATE-04 state transition reason mandatory when configured
+STATE-05 state transitions trigger exact downstream events
+STATE-06 invalid manual state override blocked
+STATE-07 state label shown correctly in all widgets
+STATE-08 state color/badge consistent everywhere
+STATE-09 list view, detail view, dashboard all show same state
+STATE-10 imported records with invalid state handled safely
+
+6) Formula / Derived Field Testing
+الحقول المحسوبة دائمًا مصدر bugs.
+FORM-01 conversion rate formula accuracy
+FORM-02 weighted pipeline formula accuracy
+FORM-03 overdue invoice counter formula
+FORM-04 active project count formula
+FORM-05 account health score formula
+FORM-06 top performer ranking formula
+FORM-07 monthly revenue formula
+FORM-08 reopened records affect formulas correctly
+FORM-09 archived records excluded/included correctly
+FORM-10 derived values refresh after related changes
+
+7) Dashboard Widget Behavior
+أعمق من مجرد “الأرقام صحيحة”.
+WID-01 widget click-through opens correct filtered page
+WID-02 widget respects user permissions
+WID-03 widget refresh interval behavior
+WID-04 widget empty state CTA correct
+WID-05 widget export if supported
+WID-06 widget date range sync with global filter
+WID-07 widget legends accurate
+WID-08 widget tooltip accuracy
+WID-09 widget layout persistence after reload
+WID-10 widget loading failure isolated without breaking full dashboard
+
+8) Bulk Operation Edge Cases
+غالبًا لا تُختبر بعمق كفاية.
+BULK-01 mixed valid/invalid records in one bulk action
+BULK-02 unauthorized subset inside selected records
+BULK-03 bulk update partially succeeds with clear summary
+BULK-04 bulk delete on records with dependencies
+BULK-05 bulk assign to inactive user blocked
+BULK-06 bulk status change with validation conflicts
+BULK-07 bulk export only selected visible records
+BULK-08 bulk actions on paginated lists
+BULK-09 bulk action after filter change
+BULK-10 duplicate clicks on bulk submit
+
+9) UI Persistence / User Preference Scenarios
+تجربة المستخدم اليومية تعتمد عليها.
+PREF-01 remembered table columns
+PREF-02 remembered page size
+PREF-03 remembered sort order
+PREF-04 remembered filters
+PREF-05 dashboard personalized layout persists
+PREF-06 dark/light preference persists after relogin
+PREF-07 language preference persists
+PREF-08 sidebar collapse state persists
+PREF-09 last visited module behavior if supported
+PREF-10 reset preferences works correctly
+
+10) Dropdown / Lookup / Selector Scenarios
+هذه تُكسر كثيرًا في الأنظمة الكبيرة.
+LOOKUP-01 searchable dropdown exact match
+LOOKUP-02 partial search inside dropdown
+LOOKUP-03 large dropdown performance
+LOOKUP-04 inactive values hidden where required
+LOOKUP-05 old records still show inactive selected value
+LOOKUP-06 dependent dropdowns update correctly
+LOOKUP-07 clearing selected value works
+LOOKUP-08 default value application
+LOOKUP-09 Arabic/English display names correct
+LOOKUP-10 duplicate labels with different IDs handled safely
+
+11) Parent–Child Relationship Scenarios
+مهمة جدًا بين company/contact/opportunity/project/invoice.
+REL-01 parent counts update when child created
+REL-02 parent counts update when child archived
+REL-03 child cannot point to invalid parent
+REL-04 changing parent updates all rollups
+REL-05 parent delete blocked if live child exists
+REL-06 moving child from one parent to another
+REL-07 timeline inheritance if supported
+REL-08 permissions inherited correctly if designed
+REL-09 reports reflect new parent after reassignment
+REL-10 no orphan relationship after bulk changes
+
+12) Commented / Approved / Rejected Content Lifecycle
+خاصة في proposals, deliverables, approvals.
+LIFE-01 pending item edited before approval
+LIFE-02 approved item re-edited requires reapproval
+LIFE-03 rejected item resubmitted with new version
+LIFE-04 approval comments retained historically
+LIFE-05 final approved version locked
+LIFE-06 drafts and approved versions clearly distinguishable
+LIFE-07 old version accessible in history
+LIFE-08 user cannot approve own item if segregation rule exists
+LIFE-09 delegated approver path
+LIFE-10 canceled approval request behavior
+
+13) Segregation of Duties Scenarios
+مهم جدًا في finance/admin/governance.
+SOD-01 creator cannot approve same record
+SOD-02 finance entry creator cannot mark paid if restricted
+SOD-03 admin can configure but not approve if policy says so
+SOD-04 approver cannot edit content after approval without reopening
+SOD-05 reassignment to bypass controls blocked or audited
+SOD-06 emergency override logged distinctly
+SOD-07 system enforces dual-control where required
+SOD-08 reporting of SoD breaches if supported
+SOD-09 imported data bypassing SoD prevented
+SOD-10 API also respects SoD rules
+
+14) Hidden Object / URL / Direct Navigation Scenarios
+أعمق من RBAC المعتاد.
+URL-01 direct open archived record without permission
+URL-02 direct open record from another team
+URL-03 direct open deleted record
+URL-04 manipulated ID pattern in URL
+URL-05 bookmarked old URL after record moved
+URL-06 stale URL after module config changed
+URL-07 deep link from notification after permission revoked
+URL-08 record reference URL copied to another user
+URL-09 expired preview/share link behavior
+URL-10 invalid query params do not break page
+
+15) Modal / Drawer / Popup Behavior
+تفصيل صغير لكن يسبب مشاكل كثيرة.
+MOD-01 modal opens with correct default values
+MOD-02 modal close without save
+MOD-03 modal close via escape
+MOD-04 modal unsaved warning
+MOD-05 nested modal behavior
+MOD-06 background page not interactable while modal open
+MOD-07 drawer save updates parent page instantly
+MOD-08 popup validation messages visible correctly
+MOD-09 scrolling inside long modal works
+MOD-10 focus returns correctly after closing modal
+
+16) API Retry / Duplicate Submission Protection
+مهم جدًا مع الشبكات غير المستقرة.
+DUP-01 repeated save click creates one record only
+DUP-02 payment submit retry does not double-post payment
+DUP-03 quote generation retry does not create duplicate quote
+DUP-04 bulk retry after timeout does not duplicate updates
+DUP-05 webhook retry idempotency if applicable
+DUP-06 draft autosave retry safe
+DUP-07 network reconnect does not replay stale request incorrectly
+DUP-08 file upload retry safe
+DUP-09 approval action retry safe
+DUP-10 warning shown when action already processed
+
+17) Reporting Reconciliation Scenarios
+من أقوى الطبقات التي تكتشف defects حقيقية.
+REC-01 dashboard lead count = lead report count
+REC-02 invoice total = invoice report = finance summary
+REC-03 paid amount = payment records sum
+REC-04 overdue invoices widget = overdue invoice report
+REC-05 project count = active project listing
+REC-06 revenue by month = posted invoices/payments rule as designed
+REC-07 top performers = underlying activity/performance records
+REC-08 source attribution chart = lead source raw data
+REC-09 archived records excluded consistently
+REC-10 date range alignment identical across dashboard and report
+
+18) Advanced Public Form / Inbound Capture Scenarios
+إذا عندكم lead forms أو public capture.
+INB-01 same lead submits form multiple times
+INB-02 duplicate prevention vs intentional multiple inquiry rule
+INB-03 source/campaign/utm captured correctly
+INB-04 hidden field tampering blocked
+INB-05 file upload from public form validation
+INB-06 malicious payload in public form
+INB-07 abandoned submission not partially stored
+INB-08 thank-you page / success response correct
+INB-09 submission creates correct owner/queue assignment
+INB-10 public form works on mobile browsers
+
+19) Environment / Configuration Drift Scenarios
+مفيدة جدًا بين dev / test / prod.
+ENV-01 config value different across environments detected
+ENV-02 document templates same version across environments
+ENV-03 permission matrix consistent after deployment
+ENV-04 migration scripts applied fully
+ENV-05 master data differs unexpectedly between environments
+ENV-06 timezone/currency mismatch between environments
+ENV-07 feature flag behavior differs correctly by environment
+ENV-08 disabled integration in test handled gracefully
+ENV-09 seed data does not pollute prod-like testing
+ENV-10 deployment does not reset user preferences unexpectedly
+
+20) Feature Flag / Module Toggle Scenarios
+لو في options “enabled/disabled”.
+FF-01 disabled module hidden from menu and direct URL
+FF-02 enabling module reveals correct defaults
+FF-03 disabling module does not corrupt old data
+FF-04 feature-flagged button hidden and backend blocked
+FF-05 tenant-specific feature toggle respected
+FF-06 report excludes disabled module data if required
+FF-07 audit shows config toggle changes
+FF-08 toggling feature during active use handled safely
+FF-09 partially enabled feature not exposing broken UI
+FF-10 role permissions with disabled feature remain consistent
+
+21) Historical Snapshot / Point-in-Time Scenarios
+إذا عندكم timeline/history/audit/reporting مهم.
+HIST-01 old invoice viewed with original values after later config changes
+HIST-02 old contract keeps original service names/prices if required
+HIST-03 historic report remains stable after master data rename
+HIST-04 activity timeline order remains accurate after edits
+HIST-05 reopened record preserves old history
+HIST-06 restored archived record retains original timestamps
+HIST-07 point-in-time dashboard/report if supported
+HIST-08 user name change reflected or preserved per audit policy
+HIST-09 deleted user still shown properly in historic logs
+HIST-10 old attachments remain accessible where policy allows
+
+22) Operational Handover / Ownership Change Scenarios
+مهمة جدًا في CRM teams.
+OWN-01 lead owner changed mid-process
+OWN-02 open tasks transferred with owner change
+OWN-03 opportunity ownership change updates pipeline reports
+OWN-04 company owner change impacts visibility correctly
+OWN-05 inactive user reassignment wizard
+OWN-06 manager change affects team access
+OWN-07 ownership history preserved
+OWN-08 notifications sent to old/new owner correctly
+OWN-09 bulk ownership transfer
+OWN-10 unassigned queue behavior if owner removed
+
+23) Data Retention / Purge / Cleanup Scenarios
+لو النظام فيه retention policies.
+RET-01 old logs retained for configured period
+RET-02 expired temp files cleaned automatically
+RET-03 archived records purged only by policy
+RET-04 purged records removed from search and reports
+RET-05 purge action audited
+RET-06 legal-hold records excluded from purge
+RET-07 tenant-specific retention policy respected
+RET-08 attachments linked to purged records handled correctly
+RET-09 restore impossible after purge as expected
+RET-10 cleanup jobs do not affect active records
+
+24) Real User Behavior Scenarios
+هذه تكشف مشاكل UX حقيقية.
+REAL-01 user opens many tabs and edits related records
+REAL-02 user pastes messy Excel data into forms
+REAL-03 user changes filters repeatedly then bulk-updates
+REAL-04 user creates quote before finishing all setup data
+REAL-05 user navigates using browser back/forward frequently
+REAL-06 user keeps page open all day then saves
+REAL-07 user works with weak/unstable internet
+REAL-08 user uploads same file multiple times by mistake
+REAL-09 user searches with incomplete memory of client name
+REAL-10 user abandons process midway and resumes later
+
+25) Meta-Test Scenarios
+هذه ليست على business features نفسها، بل على جودة النظام ككل.
+META-01 every create/edit/delete action leaves audit
+META-02 every critical screen handles empty/loading/error states
+META-03 every list screen supports search/sort/filter consistently
+META-04 every financial figure reconciles somewhere
+META-05 every terminal status has defined reopen/edit behavior
+META-06 every module respects RBAC at menu/UI/API levels
+META-07 every notification source has destination and permission rule
+META-08 every export respects current scope/filters/permissions
+META-09 every integration failure has user-safe handling
+META-10 every module has positive, negative, edge, bulk, permission, audit, report coverage
+
+
+phase 4
+
+
+1) Cross-Tab / Multi-Window Behavior
+TAB-01 فتح نفس السجل في تبويبين وتعديلهما بالتتابع
+TAB-02 حفظ من tab قديم بعد تعديل أحدث من tab آخر
+TAB-03 refresh في تبويب وإبقاء الآخر stale
+TAB-04 logout من تبويب وتأثيره على باقي التبويبات
+TAB-05 session timeout أثناء وجود أكثر من tab
+TAB-06 إنشاء record من tab وظهوره في tab آخر
+TAB-07 delete/archive من tab وانعكاسه على tab الآخر المفتوح
+TAB-08 duplicate modal/action execution من أكثر من tab
+TAB-09 filter state مختلف بين tabs لا يتداخل
+TAB-10 file upload from one tab while same record open elsewhere
+
+2) Clipboard / Copy-Paste / Data Entry Reality
+هذه تكشف defects عملية جدًا.
+CLIP-01 paste من Excel إلى text fields
+CLIP-02 paste multi-line content داخل single-line field
+CLIP-03 paste Arabic numerals vs English numerals
+CLIP-04 paste phone numbers with spaces/dashes/country code
+CLIP-05 paste rich text يحمل hidden formatting
+CLIP-06 paste leading/trailing spaces
+CLIP-07 paste emojis/symbols
+CLIP-08 paste huge paragraph في notes/comments
+CLIP-09 copy record ID/reference number
+CLIP-10 copy generated link and open in new session
+
+3) Keyboard Shortcut / Power User Scenarios
+إذا النظام فيه command palette أو keyboard-driven UX.
+KEY-01 Cmd/Ctrl+K opens global search
+KEY-02 Esc closes modal/drawer correctly
+KEY-03 Enter submits only where intended
+KEY-04 Shift+Enter creates newline in notes
+KEY-05 keyboard navigation in dropdowns
+KEY-06 tab/shift+tab across complex forms
+KEY-07 shortcut conflict inside browser input
+KEY-08 disabled actions not triggerable by keyboard
+KEY-09 shortcut behavior in Arabic input mode
+KEY-10 focus not lost after shortcut action
+
+4) Sorting Logic Edge Cases
+أكثر تعقيدًا مما يبدو.
+SORT-01 sort text with Arabic names
+SORT-02 sort mixed Arabic/English names
+SORT-03 sort numbers stored as strings
+SORT-04 sort null/blank values position
+SORT-05 sort dates with same timestamp
+SORT-06 sort status according to business order not alphabetic
+SORT-07 stable sort after pagination
+SORT-08 sort after filtering and refresh
+SORT-09 sort by calculated columns
+SORT-10 sort persistence after navigation back
+
+5) Form Layout / Conditional UI Logic
+FORMUI-01 hidden field appears when trigger value selected
+FORMUI-02 hidden field becomes mandatory only when shown
+FORMUI-03 changing parent value resets dependent fields safely
+FORMUI-04 previously entered hidden field value retained/cleared per rule
+FORMUI-05 readonly field populated automatically
+FORMUI-06 conditional section collapse/expand
+FORMUI-07 dynamic repeatable row add/remove
+FORMUI-08 form summary reflects dynamic changes immediately
+FORMUI-09 validation tied to hidden sections behaves correctly
+FORMUI-10 field help text/tooltips accurate
+
+6) Inline Edit / Quick Edit Scenarios
+إذا الجداول تدعم quick edit.
+INLINE-01 edit one cell and save
+INLINE-02 tab between editable cells
+INLINE-03 invalid value rejected inline
+INLINE-04 inline edit with dependent formula updates
+INLINE-05 inline edit permission differs from full form permission
+INLINE-06 cancel inline edit restores original value
+INLINE-07 inline edit with autosave behavior
+INLINE-08 concurrent inline edit by another user
+INLINE-09 bulk inline edits across rows
+INLINE-10 audit created for inline edits
+
+7) Table / Grid-Specific Scenarios
+GRID-01 resize column widths
+GRID-02 column hide/show
+GRID-03 sticky header behavior
+GRID-04 sticky first column if supported
+GRID-05 row selection across pages
+GRID-06 select all respects current filter only
+GRID-07 deselect some rows after select all
+GRID-08 grid horizontal scroll with many columns
+GRID-09 export reflects visible vs full columns per design
+GRID-10 row click vs checkbox click do not conflict
+
+8) Empty / Null / Unknown Business Data
+NULL-01 record with no owner
+NULL-02 record with no company but allowed
+NULL-03 no source selected
+NULL-04 null value in dashboard aggregation
+NULL-05 null close date in opportunity
+NULL-06 blank notes/comments
+NULL-07 unknown status from imported data
+NULL-08 missing attachment reference
+NULL-09 deleted related user shown as “inactive/deleted user”
+NULL-10 null values in exports/reports rendered consistently
+
+9) Reassignment / Queue Management
+QUEUE-01 assign record from user to queue
+QUEUE-02 assign from queue to user
+QUEUE-03 queue visibility by team
+QUEUE-04 auto-pick next unassigned record if supported
+QUEUE-05 record remains stuck in queue after failed assignment
+QUEUE-06 queue aging metrics
+QUEUE-07 bulk move between queues
+QUEUE-08 inactive queue handling
+QUEUE-09 reassignment reason mandatory if configured
+QUEUE-10 queue changes reflected in dashboard and reports
+
+10) Escalation / Exception Handling
+EXC-01 SLA breach triggers escalation once only
+EXC-02 escalation chain level 1 to level 2
+EXC-03 exception approval required before override
+EXC-04 manual override with justification
+EXC-05 exception closure after corrective action
+EXC-06 escalated item visible in needs-attention widgets
+EXC-07 escalated item reassignment rules
+EXC-08 duplicate escalations prevented
+EXC-09 escalation after status reopen
+EXC-10 escalation audit trail complete
+
+11) Entity Merge / Split Scenarios
+هذه مهمة جدًا في CRM.
+MERGE-01 merge duplicate leads
+MERGE-02 merge duplicate contacts
+MERGE-03 merge duplicate companies
+MERGE-04 choose winning record field values
+MERGE-05 preserve child links after merge
+MERGE-06 preserve audit/history after merge
+MERGE-07 merged-away record no longer editable
+MERGE-08 merge blocked when conflicts critical
+MERGE-09 unmerge unsupported path handled clearly
+MERGE-10 split mistakenly merged entities if feature exists
+
+12) Dependency / Cascade Rule Scenarios
+CASCADE-01 change company name reflected in linked views
+CASCADE-02 archive contact affects communication logs visibility
+CASCADE-03 contract expiration affects subscription status
+CASCADE-04 payment posting affects invoice, dashboard, account health
+CASCADE-05 lost opportunity stops downstream project creation
+CASCADE-06 deleting service affects bundle integrity
+CASCADE-07 disabling user affects assignment dropdowns
+CASCADE-08 parent record status closure affects child open records
+CASCADE-09 reopening parent re-enables child actions if designed
+CASCADE-10 rollback behavior if cascade partially fails
+
+13) Version Comparison / Revision History
+REV-01 open previous version of proposal/contract/deliverable
+REV-02 compare two versions side by side if supported
+REV-03 restore previous version
+REV-04 latest version clearly labeled
+REV-05 edits after approval generate new version not overwrite
+REV-06 version timestamps and authors correct
+REV-07 attachment version history preserved
+REV-08 deleted old version access rules
+REV-09 report/export uses correct active version
+REV-10 audit links version transitions clearly
+
+14) Approval Chain Complexity
+APRX-01 parallel approvals from multiple approvers
+APRX-02 sequential approvals in strict order
+APRX-03 one rejection ends whole chain
+APRX-04 partial approval awaits remaining approvers
+APRX-05 approver substitution during leave/absence
+APRX-06 approval reminder escalation
+APRX-07 approval chain changes after request already submitted
+APRX-08 approval canceled mid-process
+APRX-09 source record edited during pending approval
+APRX-10 final state sync after complex approval outcome
+
+15) Communication / Activity Timeline Integrity
+TIMELINE-01 all actions appear in correct chronological order
+TIMELINE-02 same-second events ordering deterministic
+TIMELINE-03 manual notes vs system actions clearly distinguished
+TIMELINE-04 edited note shows edited marker if required
+TIMELINE-05 deleted item preserved in audit but hidden in timeline per policy
+TIMELINE-06 timeline filter by type/user/date
+TIMELINE-07 related entity actions visible where intended
+TIMELINE-08 timeline export if supported
+TIMELINE-09 timeline after merge/reassignment remains coherent
+TIMELINE-10 timeline performance on high-activity record
+
+16) Advanced Attachments / File Lifecycle
+FILEX-01 same file uploaded twice intentionally
+FILEX-02 duplicate filename different content
+FILEX-03 rename attachment if supported
+FILEX-04 preview unsupported file type graceful fallback
+FILEX-05 broken attachment reference handling
+FILEX-06 attachment linked to wrong entity prevented
+FILEX-07 download permission after owner change
+FILEX-08 attachment available in exports/packages if required
+FILEX-09 archive parent record and file access policy
+FILEX-10 very large attachment list pagination/search
+
+17) Mobile-Like Narrow Layout Operational Scenarios
+حتى لو النظام desktop-first.
+NARROW-01 sidebar usable in small width
+NARROW-02 long form fields not clipped
+NARROW-03 table horizontal scroll still functional
+NARROW-04 sticky action buttons remain reachable
+NARROW-05 modal fits viewport
+NARROW-06 dropdown not cut off outside screen
+NARROW-07 charts readable in narrow layout
+NARROW-08 page header actions collapse correctly
+NARROW-09 attachment upload control usable
+NARROW-10 language switch in narrow mode
+
+18) “Back Button” and Navigation Memory
+NAV-01 browser back returns to previous filtered list
+NAV-02 back from detail returns same page number
+NAV-03 back after save shows updated list
+NAV-04 deep link open then back behavior safe
+NAV-05 multi-step wizard back button consistency
+NAV-06 back after delete/archive does not error
+NAV-07 forward button behavior stable
+NAV-08 route refresh preserves allowed state
+NAV-09 query parameter-driven views restore correctly
+NAV-10 unsaved changes warning on browser navigation
+
+19) Wizard / Multi-Step Process Scenarios
+إذا عندكم onboarding, quote builder, contract flow, approvals.
+WIZ-01 move next with valid data
+WIZ-02 cannot proceed with missing mandatory step data
+WIZ-03 move back retains entered values
+WIZ-04 skip step allowed only if configured
+WIZ-05 step indicator accuracy
+WIZ-06 save draft mid-wizard
+WIZ-07 refresh during wizard
+WIZ-08 role-based access to specific steps
+WIZ-09 step-level validation vs final validation
+WIZ-10 completion creates exactly one final record set
+
+20) Business Calendar / Working Hours Logic
+خاصة لـ SLA, tasks, support, onboarding.
+CAL-01 SLA counts business days only if required
+CAL-02 weekends excluded correctly
+CAL-03 public holidays excluded if configured
+CAL-04 due date pushed to next working day if required
+CAL-05 after-hours creation affects SLA start correctly
+CAL-06 timezone impact on business-hours calculations
+CAL-07 regional calendars by tenant/team
+CAL-08 business calendar config change effect on open items
+CAL-09 dashboard overdue counts reflect business-hours logic
+CAL-10 reports use same calendar logic as operational screens
+
+21) “Soft Failures” and Warning-Only Scenarios
+ليست errors كاملة لكن يجب ضبطها.
+WARN-01 duplicate suspected but user allowed to continue with warning
+WARN-02 invoice exceeds usual threshold warning
+WARN-03 lead missing optional but recommended fields warning
+WARN-04 user attempts close project with open tasks warning
+WARN-05 contract near expiry warning
+WARN-06 payment mismatch warning before submit
+WARN-07 archived related entity warning on old record open
+WARN-08 outdated draft warning before submit
+WARN-09 stale page data warning after long idle time
+WARN-10 unsynced calculated totals warning if recalculation pending
+
+22) Audit Completeness by Action Type
+هذه طبقة meta لكن مهمة جدًا.
+AUDMAP-01 every create action audited
+AUDMAP-02 every edit action audited
+AUDMAP-03 every delete/archive/restore audited
+AUDMAP-04 every permission change audited
+AUDMAP-05 every approval action audited
+AUDMAP-06 every export/download audited where required
+AUDMAP-07 every assignment/reassignment audited
+AUDMAP-08 every config change audited
+AUDMAP-09 every failed critical action audited where policy says so
+AUDMAP-10 every system automation action marked as system-generated
+
+23) Recalculation / Refresh Consistency
+RECALC-01 dashboard refresh after lead conversion
+RECALC-02 totals refresh after payment reversal
+RECALC-03 counts refresh after archive/restore
+RECALC-04 formulas refresh after owner reassignment
+RECALC-05 pipeline totals refresh after stage move
+RECALC-06 account health recalculates after ticket closure
+RECALC-07 overdue counters recalculate after due date edit
+RECALC-08 reports reflect recalculated values
+RECALC-09 stale cache does not show old metrics too long
+RECALC-10 recalculation failures surfaced clearly
+
+24) Progressive Disclosure / Complex Permissions UX
+PERMUX-01 user sees module but not all tabs inside it
+PERMUX-02 user sees record but not financial section
+PERMUX-03 user sees summary but cannot open details
+PERMUX-04 user can comment but not edit main record
+PERMUX-05 user can upload attachment but not delete it
+PERMUX-06 user can request approval but not approve
+PERMUX-07 UI hides unauthorized CTAs consistently
+PERMUX-08 API also enforces partial access boundaries
+PERMUX-09 export excludes restricted columns
+PERMUX-10 notification content does not reveal restricted fields
+
+25) Human Mistake Recovery Scenarios
+اختبارات مهمة جدًا بعد go-live.
+HM-01 user enters wrong owner and corrects it
+HM-02 user marks invoice paid by mistake and reverses it
+HM-03 user closes ticket/project accidentally and reopens
+HM-04 user uploads wrong file and replaces it
+HM-05 user assigns wrong client/contact then fixes relation
+HM-06 user duplicates record accidentally
+HM-07 user bulk-updates wrong set and needs rollback path
+HM-08 user deletes note/file by mistake
+HM-09 user submits approval request too early
+HM-10 user starts from wrong pipeline/stage and corrects later
+
+26) High-Volume Relationship Scenarios
+تكشف مشاكل scalability داخل UI أيضًا.
+HV-01 company with hundreds of contacts
+HV-02 company with hundreds of opportunities/projects/invoices
+HV-03 record with very long activity timeline
+HV-04 record with many attachments
+HV-05 dropdown with thousands of users/companies/services
+HV-06 dashboard with large date range aggregation
+HV-07 reports with high row counts
+HV-08 bulk selection over thousands of records
+HV-09 merge/reassignment on high-volume parent entity
+HV-10 export high-volume linked data
+
+27) Semantic / Naming / Label Integrity
+هذه ليست مجرد UI wording، لكنها تؤثر على الاختبار.
+LABEL-01 same status/field label used consistently across modules
+LABEL-02 button label matches actual action
+LABEL-03 “delete” vs “archive” clearly differentiated
+LABEL-04 financial labels use exact business meaning
+LABEL-05 translated labels preserve intent
+LABEL-06 error messages mention correct field/module
+LABEL-07 notification wording reflects true state
+LABEL-08 audit action names understandable to business users
+LABEL-09 report headers match source fields
+LABEL-10 dashboard KPIs named consistently with reports
+
+28) Trust / Explainability Scenarios
+مفيدة خاصة لو عندكم scoring, health, ranking, automation.
+EXPLAIN-01 lead score shows why value was assigned
+EXPLAIN-02 account health explains drivers
+EXPLAIN-03 top performer metric understandable
+EXPLAIN-04 auto-assignment reason visible if designed
+EXPLAIN-05 escalation reason traceable
+EXPLAIN-06 approval path visible to user
+EXPLAIN-07 dashboard KPI drill-down available
+EXPLAIN-08 derived financial totals explainable
+EXPLAIN-09 notification reason understandable
+EXPLAIN-10 automated status change not appearing “mysterious” to user
+
+
+
+phase 5
+
+Feature Interaction Scenarios
+ليست فقط اختبار كل feature وحدها، بل ماذا يحدث عندما تتفاعل ميزتان مع بعض.
+INTX-01 تغيير language أثناء فتح modal
+INTX-02 تغيير dark/light mode أثناء editing
+INTX-03 تغيير role/permission لمستخدم وهو logged in
+INTX-04 تغيير tenant settings أثناء وجود records مفتوحة
+INTX-05 تغيير pipeline config أثناء وجود opportunities داخلها
+INTX-06 تغيير numbering settings أثناء إنشاء quote/invoice
+INTX-07 archive user ثم محاولة استخدامه في dropdown مفتوح مسبقًا
+INTX-08 تعديل master service أثناء وجود quotation draft مبني عليها
+INTX-09 تعطيل module بينما المستخدم داخله
+INTX-10 تغيير date range global filter أثناء تحميل widgets
+
+2) Session State Drift
+حالات النظام عندما تكون الجلسة ما زالت مفتوحة لكن الواقع الخلفي تغيّر.
+SSD-01 صلاحية المستخدم تغيرت أثناء الجلسة
+SSD-02 record deleted by another user while still open
+SSD-03 record permissions revoked while detail page open
+SSD-04 tenant deactivated while user inside app
+SSD-05 module access removed while tab still loaded
+SSD-06 session renewed silently and pending form still works
+SSD-07 stale CSRF/token state if applicable
+SSD-08 old page cache after deployment
+SSD-09 stale dashboard data vs refreshed list data
+SSD-10 unsaved form based on outdated reference data
+
+3) Data Shape Variability
+أشكال البيانات غير المعتادة.
+SHAPE-01 company with one-letter name
+SHAPE-02 company with extremely long legal name
+SHAPE-03 names with apostrophes / slashes / brackets
+SHAPE-04 Arabic-only address
+SHAPE-05 English-only address
+SHAPE-06 mixed-script contact fields
+SHAPE-07 emoji in optional note field
+SHAPE-08 very large numeric values
+SHAPE-09 decimal values with many places
+SHAPE-10 zero / null / blank / undefined-like states handled distinctly
+
+4) Duplicate Detection Quality
+ليس فقط هل يوجد duplicate check، بل هل هو ذكي وصحيح.
+DUPQ-01 exact duplicate by email
+DUPQ-02 duplicate by normalized phone
+DUPQ-03 duplicate by company domain
+DUPQ-04 duplicate by same name with different spelling
+DUPQ-05 false positive duplicate avoided
+DUPQ-06 Arabic vs English transliteration duplicates
+DUPQ-07 duplicate warning across archived records
+DUPQ-08 duplicate detection during import
+DUPQ-09 duplicate detection during API create
+DUPQ-10 allowed duplicate with justification flow if supported
+
+5) Reference Integrity Under Change
+عندما تتغير البيانات المرجعية بعد استخدام السجلات لها.
+REFINT-01 rename service after linked proposals exist
+REFINT-02 deactivate user role after assignments exist
+REFINT-03 remove pipeline stage used by historical records
+REFINT-04 rename campaign after leads already linked
+REFINT-05 change tax settings after invoices issued
+REFINT-06 change timezone after tasks already scheduled
+REFINT-07 change currency display settings after old invoices
+REFINT-08 remove category value used in old tickets
+REFINT-09 rename company linked to contracts/projects/invoices
+REFINT-10 rename status labels without breaking reporting buckets
+
+6) Cross-Module Visibility Consistency
+هل نفس البيانات تظهر بنفس المنطق في كل مكان.
+VIS-01 lead source same in detail/list/dashboard/report
+VIS-02 opportunity value same in pipeline/card/report/export
+VIS-03 invoice status same in invoice page/company 360/dashboard
+VIS-04 task overdue same in task list and dashboard widget
+VIS-05 contact owner same in contact view and company view
+VIS-06 account health same in account page and report
+VIS-07 approval status same in source record and approval inbox
+VIS-08 archived state same across related modules
+VIS-09 company counts match child module listings
+VIS-10 reopened record reflected everywhere without delay mismatch
+
+7) Data Freshness / Cache Invalidation
+مهمة جدًا في الأنظمة الحديثة.
+CACHE-01 save record and reopen list shows updated data immediately
+CACHE-02 dashboard invalidates cached KPI after payment
+CACHE-03 filter results not showing stale rows
+CACHE-04 switching tenants clears old cached data
+CACHE-05 logout/login as another user does not leak previous cached data
+CACHE-06 attachment list refresh after upload/delete
+CACHE-07 audit log refresh after critical action
+CACHE-08 stale browser local storage handled safely
+CACHE-09 search index delay communicated properly if exists
+CACHE-10 report generation not using outdated aggregates
+
+8) Retry + Timeout User Experience
+ليست فقط duplicate protection، بل ماذا يرى المستخدم.
+UXRT-01 spinner ends with clear timeout message
+UXRT-02 retry button retries safely once
+UXRT-03 timeout during save tells whether action completed or not
+UXRT-04 user can safely refresh after timeout
+UXRT-05 long-running export provides progress or status
+UXRT-06 timeout during payment does not confuse paid/unpaid state
+UXRT-07 timeout during approval shows final actual status clearly
+UXRT-08 timeout during upload allows safe retry
+UXRT-09 timeout during bulk action returns partial summary
+UXRT-10 repeated retries do not create user confusion or duplicates
+
+9) Record Identity / Canonical Linking
+كل سجل يجب أن يكون له هوية واضحة ومستقرة.
+ID-01 unique ID generated once and never changes
+ID-02 reference number displayed consistently
+ID-03 copied URL always opens same record
+ID-04 merged records redirect old IDs safely if supported
+ID-05 archived record link behavior defined
+ID-06 deleted record link gives safe not-found message
+ID-07 duplicated record gets new distinct identity
+ID-08 imported record mapping preserves external reference
+ID-09 search by ID/reference works exactly
+ID-10 audit/history always tied to correct record identity
+
+10) Human Workflow Interruptions
+سلوك المستخدم الحقيقي عندما ينقطع في منتصف العمل.
+HWI-01 user starts lead creation then leaves tab idle for hours
+HWI-02 user starts quote then switches to other module and comes back
+HWI-03 user opens approval then gets session timeout before decision
+HWI-04 user starts upload then changes page accidentally
+HWI-05 user loses network mid-wizard then reconnects
+HWI-06 user closes laptop and resumes later
+HWI-07 browser restores previous session tabs
+HWI-08 unfinished bulk action after refresh
+HWI-09 draft reopened after config change
+HWI-10 interrupted process resumes without corrupting state
+
+11) Safe Failure Boundaries
+ماذا يحدث عندما يفشل جزء من العملية وليس كلها.
+SAFEFAIL-01 attachment fails but record saves
+SAFEFAIL-02 record saves but notification fails
+SAFEFAIL-03 approval completes but dashboard refresh delayed
+SAFEFAIL-04 import partially succeeds with detailed failed rows
+SAFEFAIL-05 bulk update mixed outcome summary accurate
+SAFEFAIL-06 PDF generation fails but quote still exists
+SAFEFAIL-07 audit write failure handled safely if applicable
+SAFEFAIL-08 external sync failure does not corrupt local record
+SAFEFAIL-09 search indexing delay after create does not imply lost record
+SAFEFAIL-10 user sees exact next step after partial failure
+
+12) Tenant Lifecycle Scenarios
+أعمق من tenant isolation فقط.
+TENLIFE-01 create new tenant with defaults
+TENLIFE-02 tenant branding applied everywhere
+TENLIFE-03 tenant admin edits configuration
+TENLIFE-04 tenant module enable/disable
+TENLIFE-05 tenant user limit reached if applicable
+TENLIFE-06 tenant suspension blocks access safely
+TENLIFE-07 tenant reactivation restores access correctly
+TENLIFE-08 tenant export/back-up if supported
+TENLIFE-09 tenant deletion/archive policy
+TENLIFE-10 tenant-level audit completeness
+
+13) Knowledge / Help / Guidance Scenarios
+إذا في tooltips, empty-state guidance, docs links, onboarding hints.
+HELP-01 empty state CTA opens correct create flow
+HELP-02 tooltip text matches actual rule
+HELP-03 help links open correct article/page
+HELP-04 validation message instructs actual fix
+HELP-05 onboarding hints disappear when completed if designed
+HELP-06 contextual help changes by role
+HELP-07 no broken help links
+HELP-08 help text translated correctly
+HELP-09 admin help not shown to end users if inappropriate
+HELP-10 inline guidance does not overlap fields in Arabic/RTL
+
+14) Business Rule Collision Scenarios
+عندما يوجد أكثر من rule ينطبق على نفس الحالة.
+COLLIDE-01 duplicate rule + mandatory field rule together
+COLLIDE-02 SLA breach + closed status at same moment
+COLLIDE-03 approval pending + owner reassignment
+COLLIDE-04 archive request + active child records
+COLLIDE-05 invoice overdue + payment posted simultaneously
+COLLIDE-06 auto-assignment rule + manual assignment conflict
+COLLIDE-07 reopened ticket + old escalation state
+COLLIDE-08 feature flag off + saved old record needing edit
+COLLIDE-09 role change + pending approval ownership
+COLLIDE-10 multiple warnings/errors priority shown correctly
+
+15) User Trust / Confidence Scenarios
+هل النظام يجعل المستخدم واثقًا فيما حدث.
+TRUST-01 success message clearly states what was saved
+TRUST-02 record ID/reference shown after create
+TRUST-03 no false success when backend action failed
+TRUST-04 final status obvious after approval/rejection
+TRUST-05 dashboard numbers explainable by drill-down
+TRUST-06 bulk action summary specific and complete
+TRUST-07 deleted vs archived distinction visible
+TRUST-08 payment confirmation clearly tied to invoice and amount
+TRUST-09 export result clearly indicates scope and filter applied
+TRUST-10 user can verify critical action through history/audit easily
+
+16) Cross-Team Operational Scenarios
+عندما تعمل فرق مختلفة على نفس السجل عبر الزمن.
+TEAM-01 sales creates lead then support opens ticket later
+TEAM-02 finance issues invoice on company created by sales
+TEAM-03 project manager receives won opportunity handoff
+TEAM-04 approval by manager affects finance action availability
+TEAM-05 admin deactivates user owning open sales records
+TEAM-06 marketing campaign creates leads consumed by sales
+TEAM-07 support resolution affects account health for account manager
+TEAM-08 contract expiry triggers action for both sales and finance
+TEAM-09 reassignment across departments preserves history
+TEAM-10 reports segmented correctly by department role
+
+17) Import/Export Fidelity Scenarios
+أعمق من مجرد “الملف نزل أو طلع”.
+FID-01 exported totals match visible UI totals exactly
+FID-02 exported dates preserve timezone/date meaning
+FID-03 Arabic text not corrupted in CSV/XLS
+FID-04 re-import exported file behaves correctly
+FID-05 hidden/internal fields excluded from export
+FID-06 numeric precision preserved in export/import cycle
+FID-07 line breaks in notes exported safely
+FID-08 attachments references represented correctly if exported
+FID-09 filtered export exactly matches filter scope
+FID-10 template import/export versions compatible
+
+18) Historical Meaning Preservation
+ليس فقط history موجود، بل هل معناه محفوظ.
+HMEAN-01 old invoice still interpretable after tax config changes
+HMEAN-02 old pipeline stage shown meaningfully after stage rename
+HMEAN-03 old owner shown correctly even if user deleted/deactivated
+HMEAN-04 historical dashboard/report logic stable per policy
+HMEAN-05 timeline entries understandable after module wording changes
+HMEAN-06 audit keeps old/new values readable
+HMEAN-07 merged record history still understandable
+HMEAN-08 imported legacy statuses mapped transparently
+HMEAN-09 archived category values still readable in old records
+HMEAN-10 historical attachments remain traceable to event context
+
+19) Sensitive Field Handling
+مفيدة لو يوجد أسعار، خصومات، internal notes، payment refs.
+SENS-01 restricted fields hidden in list but visible in detail for allowed role
+SENS-02 restricted fields masked in exports where needed
+SENS-03 restricted fields excluded from notifications
+SENS-04 internal note not visible to non-authorized roles
+SENS-05 payment reference visible only to finance roles if designed
+SENS-06 margin/profit fields hidden from non-privileged roles
+SENS-07 sensitive values not exposed in browser tooltips accidentally
+SENS-08 audit log masks sensitive old/new values if policy requires
+SENS-09 PDF/print output excludes restricted fields
+SENS-10 search does not leak sensitive field matches to unauthorized users
+
+20) Business Sanity Scenarios
+هذه ليست technical فقط، بل sanity checks على منطق النظام.
+SANITY-01 cannot have paid invoice with zero payments unless rule allows
+SANITY-02 won opportunity without required company/contact blocked
+SANITY-03 closed project with open mandatory deliverables blocked or warned
+SANITY-04 healthy account cannot simultaneously show critical unresolved flags unless explained
+SANITY-05 conversion rate cannot exceed logical bounds
+SANITY-06 negative balance/status combinations blocked unless valid business case
+SANITY-07 overdue count cannot be negative or inconsistent
+SANITY-08 top performer ranking handles ties logically
+SANITY-09 archived user cannot appear as active performer
+SANITY-10 dashboard zeros and reports zeros remain consistent in empty tenant
+
+21) Release / Regression Safety Scenarios
+مهمة إذا النظام يتطور بسرعة.
+RELSAFE-01 existing records remain editable after new field addition
+RELSAFE-02 old workflows still function after new stage added
+RELSAFE-03 reports not broken by config/schema update
+RELSAFE-04 dashboard widgets still load after feature release
+RELSAFE-05 old URLs/bookmarks still work after navigation changes
+RELSAFE-06 old exports/import templates compatibility
+RELSAFE-07 permissions not reset unexpectedly after deployment
+RELSAFE-08 historical data untouched after migration
+RELSAFE-09 custom tenant config preserved after release
+RELSAFE-10 smoke pack for critical journey passes post-release
+
+22) Observability / Supportability Scenarios
+مهمة جدًا لفريق التشغيل والدعم.
+OBS-01 user-facing error has traceable backend log/correlation ID if supported
+OBS-02 failed job visible to admin/support
+OBS-03 stuck approval/workflow identifiable
+OBS-04 admin can locate exact record by ID/reference quickly
+OBS-05 system-generated actions clearly tagged
+OBS-06 support can distinguish UI error vs permission vs validation
+OBS-07 retryable failures identifiable
+OBS-08 audit and operational logs tell one coherent story
+OBS-09 no silent failures in critical flows
+OBS-10 support tools do not violate tenant boundaries
+
+23) Psychological UX Scenarios
+هذه زاوية مختلفة لكن مهمة في CRM adoption.
+PSY-01 destructive action clearly asks confirmation
+PSY-02 confirmation text names the exact record being affected
+PSY-03 risky bulk action warns with count and scope
+PSY-04 cancel button does not look like submit button
+PSY-05 success toasts do not disappear too quickly for critical actions
+PSY-06 error messages not overly technical
+PSY-07 warning severity visually distinct from error severity
+PSY-08 dashboard empty tenant feels intentional not broken
+PSY-09 loading states reassure user during long operations
+PSY-10 reopened/archived/deleted actions feel clearly differentiated
+
+24) End-to-End Reversal Scenarios
+ليس فقط forward flow، بل reverse flow.
+REVFLOW-01 create quote then cancel it
+REVFLOW-02 issue invoice then void/cancel it
+REVFLOW-03 mark payment then reverse/unapply it
+REVFLOW-04 close ticket then reopen
+REVFLOW-05 archive record then restore
+REVFLOW-06 approve item then amend requiring new approval
+REVFLOW-07 assign owner then reassign multiple times
+REVFLOW-08 convert lead then handle post-conversion correction
+REVFLOW-09 merge duplicate then manage references to old record
+REVFLOW-10 rollback from incorrect bulk action if supported
+
+25) Meta-Coverage Scenarios
+هذه لا تختبر feature بل اكتمال التغطية نفسها.
+META2-01 every module has create/read/update/archive coverage
+META2-02 every module has permission coverage
+META2-03 every module has search/filter/sort/export coverage
+META2-04 every critical action has audit coverage
+META2-05 every KPI has reconciliation source
+META2-06 every workflow status has allowed transition matrix
+META2-07 every integration point has failure scenario
+META2-08 every bulk action has mixed-result scenario
+META2-09 every feature with config has default-change scenario
+META2-10 every critical journey has smoke + regression + UAT variant
+
+
+phase 6
+1) Data Ownership Semantics
+ليس فقط owner field، بل معنى الملكية نفسه.
+OWNX-01 record owner visible but not editable
+OWNX-02 co-owner / secondary owner behavior if supported
+OWNX-03 team ownership vs individual ownership
+OWNX-04 owner removed from tenant/company/team
+OWNX-05 owner transfer preserves SLA/accountability
+OWNX-06 record with temporary unassigned ownership
+OWNX-07 ownership affects dashboards instantly
+OWNX-08 ownership affects approvals/routing correctly
+OWNX-09 ownership affects notifications correctly
+OWNX-10 historical owner preserved in audit/timeline
+
+2) SLA Pause / Resume Logic
+كثير من الأنظمة تختبر SLA breach فقط وتنسى pause/resume.
+SLA-PR-01 SLA pauses on waiting-for-client status
+SLA-PR-02 SLA resumes after client response
+SLA-PR-03 multiple pause/resume cycles calculate correctly
+SLA-PR-04 paused SLA not counted as overdue
+SLA-PR-05 manual pause allowed only for authorized roles
+SLA-PR-06 pause reason mandatory if configured
+SLA-PR-07 timeline/audit shows pause and resume events
+SLA-PR-08 dashboard overdue widget respects paused items
+SLA-PR-09 reports distinguish paused vs active SLA
+SLA-PR-10 status reopened after pause resumes correctly
+
+3) Notification Fatigue / Deduping Logic
+ليس فقط “notification وصلت”، بل هل النظام مزعج أو ذكي.
+NFD-01 repeated same event produces one notification only
+NFD-02 bulk action creates summary notification not 100 separate alerts
+NFD-03 rapid record edits deduped into sensible notification flow
+NFD-04 read state preserved after refresh/relogin
+NFD-05 muted module/user preference suppresses correctly
+NFD-06 digest mode vs instant mode behavior
+NFD-07 notification count not inflated by duplicates
+NFD-08 escalated notification not duplicated across channels unnecessarily
+NFD-09 old resolved alerts no longer shown as actionable
+NFD-10 notification center ordering remains meaningful under high volume
+
+4) Dashboard Trustworthiness
+ليست فقط accuracy، بل هل المستخدم يثق بالداشبورد.
+DTRUST-01 KPI has clear drill-down source
+DTRUST-02 dashboard timestamp / last updated visible if applicable
+DTRUST-03 no KPI shown without data basis
+DTRUST-04 stale KPI clearly identified if refresh pending
+DTRUST-05 conflicting KPIs not shown without explanation
+DTRUST-06 empty widget feels intentional not broken
+DTRUST-07 widget value consistent after hard refresh
+DTRUST-08 dashboard and report totals align after date change
+DTRUST-09 widget legends and labels business-meaningful
+DTRUST-10 user can verify number origin through click-through
+
+5) Cross-Record Dependency Blocking
+متى يجب منع العملية بسبب dependency حيّة.
+DEPBLK-01 cannot close project with open mandatory tasks
+DEPBLK-02 cannot archive company with active contracts
+DEPBLK-03 cannot delete service used in active bundles
+DEPBLK-04 cannot mark onboarding complete with missing documents
+DEPBLK-05 cannot close ticket with pending approval if rule exists
+DEPBLK-06 cannot void invoice with posted payment unless reversal first
+DEPBLK-07 cannot deactivate user owning approval queue unless reassigned
+DEPBLK-08 cannot move opportunity to won without required data
+DEPBLK-09 cannot finalize proposal without attached mandatory quotation/services
+DEPBLK-10 blocking message clearly states unmet dependency
+
+6) Reopen Semantics
+إعادة الفتح ليست سيناريو واحد فقط.
+REOPEN-01 reopen closed lead resets only allowed fields
+REOPEN-02 reopen ticket restores SLA correctly
+REOPEN-03 reopen project reactivates pending actions as designed
+REOPEN-04 reopen invoice/quote/approval only by authorized role
+REOPEN-05 reopened record clearly marked in timeline
+REOPEN-06 reopened record re-enters dashboard widgets correctly
+REOPEN-07 reopen reason mandatory if configured
+REOPEN-08 reopen after archival interacts correctly with restore flow
+REOPEN-09 reopen does not duplicate child tasks/notifications
+REOPEN-10 reports distinguish reopened cases if required
+
+7) Workflow Freeze / Lock States
+بعض الحالات يجب أن تصبح locked.
+LOCK-01 approved contract becomes read-only except allowed fields
+LOCK-02 paid invoice cannot be edited except through controlled reversal
+LOCK-03 rejected approval request locked until resubmission path used
+LOCK-04 completed onboarding locks checklist/history
+LOCK-05 won/lost opportunity lock behavior enforced
+LOCK-06 closed project locks financial/service scope changes
+LOCK-07 archived records locked from normal edits
+LOCK-08 locked record still viewable by authorized roles
+LOCK-09 lock message explains why record is locked
+LOCK-10 API also enforces lock rules
+
+8) Warning Quality Scenarios
+ليس فقط وجود warning، بل جودته.
+WQ-01 warning appears before destructive action
+WQ-02 warning mentions exact impacted record count
+WQ-03 warning distinguishes between soft warning and hard error
+WQ-04 warning allows safe cancel path
+WQ-05 warning not shown redundantly every trivial time
+WQ-06 warning text business-clear in Arabic and English
+WQ-07 warning scope matches actual impact
+WQ-08 warning for partial bulk failure understandable
+WQ-09 warning persists long enough for user to read
+WQ-10 warning not shown after action already successfully completed
+
+9) Background Reconciliation / Repair Logic
+أنظمة كثيرة فيها hidden repair jobs أو recalculation passes.
+REPAIR-01 system recalculates broken counters after manual fix
+REPAIR-02 orphan child records flagged or repaired safely
+REPAIR-03 missing dashboard aggregates restored after background job
+REPAIR-04 stale search index repaired after rebuild
+REPAIR-05 failed notification queue reprocessed without duplicates
+REPAIR-06 failed document generation retried safely
+REPAIR-07 background repair logged/audited if critical
+REPAIR-08 repaired record visible correctly post-fix
+REPAIR-09 repair job tenant-scoped correctly
+REPAIR-10 repair does not alter historical truth unexpectedly
+
+10) Business Explanation Messages
+مهمة في CRM المعقّد حتى لا يشعر المستخدم أن النظام “غامض”.
+BEXP-01 lead score explanation visible
+BEXP-02 account health explanation visible
+BEXP-03 overdue reason visible
+BEXP-04 approval rejection reason clear and retrievable
+BEXP-05 blocked transition explanation specific
+BEXP-06 auto-assignment explanation visible if designed
+BEXP-07 lost/won reason visible in history/report
+BEXP-08 reopened status explanation available
+BEXP-09 risk/attention flags explainable
+BEXP-10 KPI wording matches business meaning, not technical jargon
+
+11) Partial Visibility in Composite Screens
+مثل Company 360 أو dashboards أو record detail tabs.
+PVIS-01 user can open company page but not finance tab
+PVIS-02 user sees task summary but not task details
+PVIS-03 user sees invoice count but not invoice amounts
+PVIS-04 user sees approval badge but cannot open approval history
+PVIS-05 hidden section does not leave blank broken layout
+PVIS-06 partial permissions reflected consistently in export/print
+PVIS-07 notification from restricted section reveals no hidden data
+PVIS-08 search result preview respects restricted fields
+PVIS-09 related-record counters hide unauthorized underlying data safely
+PVIS-10 dashboard composite cards obey section-level permissions
+
+12) Sequence Integrity Under Failure
+أعمق من numbering alone.
+SEQF-01 two concurrent invoice creates do not share same number
+SEQF-02 failed save after number reservation handled per policy
+SEQF-03 rollback after timeout does not duplicate number
+SEQF-04 imported historical numbers do not clash with future numbering
+SEQF-05 restored archived/deleted record retains original number
+SEQF-06 numbering preview vs final assigned number consistency
+SEQF-07 tenant numbering gap behavior as expected
+SEQF-08 document regeneration does not create new number unintentionally
+SEQF-09 cloned record gets new number not reused old one
+SEQF-10 numbering remains stable across release/migration
+
+13) High-Latency User Experience
+خصوصًا لو النظام سيُستخدم على VPN أو شبكة ضعيفة.
+LAT-01 slow load still shows usable skeleton/loading guidance
+LAT-02 user cannot accidentally submit twice during latency
+LAT-03 long-running search gives feedback not frozen UI
+LAT-04 delayed dropdown lookup remains usable
+LAT-05 delayed save ends with clear final state
+LAT-06 delayed dashboard widgets load independently
+LAT-07 latency does not break modal close/reopen behavior
+LAT-08 user can safely cancel where allowed
+LAT-09 delayed file upload gives progress or clear wait state
+LAT-10 delayed reports/exports do not appear as failed prematurely
+
+14) Cross-Environment Data Meaning
+إذا يوجد dev/test/prod-like environments.
+XENV-01 seeded demo data clearly distinguishable from real data
+XENV-02 migrated config behaves same between environments
+XENV-03 report totals meaning same across environments with same dataset
+XENV-04 language packs consistent across environments
+XENV-05 permissions/config flags not drifting silently
+XENV-06 environment-specific URLs/templates safe
+XENV-07 test emails/notifications not sent as real production-like ones if restricted
+XENV-08 document branding correct per environment
+XENV-09 tenant settings imported/exported safely between environments if supported
+XENV-10 environment mismatch not causing false QA results
+
+15) Record Lifecycle Completeness
+كل record type له lifecycle واضح من البداية للنهاية.
+LIFE2-01 record can start only in valid initial state
+LIFE2-02 every state has at least one valid next state or is terminal
+LIFE2-03 terminal state clearly marked
+LIFE2-04 terminal state edit/reopen rules defined
+LIFE2-05 archived state interplay with lifecycle defined
+LIFE2-06 canceled/voided state distinct from closed/completed
+LIFE2-07 reports count lifecycle states correctly
+LIFE2-08 filters/grouping by lifecycle state coherent
+LIFE2-09 lifecycle shown consistently in detail/list/timeline/dashboard
+LIFE2-10 invalid lifecycle combinations impossible or flagged
+
+16) Admin Override Scenarios
+مهمة جدًا في enterprise CRM.
+OVR-01 admin override allowed only to designated role
+OVR-02 override requires reason
+OVR-03 override logged distinctly from normal action
+OVR-04 override triggers notification if policy requires
+OVR-05 overridden record marked clearly in UI/history
+OVR-06 override does not silently bypass financial/audit controls
+OVR-07 override on locked record handled explicitly
+OVR-08 override reportability if compliance requires
+OVR-09 API/manual backend path also respects override rules
+OVR-10 override reversible only as designed
+
+17) Silent Data Corruption Prevention
+هذه من أخطر الزوايا.
+CORR-01 edit one field does not unexpectedly clear another hidden field
+CORR-02 changing parent entity does not detach unrelated children
+CORR-03 save draft does not overwrite approved version
+CORR-04 recalculation does not mutate historical amount unintentionally
+CORR-05 import update does not null untouched valid fields unexpectedly
+CORR-06 role/config change does not rewrite record content
+CORR-07 merge does not lose activity/history references
+CORR-08 export/import roundtrip does not alter record meaning
+CORR-09 archive/restore does not reset ownership/status unintentionally
+CORR-10 background jobs do not silently modify active records without trace
+
+18) User Education / Discoverability
+ليست help links فقط، بل هل المستخدم يعرف ماذا يفعل.
+DISC-01 first-time user can find create action easily
+DISC-02 empty states guide next logical step
+DISC-03 advanced actions not accidentally more prominent than safe actions
+DISC-04 hidden critical dependencies discoverable before submit
+DISC-05 tooltip/help icon available where rules are non-obvious
+DISC-06 validation errors point user to exact field/tab
+DISC-07 wizard progress understandable
+DISC-08 dashboard cards clearly actionable or informational
+DISC-09 module naming aligns with business vocabulary
+DISC-10 user can understand consequences before destructive/bulk action
+
+19) Data Confidence Recovery
+ماذا يحدث عندما يشك المستخدم أن الرقم أو الحالة غير صحيحة.
+CONF-01 user can refresh/recalculate safely
+CONF-02 user can trace KPI to underlying records
+CONF-03 user can view history of status/value changes
+CONF-04 user can identify source of mismatch through report/drilldown
+CONF-05 stale data warning if record open too long
+CONF-06 support/admin can verify same record independently
+CONF-07 dashboard/report mismatch surfaced clearly if known delay exists
+CONF-08 user can confirm whether save succeeded after flaky network
+CONF-09 duplicate prevention messages clarify whether record already exists
+CONF-10 finance/payment actions give strong confirmation trail
+
+20) Degraded Mode Scenarios
+إذا جزء من النظام غير متاح لكن الباقي يعمل.
+DEG-01 notifications subsystem unavailable but core CRUD still works
+DEG-02 document generation unavailable but quotation saved
+DEG-03 dashboard widgets partially unavailable without whole page crash
+DEG-04 search degraded but direct navigation/detail view still works
+DEG-05 attachment preview unavailable but download works
+DEG-06 external integration down but local record preserved
+DEG-07 report generation delayed while operational screens work
+DEG-08 lookup service slow/down but cached selections remain viewable
+DEG-09 degraded component clearly messaged to user
+DEG-10 recovery from degraded mode does not create duplicate backlog actions
+
+21) Bulk Undo / Recovery Paths
+حتى لو undo غير مدعوم، يجب اختبار الواقع.
+BUNDO-01 wrong bulk assignment recovery path
+BUNDO-02 wrong bulk status update recovery path
+BUNDO-03 wrong bulk archive restore path
+BUNDO-04 partial bulk failure user guidance
+BUNDO-05 bulk action summary retained for audit/support
+BUNDO-06 bulk action on filtered dataset traceable afterward
+BUNDO-07 bulk operation rollback if supported
+BUNDO-08 repeated bulk retry after timeout safe
+BUNDO-09 bulk export used to verify impact after action
+BUNDO-10 support/admin can identify affected records from bulk run
+
+22) Compliance-by-Design Scenarios
+إذا تريد CRM بمستوى مؤسسي حقيقي.
+CBD-01 sensitive actions require stronger confirmation or approval
+CBD-02 restricted fields never exposed via export/notification/search preview
+CBD-03 audit covers who/when/what/why for critical changes
+CBD-04 retention policy respected in UI and backend behavior
+CBD-05 legal/business holds override purge where applicable
+CBD-06 user deactivation does not erase historical accountability
+CBD-07 masked values remain masked across print/PDF/export
+CBD-08 tenant-specific compliance config respected
+CBD-09 admin/support diagnostic tools do not bypass compliance invisibly
+CBD-10 compliance-relevant events easy to report/filter
+
+23) Record Cloning Quality
+النسخ ليس مجرد duplicate.
+CLONE-01 clone allowed fields only
+CLONE-02 unique identifiers not copied
+CLONE-03 child records copied or not copied per rule
+CLONE-04 attachments copied or referenced per policy
+CLONE-05 financial statuses not inherited incorrectly
+CLONE-06 archived/closed source cloned safely
+CLONE-07 clone from template-like record works
+CLONE-08 audit distinguishes clone-from vs manual create
+CLONE-09 clone opens in editable draft mode if designed
+CLONE-10 clone does not carry hidden stale metadata incorrectly
+
+24) Search Trust & Explainability
+البحث ليس فقط performance.
+STRUST-01 user understands why top result appeared if ranking matters
+STRUST-02 exact ID search beats fuzzy text matches
+STRUST-03 archived vs active results visually distinct
+STRUST-04 unauthorized matches not hinted through counts/previews
+STRUST-05 no duplicate near-identical results unless justified
+STRUST-06 filters visibly applied to search result set
+STRUST-07 recently changed record searchable as expected
+STRUST-08 search result click opens correct tab/context
+STRUST-09 misspelling tolerance does not create dangerous false positives
+STRUST-10 Arabic normalization/search behavior business-acceptable
+
+25) End-State Sanity Scenarios
+بعد كل العمليات، هل النظام منطقي؟
+END-01 tenant with no data behaves cleanly everywhere
+END-02 heavily used tenant still coherent across counts/history/reports
+END-03 archived-heavy tenant still searchable/reportable correctly
+END-04 reopened/reversed/restored records remain logically consistent
+END-05 inactive users removed from operational flows but preserved historically
+END-06 mixed old/new config records remain interpretable
+END-07 dashboard/report/export all tell same business story
+END-08 critical entities have no impossible combinations
+END-09 support/admin can trace any problematic lifecycle
+END-10 no hidden “ghost records” appearing only in some screens
+
+
+

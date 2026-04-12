@@ -33,18 +33,6 @@ interface ExpenseFormDialogProps {
   defaultValues?: Partial<ExpenseFormData>
 }
 
-// Static expense categories — no dedicated API endpoint exists
-const EXPENSE_CATEGORIES = [
-  { id: 'travel', name: 'Travel' },
-  { id: 'software', name: 'Software & Tools' },
-  { id: 'hardware', name: 'Hardware' },
-  { id: 'office', name: 'Office Supplies' },
-  { id: 'marketing', name: 'Marketing' },
-  { id: 'utilities', name: 'Utilities' },
-  { id: 'meals', name: 'Meals & Entertainment' },
-  { id: 'professional', name: 'Professional Services' },
-  { id: 'other', name: 'Other' },
-]
 
 export function ExpenseFormDialog({ open, onOpenChange, defaultValues }: ExpenseFormDialogProps) {
   const t = useTranslations('expenses')
@@ -57,6 +45,13 @@ export function ExpenseFormDialog({ open, onOpenChange, defaultValues }: Expense
     enabled: open,
   })
   const projects = projectsResponse?.data ?? []
+
+  const { data: categoriesResponse } = useQuery({
+    queryKey: ['expense-categories'],
+    queryFn: () => fetch('/api/expense-categories').then(r => r.json()),
+    enabled: open,
+  })
+  const expenseCategories: { id: string; name: string }[] = categoriesResponse?.data ?? []
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
@@ -112,7 +107,7 @@ export function ExpenseFormDialog({ open, onOpenChange, defaultValues }: Expense
               <Label>{t('category')} *</Label>
               <select {...register('categoryId')} className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                 <option value="">Select category...</option>
-                {EXPENSE_CATEGORIES.map(c => (
+                {expenseCategories.map(c => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
@@ -134,7 +129,9 @@ export function ExpenseFormDialog({ open, onOpenChange, defaultValues }: Expense
                 <option value="CREDIT_CARD">Credit Card</option>
                 <option value="BANK_TRANSFER">Bank Transfer</option>
                 <option value="CASH">Cash</option>
-                <option value="PETTY_CASH">Petty Cash</option>
+                <option value="CHECK">Check</option>
+                <option value="ONLINE">Online</option>
+                <option value="OTHER">Other</option>
               </select>
             </div>
             <div className="col-span-2">

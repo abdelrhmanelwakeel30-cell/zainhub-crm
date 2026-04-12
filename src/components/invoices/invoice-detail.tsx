@@ -28,14 +28,14 @@ interface InvoiceItem {
   unitPrice: number
   taxRate: number
   discountPercent: number
-  lineTotal: number
+  totalPrice: number
 }
 
 interface Payment {
   id: string
   paymentNumber: string
   amount: number
-  method: string
+  paymentMethod: string
   paymentDate: string
 }
 
@@ -69,7 +69,7 @@ export function InvoiceDetail({ invoiceId }: InvoiceDetailProps) {
   const invoice: Invoice | undefined = data?.data
 
   const recordPaymentMutation = useMutation({
-    mutationFn: (body: { amount: number; method: string; paymentDate: string; reference?: string; notes?: string }) =>
+    mutationFn: (body: { amount: number; paymentMethod: string; paymentDate: string; reference?: string; notes?: string }) =>
       fetch(`/api/invoices/${invoiceId}/payments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -195,7 +195,7 @@ export function InvoiceDetail({ invoiceId }: InvoiceDetailProps) {
                           </TableCell>
                           <TableCell className="text-sm text-end">{item.quantity}</TableCell>
                           <TableCell className="text-sm text-end">{invoice.currency} {item.unitPrice.toLocaleString()}</TableCell>
-                          <TableCell className="text-sm font-medium text-end">{invoice.currency} {item.lineTotal.toLocaleString()}</TableCell>
+                          <TableCell className="text-sm font-medium text-end">{invoice.currency} {item.totalPrice.toLocaleString()}</TableCell>
                         </TableRow>
                       ))}
                       <TableRow className="border-t-2">
@@ -219,7 +219,7 @@ export function InvoiceDetail({ invoiceId }: InvoiceDetailProps) {
                           // Record payment with balance due as default amount
                           recordPaymentMutation.mutate({
                             amount: invoice.balanceDue,
-                            method: 'BANK_TRANSFER',
+                            paymentMethod: 'BANK_TRANSFER',
                             paymentDate: new Date().toISOString().split('T')[0],
                           })
                         }}
@@ -245,7 +245,7 @@ export function InvoiceDetail({ invoiceId }: InvoiceDetailProps) {
                             <div>
                               <p className="text-sm font-medium">{payment.paymentNumber}</p>
                               <p className="text-xs text-muted-foreground">
-                                {payment.method.replace(/_/g, ' ')}
+                                {payment.paymentMethod.replace(/_/g, ' ')}
                               </p>
                             </div>
                           </div>
@@ -272,7 +272,7 @@ export function InvoiceDetail({ invoiceId }: InvoiceDetailProps) {
                         : []),
                       ...invoicePayments.map(p => ({
                         action: 'Payment received',
-                        detail: `${invoice.currency} ${p.amount.toLocaleString()} via ${p.method.replace(/_/g, ' ')}`,
+                        detail: `${invoice.currency} ${p.amount.toLocaleString()} via ${p.paymentMethod.replace(/_/g, ' ')}`,
                         time: p.paymentDate,
                       })),
                       ...(invoice.status === 'PAID'

@@ -66,15 +66,31 @@ export function InvoiceFormDialog({ open, onOpenChange, defaultValues }: Invoice
   const selectedClientId = watch('clientId')
 
   const mutation = useMutation({
-    mutationFn: (data: InvoiceFormData) =>
-      fetch('/api/invoices', {
+    mutationFn: (data: InvoiceFormData) => {
+      const items = data.items.map(item => ({
+        description: item.description,
+        quantity: 1,
+        unitPrice: parseFloat(item.amount) || 0,
+        taxRate: 0,
+        discountPercent: 0,
+        order: 0,
+      }))
+      return fetch('/api/invoices', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          clientId: data.clientId,
+          projectId: data.projectId || undefined,
+          issueDate: data.issueDate,
+          dueDate: data.dueDate,
+          notes: data.notes,
+          items,
+        }),
       }).then(r => {
         if (!r.ok) throw new Error('Failed to create invoice')
         return r.json()
-      }),
+      })
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] })
       toast.success('Invoice created successfully')
