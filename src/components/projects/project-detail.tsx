@@ -11,9 +11,10 @@ import { StatusBadge } from '@/components/shared/status-badge'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { getInitials, formatDate, formatCurrency } from '@/lib/utils'
+import Link from 'next/link'
 import {
   ArrowLeft, Calendar, DollarSign, Target, Users,
-  CheckCircle2, Clock, AlertTriangle,
+  CheckCircle2, Clock, AlertTriangle, FileText, Briefcase,
 } from 'lucide-react'
 
 interface ProjectDetailProps {
@@ -29,6 +30,7 @@ type ProjectDetail = {
   name: string
   client: { displayName: string }
   owner: { firstName: string; lastName: string }
+  opportunity?: { id: string; opportunityNumber: string; title: string; expectedValue: number } | null
   status: string
   startDate?: string
   targetEndDate?: string
@@ -39,6 +41,7 @@ type ProjectDetail = {
   members: Member[]
   invoices?: unknown[]
   description?: string
+  documents?: { id: string; name: string; fileType?: string | null; fileSize?: number | null; category: string; fileUrl: string; createdAt: string }[]
 }
 
 export function ProjectDetail({ projectId }: ProjectDetailProps) {
@@ -169,6 +172,7 @@ export function ProjectDetail({ projectId }: ProjectDetailProps) {
             <TabsList>
               <TabsTrigger value="milestones">{t('milestones')}</TabsTrigger>
               <TabsTrigger value="members">{t('teamMembers')}</TabsTrigger>
+              <TabsTrigger value="documents">Documents ({project.documents?.length ?? 0})</TabsTrigger>
             </TabsList>
 
             {/* Milestones Tab */}
@@ -233,11 +237,56 @@ export function ProjectDetail({ projectId }: ProjectDetailProps) {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            {/* Documents Tab */}
+            <TabsContent value="documents" className="mt-4">
+              <Card>
+                <CardContent className="p-6">
+                  {project.documents && project.documents.length > 0 ? (
+                    <div className="space-y-3">
+                      {project.documents.map((doc) => (
+                        <div key={doc.id} className="flex items-center justify-between p-3 rounded-lg border">
+                          <div className="flex items-center gap-3">
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <p className="text-sm font-medium">{doc.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {doc.category} · {doc.fileSize ? `${Math.round(doc.fileSize / 1024)}KB` : 'Unknown size'}
+                              </p>
+                            </div>
+                          </div>
+                          <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">View</a>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No documents attached to this project.</p>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
           </Tabs>
         </div>
 
         {/* Right Sidebar */}
         <div className="space-y-6">
+          {/* Opportunity Link */}
+          {project.opportunity && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Briefcase className="h-4 w-4" />
+                  Source Opportunity
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Link href={`/opportunities/${project.opportunity.id}`} className="text-sm font-medium text-blue-600 hover:underline">
+                  {project.opportunity.title}
+                </Link>
+                <p className="text-xs text-muted-foreground mt-1">{project.opportunity.opportunityNumber} · AED {Number(project.opportunity.expectedValue).toLocaleString()}</p>
+              </CardContent>
+            </Card>
+          )}
           {/* Owner */}
           <Card>
             <CardHeader className="pb-3">

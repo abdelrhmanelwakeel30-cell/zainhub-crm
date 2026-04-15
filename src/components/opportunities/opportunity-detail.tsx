@@ -46,6 +46,7 @@ interface Opportunity {
   wonAt?: string | null
   lostAt?: string | null
   lostReason?: { name: string } | null
+  lead?: { id: string; leadNumber: string; fullName: string } | null
   opportunityServices?: { service: { id: string; name: string } }[]
   quotations?: { id: string; quotationNumber: string; totalAmount: number; status: string }[]
   projects?: { id: string; name: string; status: string }[]
@@ -244,6 +245,14 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
                     <InfoRow icon={<CalendarDays className="h-4 w-4" />} label="Created" value={formatDate(opp.createdAt)} />
                     {opp.wonAt && <InfoRow icon={<TrendingUp className="h-4 w-4" />} label={t('wonDate')} value={formatDate(opp.wonAt)} />}
                     {opp.lostAt && <InfoRow icon={<TrendingUp className="h-4 w-4" />} label={t('lostDate')} value={formatDate(opp.lostAt)} />}
+                    {opp.lead && (
+                      <InfoRow
+                        icon={<Target className="h-4 w-4" />}
+                        label="Source Lead"
+                        value={`${opp.lead.leadNumber} · ${opp.lead.fullName}`}
+                        href={`/leads/${opp.lead.id}`}
+                      />
+                    )}
                   </div>
                   {opp.description && (
                     <div className="mt-4 pt-4 border-t">

@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { formatDate, formatRelativeDate } from '@/lib/utils'
 import {
   ArrowLeft, Edit, Building2, DollarSign,
-  CalendarDays, CreditCard, FileText, Download
+  CalendarDays, CreditCard, FileText, Download, FolderOpen, ScrollText,
 } from 'lucide-react'
 
 interface InvoiceDetailProps {
@@ -53,6 +53,8 @@ interface Invoice {
   taxRate?: { name: string; rate: number }
   items: InvoiceItem[]
   payments: Payment[]
+  project?: { id: string; name: string } | null
+  contract?: { id: string; contractNumber: string; title: string } | null
 }
 
 export function InvoiceDetail({ invoiceId }: InvoiceDetailProps) {
@@ -350,6 +352,40 @@ export function InvoiceDetail({ invoiceId }: InvoiceDetailProps) {
               )}
             </CardContent>
           </Card>
+
+          {/* Linked Project / Contract */}
+          {(invoice.project || invoice.contract) && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Linked To</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {invoice.project && (
+                  <div className="flex items-start gap-2">
+                    <FolderOpen className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Project</p>
+                      <Link href={`/projects/${invoice.project.id}`} className="text-sm font-medium text-blue-600 hover:underline">
+                        {invoice.project.name}
+                      </Link>
+                    </div>
+                  </div>
+                )}
+                {invoice.contract && (
+                  <div className="flex items-start gap-2">
+                    <ScrollText className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Contract</p>
+                      <Link href={`/contracts/${invoice.contract.id}`} className="text-sm font-medium text-blue-600 hover:underline">
+                        {invoice.contract.title}
+                      </Link>
+                      <p className="text-xs text-muted-foreground">{invoice.contract.contractNumber}</p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

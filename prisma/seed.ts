@@ -544,10 +544,28 @@ async function main() {
   const daysAgo = (n: number) => new Date(now.getTime() - n * 86400000)
   const hoursAgo = (n: number) => new Date(now.getTime() - n * 3600000)
 
+  // Pre-create campaigns needed for lead linking (full campaign data created in section 17)
+  const campaignMap: Record<string, any> = {}
+  const earlyLeadCampaigns = [
+    { name: 'AI Solutions Launch', type: 'CONTENT_MARKETING' as const, status: 'ACTIVE' as const, platform: 'LinkedIn, Website', budget: 8000, actualSpend: 3200, startDate: daysAgo(10), endDate: daysAgo(-20), ownerId: sarah.id, leadsGenerated: 12, opportunitiesCreated: 3 },
+    { name: 'Google Ads — Website Services', type: 'ADS' as const, status: 'ACTIVE' as const, platform: 'Google Ads', budget: 5000, actualSpend: 2100, startDate: daysAgo(15), endDate: daysAgo(-15), ownerId: ahmed.id, leadsGenerated: 18, opportunitiesCreated: 2 },
+  ]
+  for (const c of earlyLeadCampaigns) {
+    campaignMap[c.name] = await prisma.campaign.create({
+      data: {
+        tenantId: tenant.id, name: c.name, type: c.type, status: c.status,
+        platform: c.platform || null, budget: c.budget, actualSpend: c.actualSpend || 0,
+        currency: 'AED', startDate: c.startDate || null, endDate: c.endDate || null,
+        ownerId: c.ownerId, leadsGenerated: c.leadsGenerated || 0,
+        opportunitiesCreated: c.opportunitiesCreated || 0, revenueGenerated: 0,
+      },
+    })
+  }
+
   const leadsData = [
-    { leadNumber: 'LD-0001', fullName: 'Tariq Al-Muhairi', companyName: 'Emirates NBD', email: 'tariq@enbd.ae', phone: '+97150001001', sourceKey: 'Website', stageName: 'New', assignedToId: omar.id, urgency: 'HIGH' as const, score: 75, interestedServiceName: 'AI Chatbot', budgetRange: '15,000-25,000 AED', createdAt: daysAgo(1), nextFollowUpAt: hoursAgo(-2) },
-    { leadNumber: 'LD-0002', fullName: 'Nadia Bakri', companyName: 'Chalhoub Group', email: 'nadia@chalhoub.com', phone: '+97150001002', sourceKey: 'LinkedIn', stageName: 'Contacted', assignedToId: sarah.id, urgency: 'MEDIUM' as const, score: 60, interestedServiceName: 'E-Commerce Store', budgetRange: '20,000-40,000 AED', createdAt: daysAgo(3), lastContactedAt: daysAgo(1), nextFollowUpAt: daysAgo(-1) },
-    { leadNumber: 'LD-0003', fullName: 'Salman Al-Dosari', companyName: 'ACME Corp KSA', email: 'salman@acme.sa', phone: '+966501112244', sourceKey: 'Referral', stageName: 'Qualified', assignedToId: omar.id, urgency: 'HIGH' as const, score: 85, interestedServiceName: 'Custom AI Solution', budgetRange: '50,000-100,000 AED', country: 'KSA', city: 'Riyadh', createdAt: daysAgo(7), lastContactedAt: daysAgo(2) },
+    { leadNumber: 'LD-0001', fullName: 'Tariq Al-Muhairi', companyName: 'Emirates NBD', email: 'tariq@enbd.ae', phone: '+97150001001', sourceKey: 'Website', stageName: 'New', assignedToId: omar.id, urgency: 'HIGH' as const, score: 75, interestedServiceName: 'AI Chatbot', budgetRange: '15,000-25,000 AED', createdAt: daysAgo(1), nextFollowUpAt: hoursAgo(-2), campaignName: 'AI Solutions Launch' },
+    { leadNumber: 'LD-0002', fullName: 'Nadia Bakri', companyName: 'Chalhoub Group', email: 'nadia@chalhoub.com', phone: '+97150001002', sourceKey: 'LinkedIn', stageName: 'Contacted', assignedToId: sarah.id, urgency: 'MEDIUM' as const, score: 60, interestedServiceName: 'E-Commerce Store', budgetRange: '20,000-40,000 AED', createdAt: daysAgo(3), lastContactedAt: daysAgo(1), nextFollowUpAt: daysAgo(-1), campaignName: 'AI Solutions Launch' },
+    { leadNumber: 'LD-0003', fullName: 'Salman Al-Dosari', companyName: 'ACME Corp KSA', email: 'salman@acme.sa', phone: '+966501112244', sourceKey: 'Referral', stageName: 'Qualified', assignedToId: omar.id, urgency: 'HIGH' as const, score: 85, interestedServiceName: 'Custom AI Solution', budgetRange: '50,000-100,000 AED', country: 'KSA', city: 'Riyadh', createdAt: daysAgo(7), lastContactedAt: daysAgo(2), campaignName: 'Google Ads — Website Services' },
     { leadNumber: 'LD-0004', fullName: 'Reem Al-Falasi', companyName: 'Etisalat', email: 'reem@etisalat.ae', phone: '+97150001004', sourceKey: 'WhatsApp', stageName: 'Meeting Scheduled', assignedToId: sarah.id, urgency: 'URGENT' as const, score: 90, interestedServiceName: 'AI Agent Workflow', budgetRange: '25,000-50,000 AED', createdAt: daysAgo(5), lastContactedAt: daysAgo(0), nextFollowUpAt: daysAgo(-3) },
     { leadNumber: 'LD-0005', fullName: 'Hamad Al-Shamsi', companyName: 'Abu Dhabi Ports', email: 'hamad@adports.ae', phone: '+97150001005', sourceKey: 'Event', stageName: 'Proposal Sent', assignedToId: ahmed.id, urgency: 'HIGH' as const, score: 80, interestedServiceName: 'Corporate Website', budgetRange: '10,000-20,000 AED', createdAt: daysAgo(12), lastContactedAt: daysAgo(3) },
     { leadNumber: 'LD-0006', fullName: 'Diana Haddad', companyName: null, email: 'diana.h@gmail.com', phone: '+97150001006', sourceKey: 'Instagram', stageName: 'New', assignedToId: null, urgency: 'LOW' as const, score: 20, interestedServiceName: 'Landing Page', budgetRange: '2,000-5,000 AED', createdAt: daysAgo(0) },
@@ -562,9 +580,10 @@ async function main() {
     { leadNumber: 'LD-0015', fullName: 'Zara Sheikh', companyName: 'Souq Planet', email: 'zara@souqplanet.ae', phone: '+97150001015', sourceKey: 'Direct', stageName: 'Meeting Scheduled', assignedToId: sarah.id, urgency: 'MEDIUM' as const, score: 65, interestedServiceName: 'Social Media Management', budgetRange: '5,000-8,000 AED/mo', createdAt: daysAgo(6), lastContactedAt: daysAgo(1) },
   ]
 
+  const leadRecords: Record<string, any> = {}
   for (const lead of leadsData) {
-    const { sourceKey, stageName, interestedServiceName, ...leadData } = lead
-    await prisma.lead.create({
+    const { sourceKey, stageName, interestedServiceName, campaignName, ...leadData } = lead as any
+    leadRecords[leadData.leadNumber] = await prisma.lead.create({
       data: {
         tenantId: tenant.id,
         leadNumber: leadData.leadNumber,
@@ -588,6 +607,7 @@ async function main() {
         stageId: leadStageMap[stageName].id,
         sourceId: leadSources[sourceKey].id,
         interestedServiceId: serviceMap[interestedServiceName]?.id || null,
+        campaignId: campaignName ? campaignMap[campaignName]?.id || null : null,
       },
     })
   }
@@ -608,6 +628,7 @@ async function main() {
     { oppNumber: 'OPP-0010', title: 'Kitopi Landing Pages', value: 9000, companyKey: 'Kitopi', contactKey: 'CON-0009', stageName: 'Contract', ownerId: ahmed.id, expectedCloseDate: daysAgo(-3), probability: 90, serviceName: 'Landing Page', createdAt: daysAgo(12) },
   ]
 
+  const oppRecords: Record<string, any> = {}
   for (const opp of oppsData) {
     const { companyKey, contactKey, stageName, serviceName, ...oppData } = opp
     const created = await prisma.opportunity.create({
@@ -631,6 +652,7 @@ async function main() {
         lostAt: oppData.lostAt || null,
       },
     })
+    oppRecords[oppData.oppNumber] = created
     // Link service
     if (serviceMap[serviceName]) {
       await prisma.opportunityService.create({
@@ -804,17 +826,17 @@ async function main() {
   // 16. PROJECTS
   // ============================================================================
   const projectsData = [
-    { projectNumber: 'PRJ-0001', name: 'Al Futtaim AI Chatbot', clientKey: 'Al Futtaim', ownerId: sarah.id, status: 'IN_PROGRESS' as const, healthStatus: 'ON_TRACK' as const, progressPercent: 65, budgetValue: 25000, startDate: daysAgo(30), targetEndDate: daysAgo(-15) },
-    { projectNumber: 'PRJ-0002', name: 'Dubai Holding Website Redesign', clientKey: 'Dubai Holding', ownerId: sarah.id, status: 'PLANNING' as const, healthStatus: 'ON_TRACK' as const, progressPercent: 15, budgetValue: 45000, startDate: daysAgo(10), targetEndDate: daysAgo(-45) },
-    { projectNumber: 'PRJ-0003', name: 'MAF Social Media Management', clientKey: 'MAF', ownerId: layla.id, status: 'IN_PROGRESS' as const, healthStatus: 'AT_RISK' as const, progressPercent: 40, budgetValue: 96000, startDate: daysAgo(20), targetEndDate: daysAgo(-30) },
-    { projectNumber: 'PRJ-0004', name: 'Arabian Adventures Brand Refresh', clientKey: 'Arabian Adventures', ownerId: omar.id, status: 'DELIVERED' as const, healthStatus: 'ON_TRACK' as const, progressPercent: 100, budgetValue: 12000, startDate: daysAgo(60), targetEndDate: daysAgo(5), actualEndDate: daysAgo(3) },
-    { projectNumber: 'PRJ-0005', name: 'Property Finder RAG Knowledge Bot', clientKey: 'Property Finder', ownerId: sarah.id, status: 'DISCOVERY' as const, healthStatus: 'ON_TRACK' as const, progressPercent: 10, budgetValue: 35000, startDate: daysAgo(5), targetEndDate: daysAgo(-40) },
-    { projectNumber: 'PRJ-0006', name: 'Kitopi Landing Pages', clientKey: 'Kitopi', ownerId: ahmed.id, status: 'IN_PROGRESS' as const, healthStatus: 'DELAYED' as const, progressPercent: 55, budgetValue: 9000, startDate: daysAgo(25), targetEndDate: daysAgo(-5) },
+    { projectNumber: 'PRJ-0001', name: 'Al Futtaim AI Chatbot', clientKey: 'Al Futtaim', oppKey: 'OPP-0001', ownerId: sarah.id, status: 'IN_PROGRESS' as const, healthStatus: 'ON_TRACK' as const, progressPercent: 65, budgetValue: 25000, startDate: daysAgo(30), targetEndDate: daysAgo(-15) },
+    { projectNumber: 'PRJ-0002', name: 'Dubai Holding Website Redesign', clientKey: 'Dubai Holding', oppKey: 'OPP-0002', ownerId: sarah.id, status: 'PLANNING' as const, healthStatus: 'ON_TRACK' as const, progressPercent: 15, budgetValue: 45000, startDate: daysAgo(10), targetEndDate: daysAgo(-45) },
+    { projectNumber: 'PRJ-0003', name: 'MAF Social Media Management', clientKey: 'MAF', oppKey: 'OPP-0004', ownerId: layla.id, status: 'IN_PROGRESS' as const, healthStatus: 'AT_RISK' as const, progressPercent: 40, budgetValue: 96000, startDate: daysAgo(20), targetEndDate: daysAgo(-30) },
+    { projectNumber: 'PRJ-0004', name: 'Arabian Adventures Brand Refresh', clientKey: 'Arabian Adventures', oppKey: 'OPP-0006', ownerId: omar.id, status: 'DELIVERED' as const, healthStatus: 'ON_TRACK' as const, progressPercent: 100, budgetValue: 12000, startDate: daysAgo(60), targetEndDate: daysAgo(5), actualEndDate: daysAgo(3) },
+    { projectNumber: 'PRJ-0005', name: 'Property Finder RAG Knowledge Bot', clientKey: 'Property Finder', oppKey: 'OPP-0005', ownerId: sarah.id, status: 'DISCOVERY' as const, healthStatus: 'ON_TRACK' as const, progressPercent: 10, budgetValue: 35000, startDate: daysAgo(5), targetEndDate: daysAgo(-40) },
+    { projectNumber: 'PRJ-0006', name: 'Kitopi Landing Pages', clientKey: 'Kitopi', oppKey: 'OPP-0010', ownerId: ahmed.id, status: 'IN_PROGRESS' as const, healthStatus: 'DELAYED' as const, progressPercent: 55, budgetValue: 9000, startDate: daysAgo(25), targetEndDate: daysAgo(-5) },
   ]
 
   const projectRecords: Record<string, any> = {}
   for (const p of projectsData) {
-    const { clientKey, ...data } = p
+    const { clientKey, oppKey, ...data } = p as any
     projectRecords[p.projectNumber] = await prisma.project.create({
       data: {
         tenantId: tenant.id,
@@ -830,6 +852,7 @@ async function main() {
         startDate: data.startDate,
         targetEndDate: data.targetEndDate,
         actualEndDate: data.actualEndDate || null,
+        opportunityId: oppKey ? oppRecords[oppKey]?.id || null : null,
       },
     })
     // Add project members
@@ -891,7 +914,8 @@ async function main() {
   ]
 
   for (const c of campaignsData) {
-    await prisma.campaign.create({
+    if (campaignMap[c.name]) continue // already created in early section
+    campaignMap[c.name] = await prisma.campaign.create({
       data: {
         tenantId: tenant.id,
         name: c.name,
@@ -1064,22 +1088,24 @@ async function main() {
   // 20. CONTRACTS
   // ============================================================================
   const contractsData = [
-    { contractNumber: 'CTR-0001', title: 'Al Futtaim AI Chatbot Service Agreement', type: 'SERVICE' as const, clientKey: 'Al Futtaim', status: 'ACTIVE' as const, startDate: daysAgo(15), endDate: daysAgo(-75), value: 26250, createdById: sarah.id },
-    { contractNumber: 'CTR-0002', title: 'Arabian Adventures Branding Contract', type: 'SERVICE' as const, clientKey: 'Arabian Adventures', status: 'ACTIVE' as const, startDate: daysAgo(55), endDate: daysAgo(5), value: 12000, signedAt: daysAgo(55), createdById: omar.id },
+    { contractNumber: 'CTR-0001', title: 'Al Futtaim AI Chatbot Service Agreement', type: 'SERVICE' as const, clientKey: 'Al Futtaim', contactKey: 'CON-0001', status: 'ACTIVE' as const, startDate: daysAgo(15), endDate: daysAgo(-75), value: 26250, createdById: sarah.id },
+    { contractNumber: 'CTR-0002', title: 'Arabian Adventures Branding Contract', type: 'SERVICE' as const, clientKey: 'Arabian Adventures', contactKey: 'CON-0007', status: 'ACTIVE' as const, startDate: daysAgo(55), endDate: daysAgo(5), value: 12000, signedAt: daysAgo(55), createdById: omar.id },
     { contractNumber: 'CTR-0003', title: 'Property Finder NDA', type: 'NDA' as const, clientKey: 'Property Finder', status: 'ACTIVE' as const, startDate: daysAgo(35), endDate: daysAgo(-330), value: 0, signedAt: daysAgo(34), createdById: sarah.id },
-    { contractNumber: 'CTR-0004', title: 'MAF Social Media Retainer', type: 'RETAINER' as const, clientKey: 'MAF', status: 'DRAFT' as const, startDate: daysAgo(-5), endDate: daysAgo(-365), value: 96000, autoRenew: true, createdById: layla.id },
+    { contractNumber: 'CTR-0004', title: 'MAF Social Media Retainer', type: 'RETAINER' as const, clientKey: 'MAF', contactKey: 'CON-0005', status: 'DRAFT' as const, startDate: daysAgo(-5), endDate: daysAgo(-365), value: 96000, autoRenew: true, createdById: layla.id },
     { contractNumber: 'CTR-0005', title: 'Dubai Holding Website Maintenance', type: 'MAINTENANCE' as const, clientKey: 'Dubai Holding', status: 'SENT' as const, startDate: daysAgo(-50), endDate: daysAgo(-415), value: 24000, autoRenew: true, createdById: sarah.id },
   ]
 
+  const contractRecords: Record<string, any> = {}
   for (const c of contractsData) {
-    const { clientKey, ...data } = c
-    await prisma.contract.create({
+    const { clientKey, contactKey, ...data } = c as any
+    contractRecords[data.contractNumber] = await prisma.contract.create({
       data: {
         tenantId: tenant.id,
         contractNumber: data.contractNumber,
         title: data.title,
         type: data.type,
         clientId: companyRecords[clientKey].id,
+        contactId: contactKey ? contactRecords[contactKey]?.id || null : null,
         status: data.status,
         startDate: data.startDate,
         endDate: data.endDate || null,
@@ -1096,22 +1122,24 @@ async function main() {
   // 21. INVOICES
   // ============================================================================
   const invoicesData = [
-    { invoiceNumber: 'INV-0001', clientKey: 'Al Futtaim',       status: 'PAID'          as const, subtotal: 13125, taxAmount: 656.25, totalAmount: 13781.25, amountPaid: 13781.25, dueDate: daysAgo(-10), issueDate: daysAgo(10), createdById: sarah.id },
-    { invoiceNumber: 'INV-0002', clientKey: 'Arabian Adventures',status: 'PAID'          as const, subtotal: 12000, taxAmount: 600,    totalAmount: 12600,    amountPaid: 12600,    dueDate: daysAgo(15),  issueDate: daysAgo(45), createdById: omar.id },
-    { invoiceNumber: 'INV-0003', clientKey: 'Property Finder',   status: 'PARTIALLY_PAID'as const, subtotal: 17500, taxAmount: 875,    totalAmount: 18375,    amountPaid: 9187.5,   dueDate: daysAgo(-20), issueDate: daysAgo(3),  createdById: sarah.id },
-    { invoiceNumber: 'INV-0004', clientKey: 'MAF',               status: 'PAID'          as const, subtotal: 8000,  taxAmount: 400,    totalAmount: 8400,     amountPaid: 8400,     dueDate: daysAgo(-30), issueDate: daysAgo(0),  createdById: layla.id },
-    { invoiceNumber: 'INV-0005', clientKey: 'Kitopi',            status: 'PARTIALLY_PAID'as const, subtotal: 4500,  taxAmount: 225,    totalAmount: 4725,     amountPaid: 2362.5,   dueDate: daysAgo(5),   issueDate: daysAgo(35), createdById: ahmed.id },
-    { invoiceNumber: 'INV-0006', clientKey: 'Dubai Holding',     status: 'PAID'          as const, subtotal: 22500, taxAmount: 1125,   totalAmount: 23625,    amountPaid: 23625,    dueDate: daysAgo(-15), issueDate: daysAgo(5),  createdById: sarah.id },
+    { invoiceNumber: 'INV-0001', clientKey: 'Al Futtaim',       projectKey: 'PRJ-0001', contractKey: 'CTR-0001', status: 'PAID'          as const, subtotal: 13125, taxAmount: 656.25, totalAmount: 13781.25, amountPaid: 13781.25, dueDate: daysAgo(-10), issueDate: daysAgo(10), createdById: sarah.id },
+    { invoiceNumber: 'INV-0002', clientKey: 'Arabian Adventures',projectKey: 'PRJ-0004', contractKey: 'CTR-0002', status: 'PAID'          as const, subtotal: 12000, taxAmount: 600,    totalAmount: 12600,    amountPaid: 12600,    dueDate: daysAgo(15),  issueDate: daysAgo(45), createdById: omar.id },
+    { invoiceNumber: 'INV-0003', clientKey: 'Property Finder',   projectKey: 'PRJ-0005', contractKey: 'CTR-0003', status: 'PARTIALLY_PAID'as const, subtotal: 17500, taxAmount: 875,    totalAmount: 18375,    amountPaid: 9187.5,   dueDate: daysAgo(-20), issueDate: daysAgo(3),  createdById: sarah.id },
+    { invoiceNumber: 'INV-0004', clientKey: 'MAF',               projectKey: 'PRJ-0003', status: 'PAID'          as const, subtotal: 8000,  taxAmount: 400,    totalAmount: 8400,     amountPaid: 8400,     dueDate: daysAgo(-30), issueDate: daysAgo(0),  createdById: layla.id },
+    { invoiceNumber: 'INV-0005', clientKey: 'Kitopi',            projectKey: 'PRJ-0006', status: 'PARTIALLY_PAID'as const, subtotal: 4500,  taxAmount: 225,    totalAmount: 4725,     amountPaid: 2362.5,   dueDate: daysAgo(5),   issueDate: daysAgo(35), createdById: ahmed.id },
+    { invoiceNumber: 'INV-0006', clientKey: 'Dubai Holding',     projectKey: 'PRJ-0002', status: 'PAID'          as const, subtotal: 22500, taxAmount: 1125,   totalAmount: 23625,    amountPaid: 23625,    dueDate: daysAgo(-15), issueDate: daysAgo(5),  createdById: sarah.id },
   ]
 
   const invoiceRecords: Record<string, any> = {}
   for (const inv of invoicesData) {
-    const { clientKey, ...data } = inv
+    const { clientKey, projectKey, contractKey, ...data } = inv as any
     invoiceRecords[inv.invoiceNumber] = await prisma.invoice.create({
       data: {
         tenantId: tenant.id,
         invoiceNumber: data.invoiceNumber,
         clientId: companyRecords[clientKey].id,
+        projectId: projectKey ? projectRecords[projectKey]?.id || null : null,
+        contractId: contractKey ? contractRecords[contractKey]?.id || null : null,
         status: data.status,
         subtotal: data.subtotal,
         taxAmount: data.taxAmount,
@@ -1186,7 +1214,7 @@ async function main() {
     { expenseNumber: 'EXP-0009', vendorName: 'Google Ads',      catKey: 'Marketing',             amount: 5200,  expenseDate: daysAgo(2),  status: 'APPROVED' as const, description: 'Google Ads - Q1 brand awareness campaign',       approvedById: admin.id, paymentMethod: 'CREDIT_CARD' as const },
     { expenseNumber: 'EXP-0010', vendorName: 'Notion',          catKey: 'Software & Tools',      amount: 240,   expenseDate: daysAgo(12), status: 'APPROVED' as const, description: 'Notion Team plan - annual',                      approvedById: admin.id },
     { expenseNumber: 'EXP-0011', vendorName: 'Etisalat',        catKey: 'Professional Services', amount: 1800,  expenseDate: daysAgo(0),  status: 'PAID'     as const, description: 'Business internet & phone - April',               paymentMethod: 'BANK_TRANSFER' as const, approvedById: admin.id },
-    { expenseNumber: 'EXP-0012', vendorName: 'Freelancer — UI', catKey: 'Professional Services', amount: 3000,  expenseDate: daysAgo(8),  status: 'APPROVED' as const, description: 'Freelance UI design — Kitopi landing pages',     approvedById: admin.id },
+    { expenseNumber: 'EXP-0012', vendorName: 'Freelancer — UI', catKey: 'Professional Services', amount: 3000,  expenseDate: daysAgo(8),  status: 'APPROVED' as const, description: 'Freelance UI design — Kitopi landing pages',     approvedById: admin.id, projectKey: 'PRJ-0006' },
     { expenseNumber: 'EXP-0013', vendorName: 'Adobe Creative',  catKey: 'Software & Tools',      amount: 780,   expenseDate: daysAgo(30), status: 'APPROVED' as const, description: 'Adobe CC annual licence',                        approvedById: admin.id },
     { expenseNumber: 'EXP-0014', vendorName: 'Slack',           catKey: 'Software & Tools',      amount: 360,   expenseDate: daysAgo(30), status: 'APPROVED' as const, description: 'Slack Pro - annual renewal',                     approvedById: admin.id },
     { expenseNumber: 'EXP-0015', vendorName: 'Careem',          catKey: 'Travel',                amount: 420,   expenseDate: daysAgo(4),  status: 'PENDING'  as const, description: 'Client visits - week of April 7' },
@@ -1194,7 +1222,7 @@ async function main() {
   ]
 
   for (const e of expensesData) {
-    const { catKey, ...data } = e
+    const { catKey, projectKey, ...data } = e as any
     const taxAmt = Math.round(data.amount * 0.05 * 100) / 100
     await prisma.expense.create({
       data: {
@@ -1213,6 +1241,7 @@ async function main() {
         approvedById: data.approvedById || null,
         approvedAt: data.approvedById ? data.expenseDate : null,
         createdById: admin.id,
+        linkedProjectId: projectKey ? projectRecords[projectKey]?.id || null : null,
       },
     })
   }
@@ -1339,41 +1368,52 @@ async function main() {
   // ============================================================================
   // 27. ACTIVITIES (Recent timeline entries)
   // ============================================================================
+  // Re-query tasks and tickets to build ID maps for activities
+  const taskMap: Record<string, any> = {}
+  for (const tk of await prisma.task.findMany({ where: { tenantId: tenant.id }, select: { id: true, taskNumber: true } })) {
+    taskMap[tk.taskNumber] = tk
+  }
+  const ticketMap: Record<string, any> = {}
+  for (const tk of await prisma.ticket.findMany({ where: { tenantId: tenant.id }, select: { id: true, ticketNumber: true } })) {
+    ticketMap[tk.ticketNumber] = tk
+  }
+
   const activitiesData = [
-    { type: 'NOTE'              as const, entityType: 'lead',        title: 'Initial discovery call with Tariq',                  description: 'Discussed AI chatbot needs. Budget approved by board. Follow up Thursday.',                        performedById: omar.id,  performedAt: daysAgo(1) },
-    { type: 'CALL'              as const, entityType: 'lead',        title: 'Follow-up call — Reem (Etisalat)',                   description: 'Confirmed meeting for next week. Very interested in AI Agent Workflow.',                             performedById: sarah.id, performedAt: daysAgo(0) },
-    { type: 'EMAIL'             as const, entityType: 'opportunity', title: 'Sent Al Futtaim chatbot demo link',                  description: 'Personalized Loom demo showing FAQ bot on e-commerce site.',                                          performedById: sarah.id, performedAt: daysAgo(2) },
-    { type: 'MEETING'           as const, entityType: 'opportunity', title: 'Dubai Holding website kickoff meeting',              description: '2-hour session. Stakeholders aligned on scope and timeline. Sarah presenting wireframes next Monday.', performedById: sarah.id, performedAt: daysAgo(8) },
-    { type: 'STATUS_CHANGE'     as const, entityType: 'project',     title: 'PRJ-0004 moved to Delivered',                        description: 'Client signed off brand assets. Archiving project.',                                                  performedById: omar.id,  performedAt: daysAgo(3) },
-    { type: 'TASK_COMPLETED'    as const, entityType: 'task',        title: 'Chatbot conversation flows completed',               description: '23 intent flows mapped across FAQ, booking, complaints.',                                             performedById: omar.id,  performedAt: daysAgo(6) },
-    { type: 'DOCUMENT_UPLOADED' as const, entityType: 'project',     title: 'Uploaded Al Futtaim Requirements.pdf',               description: 'Final requirements approved by client. Shared on project portal.',                                    performedById: sarah.id, performedAt: daysAgo(25) },
-    { type: 'STAGE_CHANGE'      as const, entityType: 'lead',        title: 'Lead LD-0004 moved to Meeting Scheduled',            description: 'Call scheduled for Monday 14 Apr at 11AM.',                                                          performedById: sarah.id, performedAt: daysAgo(1) },
-    { type: 'ASSIGNMENT'        as const, entityType: 'ticket',      title: 'TKT-0003 assigned to Ahmed',                         description: 'Escalated to senior dev — urgent PDF generation failure.',                                            performedById: layla.id, performedAt: daysAgo(0) },
-    { type: 'COMMENT'           as const, entityType: 'ticket',      title: 'Added comment on TKT-0001',                          description: 'Investigating the after-hours shutdown. Likely a cron job conflict with the webhook heartbeat.',       performedById: omar.id,  performedAt: daysAgo(0) },
-    { type: 'NOTE'              as const, entityType: 'company',     title: 'STC account note',                                   description: 'VP Innovation very interested. Need to schedule exec demo with CTO. Mention on-prem deployment.',       performedById: sarah.id, performedAt: daysAgo(4) },
-    { type: 'CONVERSION'        as const, entityType: 'lead',        title: 'Lead LD-0010 (Tabby) converted to opportunity',      description: 'Budget confirmed AED 55K. Moving to Sales Pipeline: Discovery stage.',                                 performedById: sarah.id, performedAt: daysAgo(7) },
-    { type: 'EMAIL'             as const, entityType: 'lead',        title: 'Sent proposal to Yousef (Omantel)',                  description: 'PRP-0004-draft sent for review. Following up Thursday.',                                              performedById: omar.id,  performedAt: daysAgo(3) },
-    { type: 'CALL'              as const, entityType: 'lead',        title: 'Discovery call with Sultan (Masdar)',                 description: 'Needs corporate website with AR/EN. Budget range 12-18K. Govt tender process — needs local partner.',    performedById: ahmed.id, performedAt: daysAgo(0) },
-    { type: 'SYSTEM'            as const, entityType: 'invoice',     title: 'Invoice INV-0005 marked as overdue',                 description: 'Auto-flagged by system — past due 5 days.',                                                           performedAt: daysAgo(0) },
-    { type: 'SYSTEM'            as const, entityType: 'invoice',     title: 'Payment PAY-0005 received — AED 23,625 (Dubai Holding)', description: 'Full payment received. Invoice INV-0006 now closed.',                                            performedById: admin.id, performedAt: daysAgo(0) },
-    { type: 'SYSTEM'            as const, entityType: 'invoice',     title: 'Payment PAY-0002 received — AED 6,300 (Arabian Adventures)', description: '50% upfront payment received for branding project.',                                        performedById: admin.id, performedAt: daysAgo(30) },
-    { type: 'NOTE'              as const, entityType: 'lead',        title: 'LinkedIn DM from Noura Al-Dosari (ENOC)',            description: 'Interested in AI automation for fuel station ops. Forwarded to Sarah.',                               performedById: layla.id, performedAt: daysAgo(2) },
-    { type: 'EMAIL'             as const, entityType: 'opportunity', title: 'Sent Al Futtaim contract for signature',             description: 'CTR-0001 sent via DocuSign. Awaiting signature from Khalid Al-Rashidi.',                              performedById: sarah.id, performedAt: daysAgo(17) },
-    { type: 'MEETING'           as const, entityType: 'company',     title: 'MAF quarterly review meeting',                       description: 'Reviewed Q1 social metrics. MAF happy with engagement rates. Upsell: add TikTok channel.',              performedById: layla.id, performedAt: daysAgo(5) },
-    { type: 'TASK_COMPLETED'    as const, entityType: 'task',        title: 'SSL certificates renewed for 5 client domains',       description: 'All certificates valid until Apr 2027.',                                                             performedById: omar.id,  performedAt: daysAgo(4) },
-    { type: 'STAGE_CHANGE'      as const, entityType: 'opportunity', title: 'OPP-0003 moved from Proposal to Negotiation',        description: 'STC reviewing contract clauses with internal legal team.',                                             performedById: sarah.id, performedAt: daysAgo(3) },
-    { type: 'DOCUMENT_UPLOADED' as const, entityType: 'project',     title: 'Uploaded Dubai Holding Mockups v3.pdf',              description: 'Third revision. Client requested navbar redesign and hero section update.',                             performedById: omar.id,  performedAt: daysAgo(1) },
-    { type: 'NOTE'              as const, entityType: 'opportunity', title: 'Noon procurement sent RFP',                          description: 'RFP for CRM automation. Response needed by Apr 20. Budget ceiling AED 60K.',                            performedById: omar.id,  performedAt: daysAgo(2) },
-    { type: 'SYSTEM'            as const, entityType: 'contract',    title: 'CTR-0002 (Arabian Adventures) expiring in 5 days',   description: 'Auto-alert triggered. Renewal discussion needed.',                                                    performedAt: daysAgo(0) },
+    { type: 'NOTE'              as const, entityType: 'lead',        entityKey: 'LD-0001', entityMap: leadRecords,    title: 'Initial discovery call with Tariq',                  description: 'Discussed AI chatbot needs. Budget approved by board. Follow up Thursday.',                        performedById: omar.id,  performedAt: daysAgo(1) },
+    { type: 'CALL'              as const, entityType: 'lead',        entityKey: 'LD-0004', entityMap: leadRecords,    title: 'Follow-up call — Reem (Etisalat)',                   description: 'Confirmed meeting for next week. Very interested in AI Agent Workflow.',                             performedById: sarah.id, performedAt: daysAgo(0) },
+    { type: 'EMAIL'             as const, entityType: 'opportunity', entityKey: 'OPP-0001', entityMap: oppRecords,   title: 'Sent Al Futtaim chatbot demo link',                  description: 'Personalized Loom demo showing FAQ bot on e-commerce site.',                                          performedById: sarah.id, performedAt: daysAgo(2) },
+    { type: 'MEETING'           as const, entityType: 'opportunity', entityKey: 'OPP-0002', entityMap: oppRecords,   title: 'Dubai Holding website kickoff meeting',              description: '2-hour session. Stakeholders aligned on scope and timeline. Sarah presenting wireframes next Monday.', performedById: sarah.id, performedAt: daysAgo(8) },
+    { type: 'STATUS_CHANGE'     as const, entityType: 'project',     entityKey: 'PRJ-0004', entityMap: projectRecords, title: 'PRJ-0004 moved to Delivered',                      description: 'Client signed off brand assets. Archiving project.',                                                  performedById: omar.id,  performedAt: daysAgo(3) },
+    { type: 'TASK_COMPLETED'    as const, entityType: 'task',        entityKey: 'TSK-0002', entityMap: taskMap,      title: 'Chatbot conversation flows completed',               description: '23 intent flows mapped across FAQ, booking, complaints.',                                             performedById: omar.id,  performedAt: daysAgo(6) },
+    { type: 'DOCUMENT_UPLOADED' as const, entityType: 'project',     entityKey: 'PRJ-0001', entityMap: projectRecords, title: 'Uploaded Al Futtaim Requirements.pdf',             description: 'Final requirements approved by client. Shared on project portal.',                                    performedById: sarah.id, performedAt: daysAgo(25) },
+    { type: 'STAGE_CHANGE'      as const, entityType: 'lead',        entityKey: 'LD-0004', entityMap: leadRecords,    title: 'Lead LD-0004 moved to Meeting Scheduled',            description: 'Call scheduled for Monday 14 Apr at 11AM.',                                                          performedById: sarah.id, performedAt: daysAgo(1) },
+    { type: 'ASSIGNMENT'        as const, entityType: 'ticket',      entityKey: 'TKT-0003', entityMap: ticketMap,    title: 'TKT-0003 assigned to Ahmed',                         description: 'Escalated to senior dev — urgent PDF generation failure.',                                            performedById: layla.id, performedAt: daysAgo(0) },
+    { type: 'COMMENT'           as const, entityType: 'ticket',      entityKey: 'TKT-0001', entityMap: ticketMap,    title: 'Added comment on TKT-0001',                          description: 'Investigating the after-hours shutdown. Likely a cron job conflict with the webhook heartbeat.',       performedById: omar.id,  performedAt: daysAgo(0) },
+    { type: 'NOTE'              as const, entityType: 'company',     entityKey: 'STC',       entityMap: companyRecords, title: 'STC account note',                                 description: 'VP Innovation very interested. Need to schedule exec demo with CTO. Mention on-prem deployment.',       performedById: sarah.id, performedAt: daysAgo(4) },
+    { type: 'CONVERSION'        as const, entityType: 'lead',        entityKey: 'LD-0010', entityMap: leadRecords,    title: 'Lead LD-0010 (Tabby) converted to opportunity',      description: 'Budget confirmed AED 55K. Moving to Sales Pipeline: Discovery stage.',                                 performedById: sarah.id, performedAt: daysAgo(7) },
+    { type: 'EMAIL'             as const, entityType: 'lead',        entityKey: 'LD-0014', entityMap: leadRecords,    title: 'Sent proposal to Yousef (Omantel)',                  description: 'PRP-0004-draft sent for review. Following up Thursday.',                                              performedById: omar.id,  performedAt: daysAgo(3) },
+    { type: 'CALL'              as const, entityType: 'lead',        entityKey: 'LD-0013', entityMap: leadRecords,    title: 'Discovery call with Sultan (Masdar)',                 description: 'Needs corporate website with AR/EN. Budget range 12-18K. Govt tender process — needs local partner.',    performedById: ahmed.id, performedAt: daysAgo(0) },
+    { type: 'SYSTEM'            as const, entityType: 'invoice',     entityKey: 'INV-0005', entityMap: invoiceRecords, title: 'Invoice INV-0005 marked as overdue',               description: 'Auto-flagged by system — past due 5 days.',                                                           performedAt: daysAgo(0) },
+    { type: 'SYSTEM'            as const, entityType: 'invoice',     entityKey: 'INV-0006', entityMap: invoiceRecords, title: 'Payment PAY-0005 received — AED 23,625 (Dubai Holding)', description: 'Full payment received. Invoice INV-0006 now closed.',                                        performedById: admin.id, performedAt: daysAgo(0) },
+    { type: 'SYSTEM'            as const, entityType: 'invoice',     entityKey: 'INV-0002', entityMap: invoiceRecords, title: 'Payment PAY-0002 received — AED 6,300 (Arabian Adventures)', description: '50% upfront payment received for branding project.',                                    performedById: admin.id, performedAt: daysAgo(30) },
+    { type: 'NOTE'              as const, entityType: 'lead',        entityKey: 'LD-0006', entityMap: leadRecords,    title: 'LinkedIn DM from Noura Al-Dosari (ENOC)',            description: 'Interested in AI automation for fuel station ops. Forwarded to Sarah.',                               performedById: layla.id, performedAt: daysAgo(2) },
+    { type: 'EMAIL'             as const, entityType: 'opportunity', entityKey: 'OPP-0001', entityMap: oppRecords,   title: 'Sent Al Futtaim contract for signature',             description: 'CTR-0001 sent via DocuSign. Awaiting signature from Khalid Al-Rashidi.',                              performedById: sarah.id, performedAt: daysAgo(17) },
+    { type: 'MEETING'           as const, entityType: 'company',     entityKey: 'MAF',       entityMap: companyRecords, title: 'MAF quarterly review meeting',                     description: 'Reviewed Q1 social metrics. MAF happy with engagement rates. Upsell: add TikTok channel.',              performedById: layla.id, performedAt: daysAgo(5) },
+    { type: 'TASK_COMPLETED'    as const, entityType: 'task',        entityKey: 'TSK-0020', entityMap: taskMap,      title: 'SSL certificates renewed for 5 client domains',       description: 'All certificates valid until Apr 2027.',                                                             performedById: omar.id,  performedAt: daysAgo(4) },
+    { type: 'STAGE_CHANGE'      as const, entityType: 'opportunity', entityKey: 'OPP-0003', entityMap: oppRecords,   title: 'OPP-0003 moved from Proposal to Negotiation',        description: 'STC reviewing contract clauses with internal legal team.',                                             performedById: sarah.id, performedAt: daysAgo(3) },
+    { type: 'DOCUMENT_UPLOADED' as const, entityType: 'project',     entityKey: 'PRJ-0002', entityMap: projectRecords, title: 'Uploaded Dubai Holding Mockups v3.pdf',            description: 'Third revision. Client requested navbar redesign and hero section update.',                             performedById: omar.id,  performedAt: daysAgo(1) },
+    { type: 'NOTE'              as const, entityType: 'opportunity', entityKey: 'OPP-0003', entityMap: oppRecords,   title: 'Noon procurement sent RFP',                          description: 'RFP for CRM automation. Response needed by Apr 20. Budget ceiling AED 60K.',                            performedById: omar.id,  performedAt: daysAgo(2) },
+    { type: 'SYSTEM'            as const, entityType: 'contract',    entityKey: 'CTR-0002', entityMap: contractRecords, title: 'CTR-0002 (Arabian Adventures) expiring in 5 days', description: 'Auto-alert triggered. Renewal discussion needed.',                                                   performedAt: daysAgo(0) },
   ]
 
   for (const a of activitiesData) {
+    const entityId = a.entityMap[a.entityKey]?.id || tenant.id
     await prisma.activity.create({
       data: {
         tenantId: tenant.id,
         type: a.type,
         entityType: a.entityType,
-        entityId: 'seed-placeholder',
+        entityId,
         title: a.title,
         description: a.description || null,
         performedById: a.performedById || null,
@@ -1403,11 +1443,7 @@ async function main() {
     { ticketNumber: 'TKT-0006', authorId: sarah.id, content: 'Added to PRJ-0005 scope. WhatsApp Business API integration requires Meta Business verification. Sending documentation to Property Finder team.', isInternal: false },
   ]
 
-  // We need ticket IDs — re-query them by ticketNumber
-  const ticketMap: Record<string, any> = {}
-  for (const tk of await prisma.ticket.findMany({ where: { tenantId: tenant.id }, select: { id: true, ticketNumber: true } })) {
-    ticketMap[tk.ticketNumber] = tk
-  }
+  // ticketMap already built in activities section above
   for (const tc of ticketComments) {
     if (!ticketMap[tc.ticketNumber]) continue
     await prisma.ticketComment.create({

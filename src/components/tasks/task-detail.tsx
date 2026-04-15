@@ -28,6 +28,7 @@ interface Task {
   createdAt: string
   completedAt?: string | null
   assignedTo?: { firstName: string; lastName: string } | null
+  createdBy?: { firstName: string; lastName: string } | null
   project?: { id: string; name: string } | null
   subtasks?: unknown[]
   comments?: { id: string; body: string; createdAt: string; author: { firstName: string; lastName: string } }[]
@@ -134,6 +135,13 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
                   label={t('createdAt')}
                   value={formatDate(task.createdAt)}
                 />
+                {task.createdBy && (
+                  <InfoRow
+                    icon={<User className="h-4 w-4" />}
+                    label="Created By"
+                    value={`${task.createdBy.firstName} ${task.createdBy.lastName}`}
+                  />
+                )}
               </div>
               {task.description && (
                 <div className="mt-4 pt-4 border-t">

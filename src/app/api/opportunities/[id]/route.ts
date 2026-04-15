@@ -19,6 +19,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         stage: { select: { id: true, name: true, color: true, probability: true } },
         pipeline: { select: { id: true, name: true } },
         lostReason: { select: { id: true, name: true } },
+        lead: { select: { id: true, leadNumber: true, fullName: true } },
         opportunityServices: { include: { service: { select: { id: true, name: true } } } },
         quotations: { select: { id: true, quotationNumber: true, totalAmount: true, status: true }, orderBy: { createdAt: 'desc' }, take: 5 },
         projects: { select: { id: true, projectNumber: true, name: true, status: true }, orderBy: { createdAt: 'desc' }, take: 5 },

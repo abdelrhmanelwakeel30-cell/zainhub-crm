@@ -28,6 +28,7 @@ interface Contract {
   currency: string
   description?: string | null
   signedAt?: string | null
+  contact?: { id: string; firstName: string; lastName: string } | null
 }
 
 export function ContractDetail({ contractId }: ContractDetailProps) {
@@ -137,6 +138,14 @@ export function ContractDetail({ contractId }: ContractDetailProps) {
                 <InfoRow icon={<FileText className="h-4 w-4" />} label="Type" value={ctr.type} />
                 <InfoRow icon={<DollarSign className="h-4 w-4" />} label="Currency" value={ctr.currency} />
                 <InfoRow icon={<CalendarDays className="h-4 w-4" />} label="Signed At" value={ctr.signedAt ? formatDate(ctr.signedAt) : 'Pending'} />
+                {ctr.contact && (
+                  <InfoRow
+                    icon={<Receipt className="h-4 w-4" />}
+                    label="Contact"
+                    value={`${ctr.contact.firstName} ${ctr.contact.lastName}`}
+                    link={`/contacts/${ctr.contact.id}`}
+                  />
+                )}
               </div>
               {ctr.description && (
                 <div className="mt-4 pt-4 border-t">

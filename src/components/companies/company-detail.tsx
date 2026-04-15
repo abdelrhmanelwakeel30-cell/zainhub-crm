@@ -16,7 +16,7 @@ import { getInitials, formatDate } from '@/lib/utils'
 import { toast } from 'sonner'
 import {
   ArrowLeft, Edit, Building2, Globe, Phone, Mail, MapPin,
-  Users, ExternalLink, Receipt, FolderOpen
+  Users, ExternalLink, Receipt, FolderOpen, FileText, Ticket
 } from 'lucide-react'
 
 interface CompanyDetailProps {
@@ -45,6 +45,8 @@ type CompanyDetail = {
   opportunities?: { id: string; opportunityNumber?: string; title: string; expectedValue?: number; currency?: string }[]
   invoices?: { id: string; invoiceNumber: string; dueDate: string; totalAmount: number; status: string }[]
   projects?: { id: string; projectNumber: string; name: string; status: string; progressPercent?: number }[]
+  contracts?: { id: string; contractNumber: string; title: string; status: string; value: number | null; startDate: string; endDate: string | null }[]
+  tickets?: { id: string; ticketNumber: string; subject: string; status: string; priority: string; createdAt: string }[]
 }
 
 export function CompanyDetail({ companyId }: CompanyDetailProps) {
@@ -103,6 +105,8 @@ export function CompanyDetail({ companyId }: CompanyDetailProps) {
   const companyOpportunities = company.opportunities ?? []
   const companyProjects = company.projects ?? []
   const companyInvoices = company.invoices ?? []
+  const companyContracts = company.contracts ?? []
+  const companyTickets = company.tickets ?? []
 
   return (
     <div className="space-y-6 animate-slide-in">
@@ -140,6 +144,8 @@ export function CompanyDetail({ companyId }: CompanyDetailProps) {
               <TabsTrigger value="deals">{t('associatedDeals')} ({companyOpportunities.length})</TabsTrigger>
               <TabsTrigger value="projects">Projects ({companyProjects.length})</TabsTrigger>
               <TabsTrigger value="invoices">Invoices ({companyInvoices.length})</TabsTrigger>
+              <TabsTrigger value="contracts">Contracts ({companyContracts.length})</TabsTrigger>
+              <TabsTrigger value="tickets">Tickets ({companyTickets.length})</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="mt-4">
@@ -258,6 +264,61 @@ export function CompanyDetail({ companyId }: CompanyDetailProps) {
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground text-center py-4">No invoices linked</p>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="contracts" className="mt-4">
+              <Card>
+                <CardContent className="p-6">
+                  {companyContracts.length > 0 ? (
+                    <div className="space-y-3">
+                      {companyContracts.map(ctr => (
+                        <Link key={ctr.id} href={`/contracts/${ctr.id}`} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <p className="text-sm font-medium">{ctr.title}</p>
+                              <p className="text-xs text-muted-foreground">{ctr.contractNumber} · {formatDate(ctr.startDate)}</p>
+                            </div>
+                          </div>
+                          <div className="text-end">
+                            {ctr.value != null && <p className="text-sm font-semibold">AED {Number(ctr.value).toLocaleString()}</p>}
+                            <StatusBadge status={ctr.status} />
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">No contracts linked</p>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="tickets" className="mt-4">
+              <Card>
+                <CardContent className="p-6">
+                  {companyTickets.length > 0 ? (
+                    <div className="space-y-3">
+                      {companyTickets.map(tkt => (
+                        <Link key={tkt.id} href={`/tickets/${tkt.id}`} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <Ticket className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <p className="text-sm font-medium">{tkt.subject}</p>
+                              <p className="text-xs text-muted-foreground">{tkt.ticketNumber} · {formatDate(tkt.createdAt)}</p>
+                            </div>
+                          </div>
+                          <div className="text-end space-y-1">
+                            <StatusBadge status={tkt.priority} />
+                            <StatusBadge status={tkt.status.replace(/_/g, ' ')} />
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">No tickets linked</p>
                   )}
                 </CardContent>
               </Card>

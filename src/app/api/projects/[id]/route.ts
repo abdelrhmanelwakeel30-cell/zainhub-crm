@@ -13,6 +13,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       include: {
         client: { select: { id: true, displayName: true, industry: true } },
         owner: { select: { id: true, firstName: true, lastName: true, avatar: true } },
+        opportunity: { select: { id: true, opportunityNumber: true, title: true, expectedValue: true } },
         members: { include: { user: { select: { id: true, firstName: true, lastName: true, avatar: true, jobTitle: true } } } },
         milestones: { orderBy: { order: 'asc' } },
         tasks: { where: { parentTaskId: null }, select: { id: true, title: true, status: true, priority: true, dueDate: true, assignedTo: { select: { id: true, firstName: true, lastName: true } } }, orderBy: { createdAt: 'asc' } },
@@ -20,7 +21,15 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       },
     })
     if (!project) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
-    return NextResponse.json({ success: true, data: project })
+
+    // Polymorphic documents query
+    const documents = await prisma.document.findMany({
+      where: { tenantId: session.user.tenantId, linkedEntityType: 'project', linkedEntityId: id },
+      select: { id: true, name: true, fileType: true, fileSize: true, category: true, fileUrl: true, createdAt: true },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    return NextResponse.json({ success: true, data: { ...project, documents } })
   } catch (err) { console.error(err); return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 }) }
 }
 

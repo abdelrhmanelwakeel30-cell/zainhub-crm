@@ -42,6 +42,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         interestedService: { select: { id: true, name: true } },
         lostReason: { select: { id: true, name: true } },
         createdBy: { select: { id: true, firstName: true, lastName: true } },
+        campaign: { select: { id: true, name: true } },
+        company: { select: { id: true, displayName: true } },
+        contact: { select: { id: true, firstName: true, lastName: true } },
       },
     })
     if (!lead) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })

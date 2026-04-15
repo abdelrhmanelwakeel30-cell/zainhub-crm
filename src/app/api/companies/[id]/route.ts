@@ -17,6 +17,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         opportunities: { where: { archivedAt: null }, select: { id: true, opportunityNumber: true, title: true, expectedValue: true, currency: true }, orderBy: { createdAt: 'desc' }, take: 5 },
         invoices: { where: { status: { not: 'CANCELLED' } }, select: { id: true, invoiceNumber: true, totalAmount: true, status: true, dueDate: true }, orderBy: { createdAt: 'desc' }, take: 5 },
         projects: { where: { archivedAt: null }, select: { id: true, projectNumber: true, name: true, status: true, progressPercent: true }, orderBy: { createdAt: 'desc' }, take: 5 },
+        contracts: { select: { id: true, contractNumber: true, title: true, status: true, value: true, startDate: true, endDate: true }, orderBy: { createdAt: 'desc' }, take: 10 },
+        tickets: { select: { id: true, ticketNumber: true, subject: true, status: true, priority: true, createdAt: true }, orderBy: { createdAt: 'desc' }, take: 10 },
       },
     })
     if (!company) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })

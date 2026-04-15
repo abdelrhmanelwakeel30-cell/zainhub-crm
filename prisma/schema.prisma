@@ -582,6 +582,7 @@ model Company {
   // Relations
   companyContacts CompanyContact[]
   leads           Lead[]
+  leadsLinked     Lead[]            @relation("LeadCompany")
   opportunities   Opportunity[]
   projects        Project[]
   invoices        Invoice[]
@@ -646,6 +647,8 @@ model Contact {
   communicationLogs    CommunicationLog[]
   subscriptions        Subscription[]
   clientServices       ClientService[]   @relation("ClientServiceContact")
+  tickets              Ticket[]          @relation("TicketContact")
+  leads                Lead[]            @relation("LeadContact")
 
   @@unique([tenantId, contactNumber])
   @@index([tenantId])
@@ -688,6 +691,10 @@ model Lead {
   country                String?
   city                   String?
   website                String?
+  companyId              String?
+  company                Company?    @relation("LeadCompany", fields: [companyId], references: [id])
+  contactId              String?
+  contact                Contact?    @relation("LeadContact", fields: [contactId], references: [id])
   sourceId               String?
   source                 LeadSource? @relation(fields: [sourceId], references: [id])
   campaignId             String?
@@ -737,6 +744,7 @@ model Lead {
 
   communicationLogs  CommunicationLog[]
   leadCaptureSubmissions LeadCaptureSubmission[]
+  opportunities      Opportunity[]     @relation("LeadOpportunity")
 
   @@unique([tenantId, leadNumber])
   @@index([tenantId])
@@ -857,6 +865,9 @@ model Opportunity {
   riskLevel          RiskLevel     @default(LOW)
   competitorNotes    String?
   nextSteps          String?
+  // Source lead
+  leadId             String?
+  lead               Lead?         @relation("LeadOpportunity", fields: [leadId], references: [id])
   // Resolution
   wonAt              DateTime?
   lostAt             DateTime?
@@ -1578,6 +1589,8 @@ model Ticket {
   client            Company?     @relation(fields: [clientId], references: [id])
   projectId         String?
   project           Project?     @relation(fields: [projectId], references: [id])
+  contactId         String?
+  contact           Contact?     @relation("TicketContact", fields: [contactId], references: [id])
   type              TicketType   @default(SUPPORT)
   priority          Priority     @default(MEDIUM)
   assignedToId      String?

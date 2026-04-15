@@ -31,6 +31,7 @@ export async function GET(req: NextRequest, ctx: RouteContext) {
         assignedTo: { select: { id: true, firstName: true, lastName: true, avatar: true } },
         createdBy: { select: { id: true, firstName: true, lastName: true } },
         project: { select: { id: true, projectNumber: true, name: true } },
+        contact: { select: { id: true, firstName: true, lastName: true } },
         comments: {
           include: {
             author: { select: { id: true, firstName: true, lastName: true, avatar: true } },

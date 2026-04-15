@@ -11,6 +11,7 @@ import { StatusBadge } from '@/components/shared/status-badge'
 import { getInitials, formatDate, formatRelativeDate } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
+import Link from 'next/link'
 import {
   ArrowLeft, Building2, FolderOpen, User,
   CalendarClock, AlertTriangle, Clock, RotateCcw,
@@ -38,6 +39,7 @@ interface Ticket {
   closedAt?: string | null
   createdBy?: { firstName: string; lastName: string } | null
   project?: { id: string; name: string } | null
+  contact?: { id: string; firstName: string; lastName: string } | null
 }
 
 export function TicketDetail({ ticketId }: TicketDetailProps) {
@@ -145,6 +147,17 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
               <div className="grid grid-cols-2 gap-4">
                 <InfoRow icon={<Building2 className="h-4 w-4" />} label={t('client')} value={ticket.client?.displayName} />
                 <InfoRow icon={<FolderOpen className="h-4 w-4" />} label={t('project')} value={ticket.project?.name} />
+                {ticket.contact && (
+                  <div className="flex items-start gap-2">
+                    <div className="text-muted-foreground mt-0.5"><User className="h-4 w-4" /></div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Contact</p>
+                      <Link href={`/contacts/${ticket.contact.id}`} className="text-sm font-medium text-blue-600 hover:underline">
+                        {ticket.contact.firstName} {ticket.contact.lastName}
+                      </Link>
+                    </div>
+                  </div>
+                )}
                 <InfoRow icon={<User className="h-4 w-4" />} label={t('createdBy')} value={createdByName} />
                 <InfoRow icon={<CalendarClock className="h-4 w-4" />} label={t('createdAt')} value={formatDate(ticket.createdAt)} />
                 {ticket.resolvedAt && (

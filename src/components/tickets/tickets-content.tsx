@@ -22,6 +22,7 @@ interface TicketFormData {
   type: string
   priority: string
   assignedToId: string
+  contactId: string
   description: string
 }
 
@@ -49,8 +50,15 @@ export function TicketsContent() {
   const resolved = tickets.filter((t: { status: string }) => t.status === 'RESOLVED' || t.status === 'CLOSED').length
 
   const { register, handleSubmit, control, reset } = useForm<TicketFormData>({
-    defaultValues: { type: '', priority: 'MEDIUM', assignedToId: '', description: '', subject: '' },
+    defaultValues: { type: '', priority: 'MEDIUM', assignedToId: '', contactId: '', description: '', subject: '' },
   })
+
+  const { data: contactsResponse } = useQuery({
+    queryKey: ['contacts', 'minimal'],
+    queryFn: () => fetch('/api/contacts?pageSize=100').then(r => r.json()),
+    enabled: showCreate,
+  })
+  const contacts = contactsResponse?.data ?? []
 
   const mutation = useMutation({
     mutationFn: (data: TicketFormData) => fetch('/api/tickets', {
@@ -62,6 +70,7 @@ export function TicketsContent() {
         priority: data.priority || undefined,
         type: data.type || undefined,
         assignedToId: data.assignedToId || undefined,
+        contactId: data.contactId || undefined,
       }),
     }).then(async (r) => {
       if (!r.ok) { const e = await r.json(); throw new Error(e.error || 'Failed') }
@@ -177,6 +186,23 @@ export function TicketsContent() {
                       <SelectContent>
                         {users.map((u: { id: string; firstName: string; lastName: string }) => (
                           <SelectItem key={u.id} value={u.id}>{u.firstName} {u.lastName}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Contact</Label>
+                <Controller
+                  name="contactId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-full"><SelectValue placeholder="Select contact (optional)..." /></SelectTrigger>
+                      <SelectContent>
+                        {contacts.map((c: { id: string; firstName: string; lastName: string }) => (
+                          <SelectItem key={c.id} value={c.id}>{c.firstName} {c.lastName}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

@@ -14,6 +14,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         client: { select: { id: true, displayName: true, taxRegistrationNumber: true, address: true } },
         contact: { select: { id: true, firstName: true, lastName: true, email: true } },
         project: { select: { id: true, name: true } },
+        contract: { select: { id: true, contractNumber: true, title: true } },
         opportunity: { select: { id: true, title: true } },
         items: { orderBy: { order: 'asc' }, include: { service: { select: { id: true, name: true } } } },
         payments: { orderBy: { paymentDate: 'desc' } },

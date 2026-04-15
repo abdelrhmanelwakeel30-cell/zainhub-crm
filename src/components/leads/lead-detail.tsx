@@ -15,7 +15,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { DialogClose } from '@/components/ui/dialog'
 import { getInitials, formatDate, formatRelativeDate } from '@/lib/utils'
 import { toast } from 'sonner'
-import { Loader2, ArrowLeft, Phone, Mail, Globe, Building2, CalendarClock, User, Target, DollarSign, ArrowRight, AlertTriangle } from 'lucide-react'
+import Link from 'next/link'
+import { Loader2, ArrowLeft, Phone, Mail, Globe, Building2, CalendarClock, User, Target, DollarSign, ArrowRight, AlertTriangle, Megaphone } from 'lucide-react'
 
 interface LeadDetailProps {
   leadId: string
@@ -161,6 +162,15 @@ export function LeadDetail({ leadId }: LeadDetailProps) {
                 <InfoRow icon={<DollarSign className="h-4 w-4" />} label={t('budget')} value={lead.budgetRange} />
                 <InfoRow icon={<User className="h-4 w-4" />} label={t('source')} value={lead.source?.name} />
                 <InfoRow icon={<CalendarClock className="h-4 w-4" />} label={t('nextFollowUp')} value={lead.nextFollowUpAt ? formatDate(lead.nextFollowUpAt) : 'Not set'} />
+                {lead.campaign && (
+                  <div className="flex items-start gap-2">
+                    <div className="text-muted-foreground mt-0.5"><Megaphone className="h-4 w-4" /></div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Campaign</p>
+                      <p className="text-sm font-medium">{lead.campaign.name}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
