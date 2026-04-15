@@ -21,6 +21,7 @@ interface TicketFormData {
   subject: string
   type: string
   priority: string
+  clientId: string
   assignedToId: string
   contactId: string
   description: string
@@ -49,14 +50,27 @@ export function TicketsContent() {
   const inProgress = tickets.filter((t: { status: string }) => t.status === 'IN_PROGRESS' || t.status === 'WAITING_CLIENT').length
   const resolved = tickets.filter((t: { status: string }) => t.status === 'RESOLVED' || t.status === 'CLOSED').length
 
-  const { register, handleSubmit, control, reset } = useForm<TicketFormData>({
-    defaultValues: { type: '', priority: 'MEDIUM', assignedToId: '', contactId: '', description: '', subject: '' },
+  const { register, handleSubmit, control, reset, watch, setValue } = useForm<TicketFormData>({
+    defaultValues: { type: '', priority: 'MEDIUM', clientId: '', assignedToId: '', contactId: '', description: '', subject: '' },
   })
 
-  const { data: contactsResponse } = useQuery({
-    queryKey: ['contacts', 'minimal'],
-    queryFn: () => fetch('/api/contacts?pageSize=100').then(r => r.json()),
+  const selectedClientId = watch('clientId')
+
+  const { data: companiesResponse } = useQuery({
+    queryKey: ['companies', 'dropdown'],
+    queryFn: () => fetch('/api/companies?pageSize=200').then(r => r.json()),
     enabled: showCreate,
+    staleTime: 0,
+    refetchOnMount: true,
+  })
+  const companies = companiesResponse?.data ?? []
+
+  const { data: contactsResponse } = useQuery({
+    queryKey: ['contacts', 'dropdown', selectedClientId],
+    queryFn: () => fetch(`/api/contacts?pageSize=200${selectedClientId ? `&companyId=${selectedClientId}` : ''}`).then(r => r.json()),
+    enabled: showCreate,
+    staleTime: 0,
+    refetchOnMount: true,
   })
   const contacts = contactsResponse?.data ?? []
 
@@ -69,6 +83,7 @@ export function TicketsContent() {
         description: data.description,
         priority: data.priority || undefined,
         type: data.type || undefined,
+        clientId: data.clientId || undefined,
         assignedToId: data.assignedToId || undefined,
         contactId: data.contactId || undefined,
       }),
@@ -176,38 +191,57 @@ export function TicketsContent() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Assign To</Label>
+                <Label>Company (Client)</Label>
                 <Controller
-                  name="assignedToId"
+                  name="clientId"
                   control={control}
                   render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full"><SelectValue placeholder="Select team member..." /></SelectTrigger>
+                    <Select value={field.value} onValueChange={(val) => { field.onChange(val); setValue('contactId', '') }}>
+                      <SelectTrigger className="w-full"><SelectValue placeholder="Select company..." /></SelectTrigger>
                       <SelectContent>
-                        {users.map((u: { id: string; firstName: string; lastName: string }) => (
-                          <SelectItem key={u.id} value={u.id}>{u.firstName} {u.lastName}</SelectItem>
+                        {companies.map((c: { id: string; name: string }) => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   )}
                 />
               </div>
-              <div className="space-y-2">
-                <Label>Contact</Label>
-                <Controller
-                  name="contactId"
-                  control={control}
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full"><SelectValue placeholder="Select contact (optional)..." /></SelectTrigger>
-                      <SelectContent>
-                        {contacts.map((c: { id: string; firstName: string; lastName: string }) => (
-                          <SelectItem key={c.id} value={c.id}>{c.firstName} {c.lastName}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Contact</Label>
+                  <Controller
+                    name="contactId"
+                    control={control}
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger className="w-full"><SelectValue placeholder="Select contact..." /></SelectTrigger>
+                        <SelectContent>
+                          {contacts.map((c: { id: string; firstName: string; lastName: string }) => (
+                            <SelectItem key={c.id} value={c.id}>{c.firstName} {c.lastName}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Assign To</Label>
+                  <Controller
+                    name="assignedToId"
+                    control={control}
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger className="w-full"><SelectValue placeholder="Select team member..." /></SelectTrigger>
+                        <SelectContent>
+                          {users.map((u: { id: string; firstName: string; lastName: string }) => (
+                            <SelectItem key={u.id} value={u.id}>{u.firstName} {u.lastName}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Description</Label>

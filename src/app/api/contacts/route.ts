@@ -28,8 +28,10 @@ export async function GET(req: NextRequest) {
   const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
   const pageSize = Math.min(100, parseInt(searchParams.get('pageSize') || '20'))
   const search = searchParams.get('search') || ''
+  const companyId = searchParams.get('companyId') || ''
   const where: Record<string, unknown> = { tenantId: session.user.tenantId, archivedAt: null }
   if (search) where.OR = [{ firstName: { contains: search, mode: 'insensitive' as const } }, { lastName: { contains: search, mode: 'insensitive' as const } }, { email: { contains: search, mode: 'insensitive' as const } }, { jobTitle: { contains: search, mode: 'insensitive' as const } }]
+  if (companyId) where.companyContacts = { some: { companyId } }
   try {
     const [data, total] = await Promise.all([
       prisma.contact.findMany({ where, include: { companyContacts: { include: { company: { select: { id: true, displayName: true } } }, where: { isPrimary: true }, take: 1 } }, orderBy: { createdAt: 'desc' }, skip: (page-1)*pageSize, take: pageSize }),
