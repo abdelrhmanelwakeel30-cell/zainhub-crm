@@ -18,17 +18,14 @@ function createPrismaClient(): PrismaClientType {
   if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL is not defined')
   }
-  const log = process.env.NODE_ENV === 'development' ? (['error', 'warn'] as const) : (['error'] as const)
+  const log: Prisma.LogLevel[] = process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error']
   // Use Neon serverless adapter for Neon-hosted databases (production/staging).
   // Fall back to plain PrismaClient for local PostgreSQL (direct pg driver).
   if (process.env.DATABASE_URL.includes('neon.tech') || process.env.DATABASE_URL.includes('neon.database')) {
     const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL })
     return new PrismaClient({ adapter, log }) as unknown as PrismaClientType
   }
-  return new PrismaClient({
-    datasources: { db: { url: process.env.DATABASE_URL } },
-    log,
-  }) as unknown as PrismaClientType
+  return new PrismaClient({ log }) as unknown as PrismaClientType
 }
 
 // Cache the client on globalThis for ALL environments. On Vercel/Next.js the

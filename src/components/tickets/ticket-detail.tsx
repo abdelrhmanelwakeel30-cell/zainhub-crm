@@ -51,6 +51,13 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
     queryFn: () => fetch(`/api/tickets/${ticketId}`).then(r => r.json()),
   })
 
+  const { data: usersResponse } = useQuery({
+    queryKey: ['users', 'minimal'],
+    queryFn: () => fetch('/api/users?minimal=true').then(r => r.json()),
+    enabled: showAssign,
+  })
+  const users: { id: string; firstName: string; lastName: string }[] = usersResponse?.data ?? []
+
   if (isLoading) {
     return (
       <div className="space-y-6 animate-pulse">
@@ -215,12 +222,15 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
                 <div className="space-y-2">
                   <p className="text-sm text-muted-foreground italic">Unassigned</p>
                   {showAssign ? (
-                    <Select onValueChange={(v) => { if (v) { toast.success('Ticket assigned'); setShowAssign(false) } }}>
+                    <Select onValueChange={(v) => { if (v && v !== 'unassigned') { toast.success('Ticket assigned'); setShowAssign(false) } else { setShowAssign(false) } }}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select team member..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="placeholder">Loading...</SelectItem>
+                        <SelectItem value="unassigned">Unassigned</SelectItem>
+                        {users.map((u) => (
+                          <SelectItem key={u.id} value={u.id}>{u.firstName} {u.lastName}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   ) : (

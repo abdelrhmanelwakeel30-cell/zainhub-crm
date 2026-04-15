@@ -40,7 +40,7 @@ type CompanyDetail = {
   annualRevenue?: number
   healthScore?: number
   accountOwner?: { firstName: string; lastName: string }
-  companyContacts?: { contact: { id: string; firstName: string; lastName: string; jobTitle?: string } }[]
+  companyContacts?: { contact: { id: string; firstName: string; lastName: string; jobTitle?: string; decisionRole?: string | null } }[]
   leads?: { id: string; leadNumber?: string; fullName?: string; urgency?: string }[]
   opportunities?: { id: string; opportunityNumber?: string; title: string; expectedValue?: number; currency?: string }[]
   invoices?: { id: string; invoiceNumber: string; dueDate: string; totalAmount: number; status: string }[]
