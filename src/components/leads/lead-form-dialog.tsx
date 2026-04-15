@@ -46,19 +46,25 @@ export function LeadFormDialog({ open, onOpenChange, defaultValues }: LeadFormDi
   const { data: sourcesData } = useQuery({
     queryKey: ['lead-sources'],
     queryFn: () => fetch('/api/lead-sources').then(r => r.json()),
-    staleTime: 300_000,
+    enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const { data: servicesData } = useQuery({
     queryKey: ['services'],
     queryFn: () => fetch('/api/services').then(r => r.json()),
-    staleTime: 300_000,
+    enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const { data: usersData } = useQuery({
     queryKey: ['users', 'minimal'],
     queryFn: () => fetch('/api/users?minimal=true').then(r => r.json()),
-    staleTime: 300_000,
+    enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const { register, handleSubmit, control, formState: { errors }, reset } = useForm<LeadFormData>({
@@ -80,6 +86,8 @@ export function LeadFormDialog({ open, onOpenChange, defaultValues }: LeadFormDi
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leads'] })
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       toast.success('Lead created successfully')
       reset()
       onOpenChange(false)

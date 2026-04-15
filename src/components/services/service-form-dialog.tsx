@@ -39,7 +39,9 @@ export function ServiceFormDialog({ open, onOpenChange }: Props) {
   const { data: categoriesData } = useQuery({
     queryKey: ['service-categories'],
     queryFn: () => fetch('/api/service-categories').then(r => r.json()),
-    staleTime: 300_000,
+    enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const { register, handleSubmit, control, formState: { errors }, reset } = useForm<FormInput>({
@@ -58,6 +60,9 @@ export function ServiceFormDialog({ open, onOpenChange }: Props) {
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['services'] })
+      queryClient.invalidateQueries({ queryKey: ['quotations'] })
+      queryClient.invalidateQueries({ queryKey: ['proposals'] })
+      queryClient.invalidateQueries({ queryKey: ['opportunities'] })
       toast.success('Service created successfully')
       reset()
       onOpenChange(false)

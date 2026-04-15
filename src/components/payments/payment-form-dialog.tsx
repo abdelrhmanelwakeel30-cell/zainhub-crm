@@ -38,7 +38,9 @@ export function PaymentFormDialog({ open, onOpenChange }: Props) {
   const { data: invoicesData } = useQuery({
     queryKey: ['invoices', 'unpaid'],
     queryFn: () => fetch('/api/invoices?pageSize=100').then(r => r.json()),
-    staleTime: 60_000,
+    enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const { register, handleSubmit, control, formState: { errors }, reset } = useForm<FormInput>({
@@ -61,6 +63,7 @@ export function PaymentFormDialog({ open, onOpenChange }: Props) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payments'] })
       queryClient.invalidateQueries({ queryKey: ['invoices'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       toast.success('Payment recorded successfully')
       reset()
       onOpenChange(false)

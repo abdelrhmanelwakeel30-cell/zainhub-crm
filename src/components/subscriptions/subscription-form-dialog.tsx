@@ -51,12 +51,16 @@ export function SubscriptionFormDialog({ open, onOpenChange }: SubscriptionFormD
     queryKey: ['companies'],
     queryFn: () => fetch('/api/companies?pageSize=200').then(r => r.json()),
     enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const { data: servicesData } = useQuery({
     queryKey: ['services'],
     queryFn: () => fetch('/api/services?pageSize=200').then(r => r.json()),
     enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const companies: Array<{ id: string; displayName: string }> = companiesData?.data ?? []
@@ -93,6 +97,8 @@ export function SubscriptionFormDialog({ open, onOpenChange }: SubscriptionFormD
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
+      queryClient.invalidateQueries({ queryKey: ['companies'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       toast.success('Subscription created successfully')
       reset()
       onOpenChange(false)

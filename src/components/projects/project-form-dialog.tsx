@@ -44,13 +44,17 @@ export function ProjectFormDialog({ open, onOpenChange, defaultValues }: Project
   const { data: usersData } = useQuery({
     queryKey: ['users', 'minimal'],
     queryFn: () => fetch('/api/users?minimal=true').then(r => r.json()),
-    staleTime: 300_000,
+    enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const { data: companiesData } = useQuery({
     queryKey: ['companies', 'list'],
     queryFn: () => fetch('/api/companies?pageSize=100').then(r => r.json()),
-    staleTime: 300_000,
+    enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const users: { id: string; firstName: string; lastName: string }[] = usersData?.data ?? []
@@ -87,6 +91,10 @@ export function ProjectFormDialog({ open, onOpenChange, defaultValues }: Project
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] })
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      queryClient.invalidateQueries({ queryKey: ['invoices'] })
+      queryClient.invalidateQueries({ queryKey: ['expenses'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       toast.success('Project created successfully')
       reset()
       onOpenChange(false)

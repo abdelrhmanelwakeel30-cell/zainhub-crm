@@ -43,6 +43,8 @@ export function ExpenseFormDialog({ open, onOpenChange, defaultValues }: Expense
     queryKey: ['projects', 'minimal'],
     queryFn: () => fetch('/api/projects?minimal=true').then(r => r.json()),
     enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
   const projects = projectsResponse?.data ?? []
 
@@ -50,6 +52,8 @@ export function ExpenseFormDialog({ open, onOpenChange, defaultValues }: Expense
     queryKey: ['expense-categories'],
     queryFn: () => fetch('/api/expense-categories').then(r => r.json()),
     enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
   const expenseCategories: { id: string; name: string }[] = categoriesResponse?.data ?? []
 
@@ -81,6 +85,7 @@ export function ExpenseFormDialog({ open, onOpenChange, defaultValues }: Expense
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expenses'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       toast.success('Expense created successfully')
       reset()
       onOpenChange(false)

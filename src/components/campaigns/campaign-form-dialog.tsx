@@ -53,6 +53,7 @@ export function CampaignFormDialog({ open, onOpenChange }: Props) {
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] })
+      queryClient.invalidateQueries({ queryKey: ['leads'] })
       toast.success('Campaign created successfully')
       reset()
       onOpenChange(false)

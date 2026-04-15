@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useForm, Controller, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose,
 } from '@/components/ui/dialog'
@@ -38,24 +38,30 @@ interface Props {
 
 export function OnboardingFormDialog({ open, onOpenChange, onSuccess }: Props) {
   const [useTemplate, setUseTemplate] = useState(false)
+  const queryClient = useQueryClient()
 
   const { data: companiesData } = useQuery({
     queryKey: ['companies', 'list'],
     queryFn: () => fetch('/api/companies?pageSize=100').then(r => r.json()),
-    staleTime: 300_000,
+    enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const { data: projectsData } = useQuery({
     queryKey: ['projects'],
     queryFn: () => fetch('/api/projects?pageSize=100').then(r => r.json()),
-    staleTime: 300_000,
+    enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const { data: templatesData } = useQuery({
     queryKey: ['onboarding-templates'],
     queryFn: () => fetch('/api/onboarding-templates').then(r => r.json()),
-    staleTime: 300_000,
-    enabled: useTemplate,
+    staleTime: 0,
+    refetchOnMount: true,
+    enabled: open && useTemplate,
   })
 
   const companies: { id: string; displayName: string }[] = companiesData?.data ?? []
@@ -107,6 +113,8 @@ export function OnboardingFormDialog({ open, onOpenChange, onSuccess }: Props) {
       })
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['onboarding'] })
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
       toast.success('Onboarding created')
       reset()
       onSuccess?.()

@@ -74,6 +74,8 @@ export function PipelineFormDialog({ open, onOpenChange }: Props) {
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pipelines'] })
+      queryClient.invalidateQueries({ queryKey: ['leads'] })
+      queryClient.invalidateQueries({ queryKey: ['opportunities'] })
       toast.success('Pipeline created successfully')
       reset()
       onOpenChange(false)

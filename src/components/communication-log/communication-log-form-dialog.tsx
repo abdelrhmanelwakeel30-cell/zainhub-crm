@@ -38,13 +38,17 @@ export function CommunicationLogFormDialog({ open, onOpenChange }: Props) {
   const { data: companiesData } = useQuery({
     queryKey: ['companies', 'list'],
     queryFn: () => fetch('/api/companies?pageSize=100').then(r => r.json()),
-    staleTime: 300_000,
+    enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const { data: contactsData } = useQuery({
     queryKey: ['contacts', 'list'],
     queryFn: () => fetch('/api/contacts?pageSize=100').then(r => r.json()),
-    staleTime: 300_000,
+    enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const companies: { id: string; displayName: string }[] = companiesData?.data ?? []

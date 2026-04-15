@@ -66,6 +66,8 @@ export function ChangeRequestFormDialog({ open, onOpenChange, onSuccess }: Chang
     queryKey: ['companies', 'minimal'],
     queryFn: () => fetch('/api/companies?pageSize=100').then(r => r.json()),
     enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
   const companies: Company[] = companiesResponse?.data ?? []
 
@@ -73,6 +75,8 @@ export function ChangeRequestFormDialog({ open, onOpenChange, onSuccess }: Chang
     queryKey: ['projects', 'minimal'],
     queryFn: () => fetch('/api/projects?pageSize=100').then(r => r.json()),
     enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
   const allProjects: Project[] = projectsResponse?.data ?? []
 

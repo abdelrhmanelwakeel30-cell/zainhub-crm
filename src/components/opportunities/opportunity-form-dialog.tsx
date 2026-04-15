@@ -43,18 +43,24 @@ export function OpportunityFormDialog({ open, onOpenChange, defaultValues }: Opp
     queryKey: ['companies'],
     queryFn: () => fetch('/api/companies').then(r => r.json()),
     enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const { data: contactsData } = useQuery({
     queryKey: ['contacts'],
     queryFn: () => fetch('/api/contacts').then(r => r.json()),
     enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const { data: pipelinesData } = useQuery({
     queryKey: ['pipelines', 'OPPORTUNITY'],
     queryFn: () => fetch('/api/pipelines?type=OPPORTUNITY').then(r => r.json()),
     enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const companies: { id: string; displayName: string }[] = companiesData?.data ?? []
@@ -88,6 +94,9 @@ export function OpportunityFormDialog({ open, onOpenChange, defaultValues }: Opp
       }).then(r => r.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['opportunities'] })
+      queryClient.invalidateQueries({ queryKey: ['leads'] })
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       toast.success('Opportunity created successfully')
       reset()
       onOpenChange(false)

@@ -42,13 +42,17 @@ export function TaskFormDialog({ open, onOpenChange, defaultValues }: TaskFormDi
   const { data: usersData } = useQuery({
     queryKey: ['users', 'minimal'],
     queryFn: () => fetch('/api/users?minimal=true').then(r => r.json()),
-    staleTime: 300_000,
+    enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const { data: projectsData } = useQuery({
     queryKey: ['projects', 'list'],
     queryFn: () => fetch('/api/projects?pageSize=100').then(r => r.json()),
-    staleTime: 300_000,
+    enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const users: { id: string; firstName: string; lastName: string }[] = usersData?.data ?? []
@@ -80,6 +84,8 @@ export function TaskFormDialog({ open, onOpenChange, defaultValues }: TaskFormDi
       }).then(r => r.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       toast.success('Task created successfully')
       reset()
       onOpenChange(false)

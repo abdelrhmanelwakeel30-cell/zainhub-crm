@@ -49,7 +49,9 @@ export function ClientServiceFormDialog({ open, onOpenChange }: Props) {
   const { data: companiesData } = useQuery({
     queryKey: ['companies', 'list'],
     queryFn: () => fetch('/api/companies?pageSize=200').then(r => r.json()),
-    staleTime: 300_000,
+    enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const { data: contactsData } = useQuery({
@@ -57,19 +59,24 @@ export function ClientServiceFormDialog({ open, onOpenChange }: Props) {
     queryFn: () =>
       fetch(`/api/contacts?companyId=${selectedCompanyId}&pageSize=200`).then(r => r.json()),
     enabled: !!selectedCompanyId,
-    staleTime: 300_000,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const { data: servicesData } = useQuery({
     queryKey: ['services', 'list'],
     queryFn: () => fetch('/api/services?pageSize=200').then(r => r.json()),
-    staleTime: 300_000,
+    enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const { data: usersData } = useQuery({
     queryKey: ['users', 'minimal'],
     queryFn: () => fetch('/api/users?minimal=true').then(r => r.json()),
-    staleTime: 300_000,
+    enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const companies: { id: string; displayName: string }[] = companiesData?.data ?? []
@@ -118,6 +125,8 @@ export function ClientServiceFormDialog({ open, onOpenChange }: Props) {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['client-services'] })
+      queryClient.invalidateQueries({ queryKey: ['companies'] })
+      queryClient.invalidateQueries({ queryKey: ['contacts'] })
       toast.success('Client service created successfully')
       reset()
       setSelectedCompanyId('')

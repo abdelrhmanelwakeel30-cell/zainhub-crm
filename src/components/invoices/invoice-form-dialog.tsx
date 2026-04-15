@@ -46,6 +46,8 @@ export function InvoiceFormDialog({ open, onOpenChange, defaultValues }: Invoice
     queryKey: ['companies'],
     queryFn: () => fetch('/api/companies?pageSize=100').then(r => r.json()),
     enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const companies: Array<{ id: string; displayName: string }> = companiesData?.data ?? []
@@ -93,6 +95,8 @@ export function InvoiceFormDialog({ open, onOpenChange, defaultValues }: Invoice
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] })
+      queryClient.invalidateQueries({ queryKey: ['payments'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       toast.success('Invoice created successfully')
       reset()
       onOpenChange(false)

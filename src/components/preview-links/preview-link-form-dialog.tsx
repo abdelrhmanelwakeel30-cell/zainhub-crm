@@ -38,13 +38,17 @@ export function PreviewLinkFormDialog({ open, onOpenChange }: Props) {
   const { data: projectsData } = useQuery({
     queryKey: ['projects', 'list'],
     queryFn: () => fetch('/api/projects?pageSize=100').then(r => r.json()),
-    staleTime: 300_000,
+    enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const { data: companiesData } = useQuery({
     queryKey: ['companies', 'list'],
     queryFn: () => fetch('/api/companies?pageSize=100').then(r => r.json()),
-    staleTime: 300_000,
+    enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const projects: { id: string; name: string }[] = projectsData?.data ?? []

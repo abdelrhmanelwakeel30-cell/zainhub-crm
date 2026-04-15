@@ -42,6 +42,8 @@ export function ContactFormDialog({ open, onOpenChange, defaultValues }: Contact
     queryKey: ['companies'],
     queryFn: () => fetch('/api/companies').then(r => r.json()),
     enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const companies: { id: string; displayName: string }[] = companiesData?.data ?? []
@@ -68,6 +70,12 @@ export function ContactFormDialog({ open, onOpenChange, defaultValues }: Contact
       }).then(r => r.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] })
+      queryClient.invalidateQueries({ queryKey: ['leads'] })
+      queryClient.invalidateQueries({ queryKey: ['opportunities'] })
+      queryClient.invalidateQueries({ queryKey: ['tickets'] })
+      queryClient.invalidateQueries({ queryKey: ['quotations'] })
+      queryClient.invalidateQueries({ queryKey: ['proposals'] })
+      queryClient.invalidateQueries({ queryKey: ['contracts'] })
       toast.success('Contact created successfully')
       reset()
       onOpenChange(false)

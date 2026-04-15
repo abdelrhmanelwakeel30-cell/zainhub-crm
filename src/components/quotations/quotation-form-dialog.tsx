@@ -44,13 +44,17 @@ export function QuotationFormDialog({ open, onOpenChange }: Props) {
   const { data: companiesData } = useQuery({
     queryKey: ['companies', 'minimal'],
     queryFn: () => fetch('/api/companies?pageSize=100').then(r => r.json()),
-    staleTime: 300_000,
+    enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const { data: usersData } = useQuery({
     queryKey: ['users', 'minimal'],
     queryFn: () => fetch('/api/users?minimal=true').then(r => r.json()),
-    staleTime: 300_000,
+    enabled: open,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   const { register, handleSubmit, control, formState: { errors }, reset } = useForm<FormInput>({
