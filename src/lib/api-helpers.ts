@@ -56,9 +56,10 @@ export function badRequest(msg: string) {
 }
 
 export function serverError(err: unknown) {
-  const msg = err instanceof Error ? err.message : 'Internal server error'
+  // Always return a generic message — never leak ORM/DB internals to the client.
+  // The full error is logged server-side for debugging.
   console.error('[API Error]', err)
-  return NextResponse.json({ success: false, error: msg }, { status: 500 })
+  return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
 }
 
 export function ok<T>(data: T, extra?: Record<string, unknown>) {

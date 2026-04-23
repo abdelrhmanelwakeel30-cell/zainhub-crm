@@ -1,7 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { TrendingUp } from 'lucide-react'
+import { TrendingUp, TrendingDown } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
 interface RevenueChartProps {
@@ -11,6 +11,15 @@ interface RevenueChartProps {
 const FALLBACK_DATA = [
   { month: '—', revenue: 0 },
 ]
+
+/** Returns the MoM % change between the last two months, or null if unavailable. */
+function calcMoMChange(data: Array<{ month: string; total: number }> | undefined): number | null {
+  if (!data || data.length < 2) return null
+  const prev = Number(data[data.length - 2].total ?? 0)
+  const curr = Number(data[data.length - 1].total ?? 0)
+  if (prev === 0) return null          // avoid division by zero / misleading ∞
+  return ((curr - prev) / prev) * 100
+}
 
 export function RevenueChart({ data }: RevenueChartProps) {
   const t = useTranslations('dashboard')
@@ -22,6 +31,11 @@ export function RevenueChart({ data }: RevenueChartProps) {
       }))
     : FALLBACK_DATA
 
+  const mom = calcMoMChange(data)
+  const momLabel = mom !== null
+    ? `${mom >= 0 ? '+' : ''}${mom.toFixed(1)}%`
+    : null
+
   return (
     <div className="lux-card animate-lux-rise p-5">
       <div className="flex items-center justify-between mb-4">
@@ -29,9 +43,17 @@ export function RevenueChart({ data }: RevenueChartProps) {
           <h3 className="text-[15px] font-semibold tracking-tight">{t('revenueOverview')}</h3>
           <p className="text-xs text-muted-foreground mt-0.5">Paid invoices — last 12 months</p>
         </div>
-        <span className="inline-flex items-center gap-1 h-6 px-2 rounded-md bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 text-[11px] font-semibold">
-          <TrendingUp className="w-3 h-3" strokeWidth={2} /> +18%
-        </span>
+        {momLabel !== null && (
+          mom! >= 0 ? (
+            <span className="inline-flex items-center gap-1 h-6 px-2 rounded-md bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 text-[11px] font-semibold">
+              <TrendingUp className="w-3 h-3" strokeWidth={2} /> {momLabel}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 h-6 px-2 rounded-md bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 text-[11px] font-semibold">
+              <TrendingDown className="w-3 h-3" strokeWidth={2} /> {momLabel}
+            </span>
+          )
+        )}
       </div>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={chartData} barGap={4} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>

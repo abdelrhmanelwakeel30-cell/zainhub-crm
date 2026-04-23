@@ -100,11 +100,13 @@ export function LoginForm() {
             Sign In
           </Button>
 
-          <div className="text-center">
-            <p className="text-xs text-gray-400 mt-4">
-              Demo: admin@zainhub.ae / admin123
-            </p>
-          </div>
+          {process.env.NODE_ENV !== 'production' && (
+            <div className="text-center">
+              <p className="text-xs text-gray-400 mt-4">
+                Demo: admin@zainhub.ae / admin123
+              </p>
+            </div>
+          )}
         </form>
       </CardContent>
     </Card>

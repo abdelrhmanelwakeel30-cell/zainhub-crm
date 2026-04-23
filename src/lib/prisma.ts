@@ -1,7 +1,14 @@
 import { PrismaClient, Prisma } from '@prisma/client'
 import { PrismaNeon } from '@prisma/adapter-neon'
 import { PrismaPg } from '@prisma/adapter-pg'
+import { neonConfig } from '@neondatabase/serverless'
 import type { PrismaClient as PrismaClientType } from '.prisma/client'
+
+// F-008: Enable Neon connection caching so the HTTP fetch layer reuses
+// keep-alive connections across requests within the same warm function
+// instance. Combined with globalThis.__prisma caching below, this
+// significantly reduces cold-start overhead and TTFB on Vercel.
+neonConfig.fetchConnectionCache = true
 
 // Ensure Prisma Decimal fields serialize as JS numbers (not strings) in JSON responses.
 // This patches the prototype once at module load so ALL routes benefit automatically.

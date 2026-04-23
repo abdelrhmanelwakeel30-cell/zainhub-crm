@@ -146,9 +146,11 @@
   }
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden; /* F-007: prevent horizontal scroll on mobile */
   }
   html {
     @apply font-sans;
+    overflow-x: hidden; /* F-007: belt-and-suspenders for iOS Safari */
   }
 }
 

@@ -9,6 +9,7 @@ import { StatusBadge } from '@/components/shared/status-badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Progress } from '@/components/ui/progress'
 import { getInitials, formatDate } from '@/lib/utils'
+import { AlertCircle } from 'lucide-react'
 
 type Opportunity = {
   id: string
@@ -28,9 +29,13 @@ export function OpportunitiesTable() {
   const router = useRouter()
   const t = useTranslations('opportunities')
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['opportunities'],
-    queryFn: () => fetch('/api/opportunities').then(r => r.json()),
+    queryFn: async () => {
+      const res = await fetch('/api/opportunities')
+      if (!res.ok) throw new Error('Failed to load opportunities')
+      return res.json()
+    },
   })
 
   const opportunities: Opportunity[] = data?.data ?? []
@@ -122,6 +127,15 @@ export function OpportunitiesTable() {
       ),
     },
   ]
+
+  if (isError) {
+    return (
+      <div className="flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/30 p-4 text-sm text-red-700 dark:text-red-400">
+        <AlertCircle className="h-4 w-4 shrink-0" />
+        <span>Unable to load opportunities. Please refresh the page or contact support if the issue persists.</span>
+      </div>
+    )
+  }
 
   return (
     <DataTable

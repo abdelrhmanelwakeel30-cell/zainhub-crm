@@ -21,7 +21,6 @@ const PUBLIC_API_PATHS = [
 
 const PUBLIC_PAGE_PATHS = [
   '/login',
-  '/register',
   '/forgot-password',
   '/reset-password',
   '/unauthorized',

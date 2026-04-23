@@ -199,7 +199,7 @@ export function DataTable<TData, TValue>({
               <ChevronLeft className="h-4 w-4 rtl:rotate-180" />
             </Button>
             <span className="text-sm font-medium">
-              {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
+              {table.getState().pagination.pageIndex + 1} / {Math.max(1, table.getPageCount())}
             </span>
             <Button
               variant="outline"

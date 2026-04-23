@@ -49,7 +49,7 @@ const navigation: NavGroup[] = [
     titleKey: 'nav.crmSales',
     items: [
       { titleKey: 'nav.leads', href: '/leads', icon: Target, permission: 'leads:view' },
-      { titleKey: 'nav.opportunities', href: '/opportunities', icon: Handshake, permission: 'opportunities:view', live: true },
+      { titleKey: 'nav.opportunities', href: '/opportunities', icon: Handshake, permission: 'opportunities:view' },
       { titleKey: 'nav.companies', href: '/companies', icon: Building2, permission: 'companies:view' },
       { titleKey: 'nav.contacts', href: '/contacts', icon: UserCircle, permission: 'contacts:view' },
       { titleKey: 'nav.services', href: '/services', icon: Package, permission: 'settings:view' },
@@ -59,7 +59,7 @@ const navigation: NavGroup[] = [
   {
     titleKey: 'nav.delivery',
     items: [
-      { titleKey: 'nav.projects', href: '/projects', icon: Briefcase, permission: 'projects:view', live: true },
+      { titleKey: 'nav.projects', href: '/projects', icon: Briefcase, permission: 'projects:view' },
       { titleKey: 'nav.tasks', href: '/tasks', icon: ListTodo, permission: 'tasks:view' },
       { titleKey: 'nav.clientServices', href: '/client-services', icon: Activity, permission: 'projects:view' },
       { titleKey: 'nav.deliverables', href: '/deliverables', icon: PackageOpen, permission: 'deliverables:view' },
