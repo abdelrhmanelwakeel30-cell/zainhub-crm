@@ -1,22 +1,21 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { auth } from '@/lib/auth'
 
 /**
- * Edge middleware — defense-in-depth:
- *   1. Protects all /api/* routes (except auth + public routes) with session check
- *   2. Adds per-request security headers that are request-scoped (CSP with nonce)
- *   3. Short-circuits unauthenticated dashboard requests to /login
+ * Edge middleware — defense-in-depth.
  *
- * Per-route handlers still re-verify via getApiSession() + enforce tenantId.
- * This is the belt-and-braces outer layer.
+ * NOTE: This runs in the Edge runtime, which does not support Node's `crypto`
+ * module. We therefore CANNOT call `auth()` (it imports Prisma via the
+ * NextAuth config). Instead we do a lightweight presence check on the
+ * NextAuth session cookie; per-route handlers still re-verify the session
+ * via `getApiSession()` and enforce `tenantId` — this is just the outer
+ * gate that short-circuits obviously unauthenticated traffic.
  */
 
-// Paths that do NOT require authentication
 const PUBLIC_API_PATHS = [
   '/api/auth',              // NextAuth handler
   '/api/public',            // Public forms
-  '/api/client-portal/auth',// Portal login/signup
+  '/api/client-portal',     // Portal (separate JWT)
   '/api/health',            // Health check
 ]
 
@@ -29,6 +28,24 @@ const PUBLIC_PAGE_PATHS = [
   '/portal',                // Client portal (separate auth)
 ]
 
+// NextAuth chunks large session cookies into `.0`, `.1`, etc., so we match
+// any cookie whose name starts with one of these prefixes.
+const SESSION_COOKIE_PREFIXES = [
+  'authjs.session-token',
+  '__Secure-authjs.session-token',
+  'next-auth.session-token',
+  '__Secure-next-auth.session-token',
+]
+
+function hasSessionCookie(request: NextRequest): boolean {
+  for (const c of request.cookies.getAll()) {
+    if (SESSION_COOKIE_PREFIXES.some((p) => c.name === p || c.name.startsWith(p + '.'))) {
+      if (c.value) return true
+    }
+  }
+  return false
+}
+
 function isPublicApiPath(pathname: string): boolean {
   return PUBLIC_API_PATHS.some((p) => pathname.startsWith(p))
 }
@@ -37,41 +54,30 @@ function isPublicPagePath(pathname: string): boolean {
   return PUBLIC_PAGE_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'))
 }
 
-export async function middleware(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Skip static assets and Next.js internals
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/static') ||
-    pathname.includes('.') // files like favicon.ico, images, etc.
+    pathname.includes('.')
   ) {
     return NextResponse.next()
   }
 
-  // API route protection
   if (pathname.startsWith('/api/')) {
-    if (isPublicApiPath(pathname)) {
-      return NextResponse.next()
-    }
-    // Require auth for all other /api/*
-    const session = await auth()
-    if (!session?.user?.tenantId) {
+    if (isPublicApiPath(pathname)) return NextResponse.next()
+    if (!hasSessionCookie(request)) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
-        { status: 401 }
+        { status: 401 },
       )
     }
-    // Pass-through with tenant header for downstream logging/debugging
-    const res = NextResponse.next()
-    res.headers.set('x-tenant-id', session.user.tenantId)
-    return res
+    return NextResponse.next()
   }
 
-  // Dashboard page protection (redirect to /login)
   if (!isPublicPagePath(pathname) && pathname !== '/') {
-    const session = await auth()
-    if (!session?.user) {
+    if (!hasSessionCookie(request)) {
       const url = request.nextUrl.clone()
       url.pathname = '/login'
       url.searchParams.set('callbackUrl', pathname)
@@ -84,13 +90,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all paths except:
-     *  - _next/static (static files)
-     *  - _next/image (image optimization)
-     *  - favicon.ico, robots.txt, sitemap.xml
-     *  - Any file with an extension (images, fonts, etc.)
-     */
     '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?|ttf|eot)$).*)',
   ],
 }

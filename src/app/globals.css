@@ -55,7 +55,24 @@
   --tenant-primary-hsl: 224 76% 40%;
   --tenant-secondary-hsl: 217 91% 60%;
 
-  --background: oklch(1 0 0);
+  /* Luxury palette — Cool Platinum workspace */
+  --lux-platinum: #F4F5F7;
+  --lux-ink: #0B1220;
+  --lux-navy: #1E3A8A;
+  --lux-royal: #3B82F6;
+  --lux-gold: #C9A961;
+  --lux-gold-bright: #D4AF37;
+  --lux-shadow-soft:
+    0 1px 2px rgba(15,23,42,0.02),
+    0 4px 16px rgba(15,23,42,0.03),
+    0 12px 40px rgba(15,23,42,0.04);
+  --lux-shadow-hover:
+    0 1px 2px rgba(15,23,42,0.03),
+    0 8px 24px rgba(15,23,42,0.05),
+    0 20px 56px rgba(15,23,42,0.07);
+
+  /* Platinum background applied globally in light mode */
+  --background: oklch(0.965 0.003 264);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -188,4 +205,103 @@
 
 .dark .glass {
   background: rgba(15, 23, 42, 0.8);
+}
+
+/* ───────── Luxury primitives ───────── */
+
+/* Editorial serif for display numbers + accent italics */
+.font-serif-lux {
+  font-family: var(--font-playfair), Georgia, 'Times New Roman', serif;
+  font-feature-settings: 'lnum', 'tnum';
+  letter-spacing: -0.01em;
+}
+
+/* Glassmorphism card — layered whites + buttery shadow */
+.lux-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.66) 100%);
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  border: 1px solid rgba(255,255,255,0.85);
+  box-shadow: var(--lux-shadow-soft);
+  border-radius: 18px;
+  transition: box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lux-card:hover {
+  box-shadow: var(--lux-shadow-hover);
+  transform: translateY(-1px);
+}
+
+.dark .lux-card {
+  background: linear-gradient(180deg, rgba(23,29,42,0.75) 0%, rgba(15,20,30,0.60) 100%);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.3),
+    0 4px 16px rgba(0,0,0,0.25),
+    0 12px 40px rgba(0,0,0,0.35);
+}
+
+/* Translucent scroll-under chrome (header + sidebar) */
+.lux-chrome {
+  background: rgba(244, 245, 247, 0.72);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-color: rgba(15, 23, 42, 0.06);
+}
+.dark .lux-chrome {
+  background: rgba(10, 14, 22, 0.72);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+/* Navy → royal-blue gradient bars (vertical) */
+.lux-bar-gradient {
+  background: linear-gradient(180deg, #3B82F6 0%, #1E3A8A 100%);
+}
+
+/* Gold accent gradient */
+.lux-gold-gradient {
+  background: linear-gradient(135deg, #D4AF37 0%, #C9A961 50%, #B08D2E 100%);
+}
+
+/* Pulsing live indicator dot */
+@keyframes luxPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.55); }
+  70%      { box-shadow: 0 0 0 7px rgba(34, 197, 94, 0); }
+}
+.lux-live-dot {
+  width: 8px; height: 8px; border-radius: 9999px;
+  background: #22C55E;
+  animation: luxPulse 2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+/* Silky fade-in for cards */
+@keyframes luxRise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-lux-rise {
+  animation: luxRise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Chart bar draw-in (for height transitions) */
+@keyframes luxBarRise {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+.animate-lux-bar {
+  transform-origin: bottom;
+  animation: luxBarRise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Gold shimmer sweep */
+@keyframes luxShimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+.lux-shimmer::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(212,175,55,0.25) 50%, transparent 100%);
+  animation: luxShimmer 3.5s ease-in-out infinite;
+  pointer-events: none;
 }

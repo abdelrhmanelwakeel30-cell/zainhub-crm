@@ -1,11 +1,12 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaNeon } from '@prisma/adapter-neon'
+import { PrismaPg } from '@prisma/adapter-pg'
 import bcrypt from 'bcryptjs'
 
 const url = process.env.DATABASE_URL!
 const prisma = (url.includes('neon.tech') || url.includes('neon.database'))
   ? new PrismaClient({ adapter: new PrismaNeon({ connectionString: url }) })
-  : new PrismaClient({ datasources: { db: { url } } })
+  : new PrismaClient({ adapter: new PrismaPg({ connectionString: url }) })
 
 async function main() {
   console.log('🌱 Seeding database...')

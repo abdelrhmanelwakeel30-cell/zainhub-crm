@@ -1,5 +1,6 @@
 import { PrismaClient, Prisma } from '@prisma/client'
 import { PrismaNeon } from '@prisma/adapter-neon'
+import { PrismaPg } from '@prisma/adapter-pg'
 import type { PrismaClient as PrismaClientType } from '.prisma/client'
 
 // Ensure Prisma Decimal fields serialize as JS numbers (not strings) in JSON responses.
@@ -25,7 +26,8 @@ function createPrismaClient(): PrismaClientType {
     const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL })
     return new PrismaClient({ adapter, log }) as unknown as PrismaClientType
   }
-  return new PrismaClient({ log }) as unknown as PrismaClientType
+  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
+  return new PrismaClient({ adapter, log }) as unknown as PrismaClientType
 }
 
 // Cache the client on globalThis for ALL environments. On Vercel/Next.js the

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono, Noto_Naskh_Arabic } from 'next/font/google'
+import { Geist, Geist_Mono, Noto_Naskh_Arabic, Playfair_Display } from 'next/font/google'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
 import { ThemeProvider } from 'next-themes'
@@ -28,6 +28,13 @@ const notoNaskhArabic = Noto_Naskh_Arabic({
   weight: ['400', '500', '600', '700'],
 })
 
+const playfair = Playfair_Display({
+  variable: '--font-playfair',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+})
+
 export const metadata: Metadata = {
   title: 'Zain Hub BOS — Business Operating System',
   description: 'Complete business management platform by Zain Hub AI Solutions — zainhub.ae',
@@ -46,7 +53,7 @@ export default async function RootLayout({
     <html
       lang={locale}
       dir={dir}
-      className={`${geistSans.variable} ${geistMono.variable} ${notoNaskhArabic.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${notoNaskhArabic.variable} ${playfair.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">

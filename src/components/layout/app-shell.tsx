@@ -33,7 +33,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [])
 
   return (
-    <div className="min-h-screen bg-muted/30 dark:bg-background">
+    <div className="min-h-screen bg-[#F4F5F7] dark:bg-background">
       {/* Skip nav for accessibility */}
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:start-2 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground">
         Skip to main content
