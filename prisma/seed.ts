@@ -101,6 +101,8 @@ async function main() {
     // New modules (Priority 1-4)
     'change_requests', 'approvals', 'deliverables', 'preview_links', 'comms',
     'client_services', 'subscriptions', 'bundles', 'forms', 'account_health', 'onboarding',
+    // Website Analysis (Phase 1)
+    'website_analysis',
   ]
   const actions = ['view', 'create', 'edit', 'delete', 'export', 'approve']
 
