@@ -1,19 +1,20 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { useTranslations } from 'next-intl'
 import { useTheme } from 'next-themes'
 import {
   Search, Globe, Moon, Sun, LogOut, User, Settings, ChevronDown, Menu, Plus, ChevronRight,
+  UserPlus, Building2, Target, Ticket, FileText,
 } from 'lucide-react'
 import { NotificationDropdown } from '@/components/layout/notification-dropdown'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu'
 import { getInitials } from '@/lib/utils'
 
@@ -54,6 +55,7 @@ export function Topbar({ onSearchOpen, onMobileMenuToggle }: TopbarProps) {
     })
   }
 
+  const router = useRouter()
   const userName = session?.user ? `${session.user.firstName} ${session.user.lastName}` : ''
   const pageLabel = labelForPath(pathname)
 
@@ -92,14 +94,40 @@ export function Topbar({ onSearchOpen, onMobileMenuToggle }: TopbarProps) {
 
       {/* Actions */}
       <div className="flex items-center gap-1">
-        {/* Quick new */}
-        <button
-          className="h-10 px-3 rounded-xl text-[13px] font-medium text-foreground hover:bg-white/70 dark:hover:bg-white/10 hidden sm:flex items-center gap-1.5 transition"
-          aria-label="Create new"
-        >
-          <Plus className="w-4 h-4" strokeWidth={1.75} />
-          <span className="hidden xl:inline">New</span>
-        </button>
+        {/* Quick new — dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className="h-10 px-3 rounded-xl text-[13px] font-medium text-foreground hover:bg-white/70 dark:hover:bg-white/10 hidden sm:flex items-center gap-1.5 transition"
+              aria-label="Create new"
+            >
+              <Plus className="w-4 h-4" strokeWidth={1.75} />
+              <span className="hidden xl:inline">New</span>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">Quick create</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push('/leads?new=1')}>
+              <UserPlus className="h-4 w-4 me-2 text-blue-500" /> New Lead
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push('/contacts?new=1')}>
+              <User className="h-4 w-4 me-2 text-green-500" /> New Contact
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push('/companies?new=1')}>
+              <Building2 className="h-4 w-4 me-2 text-orange-500" /> New Company
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push('/opportunities?new=1')}>
+              <Target className="h-4 w-4 me-2 text-purple-500" /> New Opportunity
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push('/tickets?new=1')}>
+              <Ticket className="h-4 w-4 me-2 text-red-500" /> New Ticket
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push('/proposals?new=1')}>
+              <FileText className="h-4 w-4 me-2 text-yellow-500" /> New Proposal
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <span aria-hidden className="hidden md:block h-6 w-px bg-slate-200/70 dark:bg-white/10 mx-1" />
 

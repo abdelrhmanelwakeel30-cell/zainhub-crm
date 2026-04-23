@@ -19,6 +19,7 @@ interface ChangeRequest {
 
 export function ChangeRequestsContent() {
   const [showCreate, setShowCreate] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const queryClient = useQueryClient()
 
   const { data: crResponse } = useQuery({
@@ -45,12 +46,50 @@ export function ChangeRequestsContent() {
     setShowCreate(false)
   }
 
+  async function handleExport() {
+    setExporting(true)
+    try {
+      const res = await fetch('/api/change-requests?pageSize=1000')
+      if (!res.ok) throw new Error('Export failed')
+      const json = await res.json()
+      const rows: any[] = json.data ?? []
+      if (rows.length === 0) { toast.info('No change requests to export'); return }
+      const headers = ['CR #', 'Title', 'Status', 'Priority', 'Project', 'Requested By', 'Approved By', 'Completed At', 'Created At']
+      const csvRows = rows.map((cr: any) => [
+        cr.crNumber ?? '',
+        cr.title ?? '',
+        cr.status ?? '',
+        cr.priority ?? '',
+        cr.project?.name ?? '',
+        cr.requestedBy ? `${cr.requestedBy.firstName} ${cr.requestedBy.lastName}` : '',
+        cr.approvedBy ? `${cr.approvedBy.firstName} ${cr.approvedBy.lastName}` : '',
+        cr.completedAt ? new Date(cr.completedAt).toLocaleDateString() : '',
+        cr.createdAt ? new Date(cr.createdAt).toLocaleDateString() : '',
+      ])
+      const csv = [headers, ...csvRows]
+        .map(row => row.map((v: unknown) => `"${String(v).replace(/"/g, '""')}"`).join(','))
+        .join('\n')
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `change-requests-${new Date().toISOString().slice(0, 10)}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+      toast.success(`Exported ${rows.length} change requests`)
+    } catch {
+      toast.error('Export failed. Please try again.')
+    } finally {
+      setExporting(false)
+    }
+  }
+
   return (
     <div className="space-y-6 animate-slide-in">
       <PageHeader title="Change Requests" description={`${changeRequests.length} total change requests`}>
-        <Button variant="outline" size="sm" onClick={() => toast.success('Export started')}>
+        <Button variant="outline" size="sm" onClick={handleExport} disabled={exporting}>
           <Download className="h-4 w-4 me-2" />
-          Export
+          {exporting ? 'Exporting...' : 'Export'}
         </Button>
         <Button size="sm" onClick={() => setShowCreate(true)}>
           <Plus className="h-4 w-4 me-2" />

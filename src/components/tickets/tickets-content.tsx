@@ -30,6 +30,7 @@ interface TicketFormData {
 export function TicketsContent() {
   const t = useTranslations('tickets')
   const [showCreate, setShowCreate] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const queryClient = useQueryClient()
 
   const { data: ticketsResponse } = useQuery({
@@ -100,12 +101,50 @@ export function TicketsContent() {
     onError: (err: Error) => toast.error(err.message),
   })
 
+  async function handleExport() {
+    setExporting(true)
+    try {
+      const res = await fetch('/api/tickets?pageSize=1000')
+      if (!res.ok) throw new Error('Export failed')
+      const json = await res.json()
+      const rows: any[] = json.data ?? []
+      if (rows.length === 0) { toast.info('No tickets to export'); return }
+      const headers = ['Ticket #', 'Subject', 'Type', 'Priority', 'Status', 'Company', 'Contact', 'Assigned To', 'Created At']
+      const csvRows = rows.map((tk: any) => [
+        tk.ticketNumber ?? '',
+        tk.subject ?? '',
+        tk.type ?? '',
+        tk.priority ?? '',
+        tk.status ?? '',
+        tk.client?.displayName ?? '',
+        tk.contact ? `${tk.contact.firstName} ${tk.contact.lastName}` : '',
+        tk.assignedTo ? `${tk.assignedTo.firstName} ${tk.assignedTo.lastName}` : '',
+        tk.createdAt ? new Date(tk.createdAt).toLocaleDateString() : '',
+      ])
+      const csv = [headers, ...csvRows]
+        .map(row => row.map((v: unknown) => `"${String(v).replace(/"/g, '""')}"`).join(','))
+        .join('\n')
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `tickets-${new Date().toISOString().slice(0, 10)}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+      toast.success(`Exported ${rows.length} tickets`)
+    } catch {
+      toast.error('Export failed. Please try again.')
+    } finally {
+      setExporting(false)
+    }
+  }
+
   return (
     <div className="space-y-6 animate-slide-in">
       <PageHeader title={t('title')} description={`${totalTickets} ${t('allTickets').toLowerCase()}`}>
-        <Button variant="outline" size="sm" onClick={() => toast.success('Export started')}>
+        <Button variant="outline" size="sm" onClick={handleExport} disabled={exporting}>
           <Download className="h-4 w-4 me-2" />
-          {t('export')}
+          {exporting ? 'Exporting...' : t('export')}
         </Button>
         <Button size="sm" onClick={() => setShowCreate(true)}>
           <Plus className="h-4 w-4 me-2" />
