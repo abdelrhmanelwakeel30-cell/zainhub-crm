@@ -1,8 +1,19 @@
 import { jwtVerify } from 'jose'
 
 function getPortalJwtSecret() {
-  const secret = process.env.NEXTAUTH_SECRET
-  if (!secret) throw new Error('NEXTAUTH_SECRET is not set')
+  // Prefer a dedicated portal secret so a staff-session leak does not forge
+  // portal tokens (and vice-versa). Fall back to NEXTAUTH_SECRET for backwards
+  // compat in dev — production MUST set PORTAL_JWT_SECRET.
+  const secret = process.env.PORTAL_JWT_SECRET || process.env.NEXTAUTH_SECRET
+  if (!secret) throw new Error('PORTAL_JWT_SECRET (or NEXTAUTH_SECRET) is not set')
+  if (
+    process.env.NODE_ENV === 'production' &&
+    !process.env.PORTAL_JWT_SECRET
+  ) {
+    console.warn(
+      '[security] PORTAL_JWT_SECRET not set in production; using NEXTAUTH_SECRET as fallback. Rotate and configure PORTAL_JWT_SECRET.'
+    )
+  }
   return new TextEncoder().encode(secret)
 }
 

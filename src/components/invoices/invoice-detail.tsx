@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { formatDate, formatRelativeDate } from '@/lib/utils'
+import { formatDate, formatRelativeDate, formatCurrency } from '@/lib/utils'
 import {
   ArrowLeft, Edit, Building2, DollarSign,
   CalendarDays, CreditCard, FileText, Download, FolderOpen, ScrollText,
@@ -148,16 +148,16 @@ export function InvoiceDetail({ invoiceId }: InvoiceDetailProps) {
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                 <div>
                   <p className="text-xs text-muted-foreground">{t('totalAmount')}</p>
-                  <p className="text-xl font-bold mt-1">{invoice.currency} {invoice.totalAmount.toLocaleString()}</p>
+                  <p className="text-xl font-bold mt-1">{formatCurrency(invoice.totalAmount, invoice.currency)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">{t('paidAmount')}</p>
-                  <p className="text-xl font-bold mt-1 text-green-600">{invoice.currency} {invoice.amountPaid.toLocaleString()}</p>
+                  <p className="text-xl font-bold mt-1 text-green-600">{formatCurrency(invoice.amountPaid, invoice.currency)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">{t('balanceDue')}</p>
                   <p className={`text-xl font-bold mt-1 ${invoice.balanceDue > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                    {invoice.currency} {invoice.balanceDue.toLocaleString()}
+                    {formatCurrency(invoice.balanceDue, invoice.currency)}
                   </p>
                 </div>
                 <div>

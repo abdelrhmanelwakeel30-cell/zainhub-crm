@@ -5,6 +5,17 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { PageHeader } from '@/components/shared/page-header'
 import { CommunicationLogFormDialog } from './communication-log-form-dialog'
 import { CommunicationTimeline } from './communication-timeline'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -280,13 +291,28 @@ export function CommunicationLogContent() {
                         <span className="text-xs text-muted-foreground">
                           {format(new Date(log.loggedAt), 'MMM d, yyyy HH:mm')}
                         </span>
-                        <button
-                          onClick={() => deleteMutation.mutate(log.id)}
-                          className="text-muted-foreground hover:text-red-500 transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
+                        <AlertDialog>
+                          <AlertDialogTrigger
+                            className="text-muted-foreground hover:text-red-500 transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete log entry?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This communication log will be permanently removed.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => deleteMutation.mutate(log.id)}>
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
 

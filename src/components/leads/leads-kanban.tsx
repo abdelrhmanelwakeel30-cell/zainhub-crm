@@ -15,7 +15,7 @@ export function LeadsKanban() {
   const t = useTranslations('leads')
 
   const { data: leadsData, isLoading: leadsLoading } = useQuery({
-    queryKey: ['leads'],
+    queryKey: ['leads', 'kanban'],
     queryFn: () => fetch('/api/leads?pageSize=200').then(r => r.json()),
   })
 

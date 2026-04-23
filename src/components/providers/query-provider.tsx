@@ -11,7 +11,9 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
           queries: {
             staleTime: 30 * 1000,
             gcTime: 5 * 60 * 1000,
-            refetchOnWindowFocus: true,
+            // Disabled globally to stop constant refetching across 100+ queries on tab switches.
+            // Opt-in per-query via `refetchOnWindowFocus: true` for dashboards that truly need it.
+            refetchOnWindowFocus: false,
             retry: 1,
           },
         },

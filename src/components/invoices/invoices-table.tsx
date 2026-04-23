@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query'
 import { DataTable } from '@/components/shared/data-table'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { formatDate } from '@/lib/utils'
+import { formatDate, formatCurrency } from '@/lib/utils'
 
 interface Invoice {
   id: string
@@ -72,7 +72,7 @@ export function InvoicesTable() {
       header: t('totalAmount'),
       cell: ({ row }) => (
         <span className="text-sm font-semibold">
-          {row.original.currency} {row.original.totalAmount.toLocaleString()}
+          {formatCurrency(row.original.totalAmount, row.original.currency)}
         </span>
       ),
     },
@@ -86,7 +86,7 @@ export function InvoicesTable() {
       header: t('balanceDue'),
       cell: ({ row }) => (
         <span className={`text-sm font-semibold ${row.original.balanceDue > 0 ? 'text-red-600' : 'text-green-600'}`}>
-          {row.original.currency} {row.original.balanceDue.toLocaleString()}
+          {formatCurrency(row.original.balanceDue, row.original.currency)}
         </span>
       ),
     },

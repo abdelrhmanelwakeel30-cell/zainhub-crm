@@ -8,6 +8,17 @@ import { DataTable } from '@/components/shared/data-table'
 import { Skeleton } from '@/components/ui/skeleton'
 import { FormCreateDialog } from './form-create-dialog'
 import { FormSubmissionsDialog } from './form-submissions-dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { ColumnDef } from '@tanstack/react-table'
 import { formatDate } from '@/lib/utils'
 import { Plus, ExternalLink, List, Trash2, Eye } from 'lucide-react'
@@ -138,16 +149,35 @@ export function FormsContent() {
           >
             <List className="h-3.5 w-3.5" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Delete form"
-            className="h-7 w-7 text-red-500 hover:text-red-600"
-            onClick={() => deleteMutation.mutate(row.original.id)}
-            disabled={deleteMutation.isPending}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Delete form"
+                  className="h-7 w-7 text-red-500 hover:text-red-600"
+                  disabled={deleteMutation.isPending}
+                />
+              }
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete form?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. &ldquo;{row.original.name}&rdquo; and all its submissions will be permanently removed.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => deleteMutation.mutate(row.original.id)}>
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       ),
     },

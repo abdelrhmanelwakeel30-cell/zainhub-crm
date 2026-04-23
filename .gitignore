@@ -52,3 +52,4 @@ tmux.tar.gz
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+/_DEPRECATED_*/

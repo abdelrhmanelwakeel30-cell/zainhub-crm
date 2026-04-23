@@ -6,6 +6,17 @@ import { PageHeader } from '@/components/shared/page-header'
 import { KPICard } from '@/components/shared/kpi-card'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { PreviewLinkFormDialog } from './preview-link-form-dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
@@ -121,13 +132,28 @@ export function PreviewLinksContent() {
                 {/* Header */}
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="font-semibold text-sm leading-tight line-clamp-2 flex-1">{link.title}</h3>
-                  <button
-                    onClick={() => deleteMutation.mutate(link.id)}
-                    className="text-muted-foreground hover:text-red-500 transition-colors shrink-0"
-                    title="Delete"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <AlertDialog>
+                    <AlertDialogTrigger
+                      className="text-muted-foreground hover:text-red-500 transition-colors shrink-0"
+                      title="Delete"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete preview link?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. &ldquo;{link.title}&rdquo; will be permanently removed.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => deleteMutation.mutate(link.id)}>
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
 
                 {/* Badges */}

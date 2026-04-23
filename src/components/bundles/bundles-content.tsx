@@ -8,6 +8,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { BundleFormDialog } from './bundle-form-dialog'
 import { BundleDetailDialog } from './bundle-detail-dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Plus, Package, Pencil, Trash2, Tag, Layers } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -100,16 +111,35 @@ export function BundlesContent() {
                     >
                       <Pencil className="h-3 w-3" />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Delete bundle"
-                      className="h-7 w-7 text-red-500 hover:text-red-600"
-                      onClick={() => deleteMutation.mutate(bundle.id)}
-                      disabled={deleteMutation.isPending}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger
+                        render={
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Delete bundle"
+                            className="h-7 w-7 text-red-500 hover:text-red-600"
+                            disabled={deleteMutation.isPending}
+                          />
+                        }
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete bundle?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. &ldquo;{bundle.name}&rdquo; will be permanently removed.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => deleteMutation.mutate(bundle.id)}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
                 <CardTitle className="text-base mt-2">{bundle.name}</CardTitle>

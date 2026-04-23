@@ -43,7 +43,7 @@ export function ExpenseFormDialog({ open, onOpenChange, defaultValues }: Expense
     queryKey: ['projects', 'minimal'],
     queryFn: () => fetch('/api/projects?minimal=true').then(r => r.json()),
     enabled: open,
-    staleTime: 0,
+    staleTime: 5 * 60_000,
     refetchOnMount: true,
   })
   const projects = projectsResponse?.data ?? []
@@ -52,7 +52,7 @@ export function ExpenseFormDialog({ open, onOpenChange, defaultValues }: Expense
     queryKey: ['expense-categories'],
     queryFn: () => fetch('/api/expense-categories').then(r => r.json()),
     enabled: open,
-    staleTime: 0,
+    staleTime: 5 * 60_000,
     refetchOnMount: true,
   })
   const expenseCategories: { id: string; name: string }[] = categoriesResponse?.data ?? []

@@ -39,7 +39,7 @@ export function PreviewLinkFormDialog({ open, onOpenChange }: Props) {
     queryKey: ['projects', 'list'],
     queryFn: () => fetch('/api/projects?pageSize=100').then(r => r.json()),
     enabled: open,
-    staleTime: 0,
+    staleTime: 5 * 60_000,
     refetchOnMount: true,
   })
 
@@ -47,7 +47,7 @@ export function PreviewLinkFormDialog({ open, onOpenChange }: Props) {
     queryKey: ['companies', 'list'],
     queryFn: () => fetch('/api/companies?pageSize=100').then(r => r.json()),
     enabled: open,
-    staleTime: 0,
+    staleTime: 5 * 60_000,
     refetchOnMount: true,
   })
 

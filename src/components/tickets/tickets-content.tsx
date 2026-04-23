@@ -199,8 +199,8 @@ export function TicketsContent() {
                     <Select value={field.value} onValueChange={(val) => { field.onChange(val); setValue('contactId', '') }}>
                       <SelectTrigger className="w-full"><SelectValue placeholder="Select company..." /></SelectTrigger>
                       <SelectContent>
-                        {companies.map((c: { id: string; name: string }) => (
-                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        {companies.map((c: { id: string; displayName: string }) => (
+                          <SelectItem key={c.id} value={c.id}>{c.displayName}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

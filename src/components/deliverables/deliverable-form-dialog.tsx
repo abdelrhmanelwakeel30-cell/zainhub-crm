@@ -37,7 +37,7 @@ export function DeliverableFormDialog({ open, onOpenChange }: Props) {
     queryKey: ['projects', 'list'],
     queryFn: () => fetch('/api/projects?pageSize=100').then(r => r.json()),
     enabled: open,
-    staleTime: 0,
+    staleTime: 5 * 60_000,
     refetchOnMount: true,
   })
 

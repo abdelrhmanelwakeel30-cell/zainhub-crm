@@ -1022,10 +1022,10 @@ async function main() {
   // 19. PROPOSALS
   // ============================================================================
   const proposalsData = [
-    { proposalNumber: 'PRP-0001', title: 'AI-Powered Customer Service — Al Futtaim', companyKey: 'Al Futtaim', contactKey: 'CON-0001', ownerId: sarah.id, status: 'ACCEPTED' as const, subtotal: 25000, taxAmount: 1250, totalAmount: 26250, executiveSummary: 'Comprehensive AI chatbot solution to handle 80% of customer queries', scopeOfWork: 'Design, develop, test and deploy AI chatbot on website and WhatsApp', deliverables: 'AI Chatbot, Admin Dashboard, Training Documentation', timeline: '6 weeks from kickoff', createdAt: daysAgo(28), acceptedAt: daysAgo(18) },
-    { proposalNumber: 'PRP-0002', title: 'Digital Transformation — Dubai Holding', companyKey: 'Dubai Holding', contactKey: 'CON-0002', ownerId: sarah.id, status: 'SENT' as const, subtotal: 45000, taxAmount: 2250, totalAmount: 47250, executiveSummary: 'Complete website redesign with modern tech stack', scopeOfWork: 'UX research, UI design, Next.js development, CMS integration', deliverables: 'New website, CMS, Analytics setup', timeline: '8 weeks', createdAt: daysAgo(14) },
-    { proposalNumber: 'PRP-0003', title: 'Social Media Strategy — MAF', companyKey: 'MAF', contactKey: 'CON-0005', ownerId: layla.id, status: 'DRAFT' as const, subtotal: 96000, taxAmount: 4800, totalAmount: 100800, executiveSummary: '12-month social media management across all platforms', scopeOfWork: 'Content strategy, creation, scheduling, community management, reporting', createdAt: daysAgo(10) },
-    { proposalNumber: 'PRP-0004', title: 'STC Enterprise AI Platform', companyKey: 'STC', contactKey: 'CON-0008', ownerId: sarah.id, status: 'SENT' as const, subtotal: 120000, taxAmount: 6000, totalAmount: 126000, executiveSummary: 'Enterprise-grade custom AI platform for internal operations', scopeOfWork: 'Requirements analysis, architecture design, development, deployment, training', deliverables: 'AI Platform, API documentation, training materials', timeline: '16 weeks', createdAt: daysAgo(7) },
+    { proposalNumber: 'PRP-0001', title: 'AI-Powered Customer Service — Al Futtaim', companyKey: 'Al Futtaim', contactKey: 'CON-0001', ownerId: sarah.id, status: 'ACCEPTED' as const, subtotal: 25000, taxAmount: 1250, totalAmount: 26250, executiveSummary: 'Comprehensive AI chatbot solution to handle 80% of customer queries', scopeOfWork: 'Design, develop, test and deploy AI chatbot on website and WhatsApp', deliverables: 'AI Chatbot, Admin Dashboard, Training Documentation', timeline: '6 weeks from kickoff', createdAt: daysAgo(28), acceptedAt: daysAgo(18), validUntil: daysAgo(-30) },
+    { proposalNumber: 'PRP-0002', title: 'Digital Transformation — Dubai Holding', companyKey: 'Dubai Holding', contactKey: 'CON-0002', ownerId: sarah.id, status: 'SENT' as const, subtotal: 45000, taxAmount: 2250, totalAmount: 47250, executiveSummary: 'Complete website redesign with modern tech stack', scopeOfWork: 'UX research, UI design, Next.js development, CMS integration', deliverables: 'New website, CMS, Analytics setup', timeline: '8 weeks', createdAt: daysAgo(14), validUntil: daysAgo(-16) },
+    { proposalNumber: 'PRP-0003', title: 'Social Media Strategy — MAF', companyKey: 'MAF', contactKey: 'CON-0005', ownerId: layla.id, status: 'DRAFT' as const, subtotal: 96000, taxAmount: 4800, totalAmount: 100800, executiveSummary: '12-month social media management across all platforms', scopeOfWork: 'Content strategy, creation, scheduling, community management, reporting', createdAt: daysAgo(10), validUntil: daysAgo(-20) },
+    { proposalNumber: 'PRP-0004', title: 'STC Enterprise AI Platform', companyKey: 'STC', contactKey: 'CON-0008', ownerId: sarah.id, status: 'SENT' as const, subtotal: 120000, taxAmount: 6000, totalAmount: 126000, executiveSummary: 'Enterprise-grade custom AI platform for internal operations', scopeOfWork: 'Requirements analysis, architecture design, development, deployment, training', deliverables: 'AI Platform, API documentation, training materials', timeline: '16 weeks', createdAt: daysAgo(7), validUntil: daysAgo(-23) },
   ]
 
   for (const p of proposalsData) {
@@ -1049,6 +1049,7 @@ async function main() {
         timeline: data.timeline || null,
         createdAt: data.createdAt,
         issueDate: data.createdAt,
+        validUntil: (data as any).validUntil || null,
         acceptedAt: data.acceptedAt || null,
       },
     })

@@ -1,7 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getApiSession } from '@/lib/auth-utils'
+import { getApiSession, requireApiPermission } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
 import { sendInvoiceEmail } from '@/lib/email'
+import { z } from 'zod'
+
+// Whitelist of user-mutable fields. Explicitly excludes:
+//   tenantId, amountPaid, balanceDue, subtotal, taxAmount, totalAmount,
+//   invoiceNumber, createdAt, createdById, clientId  (server-derived / immutable)
+const UpdateSchema = z.object({
+  status: z.enum(['DRAFT', 'SENT', 'VIEWED', 'PAID', 'PARTIALLY_PAID', 'OVERDUE', 'CANCELLED', 'REFUNDED']).optional(),
+  issueDate: z.string().datetime().optional(),
+  dueDate: z.string().datetime().optional(),
+  notes: z.string().max(5000).optional(),
+  terms: z.string().max(5000).optional(),
+  currency: z.string().length(3).optional(),
+  taxRateId: z.string().optional().nullable(),
+  projectId: z.string().optional().nullable(),
+  contractId: z.string().optional().nullable(),
+  contactId: z.string().optional().nullable(),
+  opportunityId: z.string().optional().nullable(),
+})
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getApiSession()
@@ -27,16 +45,24 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getApiSession()
-  if (!session) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+  const guard = await requireApiPermission('invoices:write')
+  if (!guard.ok) return guard.response
+  const { session } = guard
   const { id } = await params
   try {
     const existing = await prisma.invoice.findFirst({ where: { id, tenantId: session.user.tenantId } })
     if (!existing) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
     const body = await req.json()
-    const { items: _, ...data } = body
-    if (data.issueDate) data.issueDate = new Date(data.issueDate)
-    if (data.dueDate) data.dueDate = new Date(data.dueDate)
+    const parsed = UpdateSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: 'Validation failed', issues: parsed.error.flatten() },
+        { status: 400 },
+      )
+    }
+    const data: Record<string, unknown> = { ...parsed.data }
+    if (parsed.data.issueDate) data.issueDate = new Date(parsed.data.issueDate)
+    if (parsed.data.dueDate) data.dueDate = new Date(parsed.data.dueDate)
     const invoice = await prisma.invoice.update({ where: { id }, data })
     await prisma.auditLog.create({ data: { tenantId: session.user.tenantId, userId: session.user.id, action: 'UPDATE', entityType: 'invoice', entityId: id, entityName: invoice.invoiceNumber } })
 
@@ -57,8 +83,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getApiSession()
-  if (!session) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+  const guard = await requireApiPermission('invoices:delete')
+  if (!guard.ok) return guard.response
+  const { session } = guard
   const { id } = await params
   try {
     const invoice = await prisma.invoice.findFirst({ where: { id, tenantId: session.user.tenantId } })

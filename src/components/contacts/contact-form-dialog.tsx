@@ -42,7 +42,7 @@ export function ContactFormDialog({ open, onOpenChange, defaultValues }: Contact
     queryKey: ['companies'],
     queryFn: () => fetch('/api/companies').then(r => r.json()),
     enabled: open,
-    staleTime: 0,
+    staleTime: 5 * 60_000,
     refetchOnMount: true,
   })
 

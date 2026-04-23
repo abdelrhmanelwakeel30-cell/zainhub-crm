@@ -50,7 +50,7 @@ export function ClientServiceFormDialog({ open, onOpenChange }: Props) {
     queryKey: ['companies', 'list'],
     queryFn: () => fetch('/api/companies?pageSize=200').then(r => r.json()),
     enabled: open,
-    staleTime: 0,
+    staleTime: 5 * 60_000,
     refetchOnMount: true,
   })
 
@@ -59,7 +59,7 @@ export function ClientServiceFormDialog({ open, onOpenChange }: Props) {
     queryFn: () =>
       fetch(`/api/contacts?companyId=${selectedCompanyId}&pageSize=200`).then(r => r.json()),
     enabled: !!selectedCompanyId,
-    staleTime: 0,
+    staleTime: 5 * 60_000,
     refetchOnMount: true,
   })
 
@@ -67,7 +67,7 @@ export function ClientServiceFormDialog({ open, onOpenChange }: Props) {
     queryKey: ['services', 'list'],
     queryFn: () => fetch('/api/services?pageSize=200').then(r => r.json()),
     enabled: open,
-    staleTime: 0,
+    staleTime: 5 * 60_000,
     refetchOnMount: true,
   })
 
@@ -75,7 +75,7 @@ export function ClientServiceFormDialog({ open, onOpenChange }: Props) {
     queryKey: ['users', 'minimal'],
     queryFn: () => fetch('/api/users?minimal=true').then(r => r.json()),
     enabled: open,
-    staleTime: 0,
+    staleTime: 5 * 60_000,
     refetchOnMount: true,
   })
 

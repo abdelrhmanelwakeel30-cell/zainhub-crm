@@ -13,8 +13,8 @@ const LoginSchema = z.object({
 })
 
 function getJwtSecret() {
-  const secret = process.env.NEXTAUTH_SECRET
-  if (!secret) throw new Error('NEXTAUTH_SECRET is not set')
+  const secret = process.env.PORTAL_JWT_SECRET || process.env.NEXTAUTH_SECRET
+  if (!secret) throw new Error('PORTAL_JWT_SECRET (or NEXTAUTH_SECRET) is not set')
   return new TextEncoder().encode(secret)
 }
 

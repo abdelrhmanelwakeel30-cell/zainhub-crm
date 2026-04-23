@@ -44,7 +44,7 @@ export function OnboardingFormDialog({ open, onOpenChange, onSuccess }: Props) {
     queryKey: ['companies', 'list'],
     queryFn: () => fetch('/api/companies?pageSize=100').then(r => r.json()),
     enabled: open,
-    staleTime: 0,
+    staleTime: 5 * 60_000,
     refetchOnMount: true,
   })
 
@@ -52,14 +52,14 @@ export function OnboardingFormDialog({ open, onOpenChange, onSuccess }: Props) {
     queryKey: ['projects'],
     queryFn: () => fetch('/api/projects?pageSize=100').then(r => r.json()),
     enabled: open,
-    staleTime: 0,
+    staleTime: 5 * 60_000,
     refetchOnMount: true,
   })
 
   const { data: templatesData } = useQuery({
     queryKey: ['onboarding-templates'],
     queryFn: () => fetch('/api/onboarding-templates').then(r => r.json()),
-    staleTime: 0,
+    staleTime: 5 * 60_000,
     refetchOnMount: true,
     enabled: open && useTemplate,
   })

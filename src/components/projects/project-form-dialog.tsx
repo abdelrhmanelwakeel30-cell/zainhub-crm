@@ -45,7 +45,7 @@ export function ProjectFormDialog({ open, onOpenChange, defaultValues }: Project
     queryKey: ['users', 'minimal'],
     queryFn: () => fetch('/api/users?minimal=true').then(r => r.json()),
     enabled: open,
-    staleTime: 0,
+    staleTime: 5 * 60_000,
     refetchOnMount: true,
   })
 
@@ -53,7 +53,7 @@ export function ProjectFormDialog({ open, onOpenChange, defaultValues }: Project
     queryKey: ['companies', 'list'],
     queryFn: () => fetch('/api/companies?pageSize=100').then(r => r.json()),
     enabled: open,
-    staleTime: 0,
+    staleTime: 5 * 60_000,
     refetchOnMount: true,
   })
 

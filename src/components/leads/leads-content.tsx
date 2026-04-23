@@ -17,8 +17,8 @@ export function LeadsContent() {
   const [showCreateForm, setShowCreateForm] = useState(false)
 
   const { data } = useQuery({
-    queryKey: ['leads'],
-    queryFn: () => fetch('/api/leads').then(r => r.json()),
+    queryKey: ['leads', 'count'],
+    queryFn: () => fetch('/api/leads?pageSize=1').then(r => r.json()),
   })
 
   return (

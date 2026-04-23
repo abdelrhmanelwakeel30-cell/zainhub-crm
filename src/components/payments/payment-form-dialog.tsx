@@ -39,7 +39,7 @@ export function PaymentFormDialog({ open, onOpenChange }: Props) {
     queryKey: ['invoices', 'unpaid'],
     queryFn: () => fetch('/api/invoices?pageSize=100').then(r => r.json()),
     enabled: open,
-    staleTime: 0,
+    staleTime: 5 * 60_000,
     refetchOnMount: true,
   })
 

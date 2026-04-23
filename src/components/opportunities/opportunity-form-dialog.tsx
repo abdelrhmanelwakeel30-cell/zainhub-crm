@@ -43,7 +43,7 @@ export function OpportunityFormDialog({ open, onOpenChange, defaultValues }: Opp
     queryKey: ['companies'],
     queryFn: () => fetch('/api/companies').then(r => r.json()),
     enabled: open,
-    staleTime: 0,
+    staleTime: 5 * 60_000,
     refetchOnMount: true,
   })
 
@@ -51,7 +51,7 @@ export function OpportunityFormDialog({ open, onOpenChange, defaultValues }: Opp
     queryKey: ['contacts'],
     queryFn: () => fetch('/api/contacts').then(r => r.json()),
     enabled: open,
-    staleTime: 0,
+    staleTime: 5 * 60_000,
     refetchOnMount: true,
   })
 
@@ -59,7 +59,7 @@ export function OpportunityFormDialog({ open, onOpenChange, defaultValues }: Opp
     queryKey: ['pipelines', 'OPPORTUNITY'],
     queryFn: () => fetch('/api/pipelines?type=OPPORTUNITY').then(r => r.json()),
     enabled: open,
-    staleTime: 0,
+    staleTime: 5 * 60_000,
     refetchOnMount: true,
   })
 

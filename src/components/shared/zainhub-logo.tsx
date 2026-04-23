@@ -25,6 +25,8 @@ function LogoImage({ size, rounded }: { size: number; rounded: string }) {
         fill
         sizes={`${size * 2}px`}
         quality={100}
+        loading="eager"
+        priority
         className="object-cover"
       />
     </div>

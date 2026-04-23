@@ -43,7 +43,7 @@ export function TaskFormDialog({ open, onOpenChange, defaultValues }: TaskFormDi
     queryKey: ['users', 'minimal'],
     queryFn: () => fetch('/api/users?minimal=true').then(r => r.json()),
     enabled: open,
-    staleTime: 0,
+    staleTime: 5 * 60_000,
     refetchOnMount: true,
   })
 
@@ -51,7 +51,7 @@ export function TaskFormDialog({ open, onOpenChange, defaultValues }: TaskFormDi
     queryKey: ['projects', 'list'],
     queryFn: () => fetch('/api/projects?pageSize=100').then(r => r.json()),
     enabled: open,
-    staleTime: 0,
+    staleTime: 5 * 60_000,
     refetchOnMount: true,
   })
 

@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog'
@@ -48,21 +48,35 @@ export function CompanyFormDialog({ open, onOpenChange, defaultValues }: Company
     defaultValues: { lifecycleStage: 'LEAD', ...defaultValues },
   })
 
+  const { data: usersResponse } = useQuery({
+    queryKey: ['users', 'minimal'],
+    queryFn: () => fetch('/api/users?minimal=true').then(r => r.json()),
+    enabled: open,
+  })
+  const users: { id: string; firstName: string; lastName: string }[] = usersResponse?.data ?? []
+
   const mutation = useMutation({
     mutationFn: (data: CompanyFormData) =>
       fetch('/api/companies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          legalName: data.legalName,
           displayName: data.displayName,
-          industry: data.industry,
-          country: data.country,
-          city: data.city,
-          phone: data.phone,
-          website: data.website,
-          notes: data.address,
+          industry: data.industry || undefined,
+          country: data.country || undefined,
+          city: data.city || undefined,
+          phone: data.phone || undefined,
+          website: data.website || undefined,
+          email: data.email || undefined,
+          address: data.address || undefined,
+          lifecycleStage: data.lifecycleStage || 'LEAD',
+          accountOwnerId: data.accountOwnerId || undefined,
         }),
-      }).then(r => r.json()),
+      }).then(async (r) => {
+        if (!r.ok) { const e = await r.json(); throw new Error(e.error || 'Failed'); }
+        return r.json();
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['companies'] })
       queryClient.invalidateQueries({ queryKey: ['leads'] })
@@ -140,7 +154,12 @@ export function CompanyFormDialog({ open, onOpenChange, defaultValues }: Company
             </div>
             <div>
               <Label>{t('accountOwner')}</Label>
-              <Input {...register('accountOwnerId')} className="mt-1" placeholder="Owner ID" />
+              <select {...register('accountOwnerId')} className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                <option value="">Select owner...</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>{u.firstName} {u.lastName}</option>
+                ))}
+              </select>
             </div>
             <div className="col-span-2">
               <Label>Address</Label>

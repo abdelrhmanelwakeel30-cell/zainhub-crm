@@ -29,7 +29,7 @@ export function LeadsTable() {
   const t = useTranslations('leads')
 
   const { data, isLoading } = useQuery({
-    queryKey: ['leads'],
+    queryKey: ['leads', 'list'],
     queryFn: () => fetch('/api/leads').then(r => r.json()),
   })
 

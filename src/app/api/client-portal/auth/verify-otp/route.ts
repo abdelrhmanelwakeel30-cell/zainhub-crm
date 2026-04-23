@@ -8,11 +8,12 @@ const prisma = _prisma as any
 const VerifyOtpSchema = z.object({
   phone: z.string().min(5),
   otp: z.string().length(6),
+  tenantSlug: z.string().min(1),
 })
 
 function getJwtSecret() {
-  const secret = process.env.NEXTAUTH_SECRET
-  if (!secret) throw new Error('NEXTAUTH_SECRET is not set')
+  const secret = process.env.PORTAL_JWT_SECRET || process.env.NEXTAUTH_SECRET
+  if (!secret) throw new Error('PORTAL_JWT_SECRET (or NEXTAUTH_SECRET) is not set')
   return new TextEncoder().encode(secret)
 }
 
@@ -24,10 +25,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: parsed.error.flatten() }, { status: 400 })
     }
 
-    const { phone, otp } = parsed.data
+    const { phone, otp, tenantSlug } = parsed.data
+
+    // Scope OTP verification by tenant to prevent cross-tenant OTP collisions
+    const tenant = await prisma.tenant.findUnique({ where: { slug: tenantSlug }, select: { id: true } })
+    if (!tenant) {
+      return NextResponse.json({ success: false, error: 'Invalid or expired OTP.' }, { status: 401 })
+    }
 
     const clientUser = await prisma.clientPortalUser.findFirst({
       where: {
+        tenantId: tenant.id,
         phone,
         otpCode: otp,
         otpExpiry: { gt: new Date() },

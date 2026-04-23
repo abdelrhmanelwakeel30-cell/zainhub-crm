@@ -51,7 +51,7 @@ export function SubscriptionFormDialog({ open, onOpenChange }: SubscriptionFormD
     queryKey: ['companies'],
     queryFn: () => fetch('/api/companies?pageSize=200').then(r => r.json()),
     enabled: open,
-    staleTime: 0,
+    staleTime: 5 * 60_000,
     refetchOnMount: true,
   })
 
@@ -59,7 +59,7 @@ export function SubscriptionFormDialog({ open, onOpenChange }: SubscriptionFormD
     queryKey: ['services'],
     queryFn: () => fetch('/api/services?pageSize=200').then(r => r.json()),
     enabled: open,
-    staleTime: 0,
+    staleTime: 5 * 60_000,
     refetchOnMount: true,
   })
 

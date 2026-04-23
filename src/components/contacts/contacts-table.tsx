@@ -22,6 +22,7 @@ type Contact = {
   leadScore?: number | null
   lastContactedAt?: string | null
   company?: { id: string; displayName: string } | null
+  companyContacts?: { company: { id: string; displayName: string } }[]
 }
 
 export function ContactsTable() {
@@ -69,9 +70,10 @@ export function ContactsTable() {
     {
       accessorKey: 'company',
       header: 'Company',
-      cell: ({ row }) => (
-        <span className="text-sm font-medium">{row.original.company?.displayName || '-'}</span>
-      ),
+      cell: ({ row }) => {
+        const companyName = row.original.company?.displayName || row.original.companyContacts?.[0]?.company?.displayName
+        return <span className="text-sm font-medium">{companyName || '-'}</span>
+      },
     },
     {
       accessorKey: 'decisionRole',

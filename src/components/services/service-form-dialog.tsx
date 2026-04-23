@@ -40,7 +40,7 @@ export function ServiceFormDialog({ open, onOpenChange }: Props) {
     queryKey: ['service-categories'],
     queryFn: () => fetch('/api/service-categories').then(r => r.json()),
     enabled: open,
-    staleTime: 0,
+    staleTime: 5 * 60_000,
     refetchOnMount: true,
   })
 
