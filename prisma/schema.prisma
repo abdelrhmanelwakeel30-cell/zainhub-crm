@@ -353,66 +353,70 @@ model Tenant {
   phone                 String?
   email                 String?
   website               String?
-  settings              Json?    // Tenant-wide config (invoice prefix, etc.)
+  settings              Json? // Tenant-wide config (invoice prefix, etc.)
   plan                  String   @default("PROFESSIONAL")
   isActive              Boolean  @default(true)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
   // Relations
-  users              User[]
-  companies          Company[]
-  contacts           Contact[]
-  leads              Lead[]
-  opportunities      Opportunity[]
-  projects           Project[]
-  invoices           Invoice[]
-  expenses           Expense[]
-  quotations         Quotation[]
-  proposals          Proposal[]
-  contracts          Contract[]
-  tickets            Ticket[]
-  tasks              Task[]
-  campaigns          Campaign[]
-  socialAccounts     SocialAccount[]
-  contentItems       ContentItem[]
-  documents          Document[]
-  activities         Activity[]
-  notifications      Notification[]
-  auditLogs          AuditLog[]
-  roles              Role[]
-  pipelines          Pipeline[]
-  services           Service[]
-  serviceCategories  ServiceCategory[]
-  servicePackages    ServicePackage[]
-  leadSources        LeadSource[]
-  lostReasons        LostReason[]
-  expenseCategories  ExpenseCategory[]
-  taxRates           TaxRate[]
-  tags               Tag[]
-  customFields       CustomField[]
-  automationRules    AutomationRule[]
-  settings_records   Setting[]
-  savedFilters       SavedFilter[]
-  payments           Payment[]
-  timeEntries        TimeEntry[]
-  onboardingTemplates OnboardingTemplate[]
+  users                  User[]
+  companies              Company[]
+  contacts               Contact[]
+  leads                  Lead[]
+  opportunities          Opportunity[]
+  projects               Project[]
+  invoices               Invoice[]
+  expenses               Expense[]
+  quotations             Quotation[]
+  proposals              Proposal[]
+  contracts              Contract[]
+  tickets                Ticket[]
+  tasks                  Task[]
+  campaigns              Campaign[]
+  socialAccounts         SocialAccount[]
+  contentItems           ContentItem[]
+  documents              Document[]
+  activities             Activity[]
+  notifications          Notification[]
+  auditLogs              AuditLog[]
+  roles                  Role[]
+  pipelines              Pipeline[]
+  services               Service[]
+  serviceCategories      ServiceCategory[]
+  servicePackages        ServicePackage[]
+  leadSources            LeadSource[]
+  lostReasons            LostReason[]
+  expenseCategories      ExpenseCategory[]
+  taxRates               TaxRate[]
+  tags                   Tag[]
+  customFields           CustomField[]
+  automationRules        AutomationRule[]
+  settings_records       Setting[]
+  savedFilters           SavedFilter[]
+  payments               Payment[]
+  timeEntries            TimeEntry[]
+  onboardingTemplates    OnboardingTemplate[]
   // New module back-relations
-  approvalWorkflows    ApprovalWorkflow[]
-  approvalRequests     ApprovalRequest[]
-  subscriptions        Subscription[]
-  billingRecords       BillingRecord[]
-  changeRequests       ChangeRequest[]
-  clientOnboardings    ClientOnboarding[]
-  clientPortalUsers    ClientPortalUser[]
-  clientServices       ClientService[]
-  communicationLogs    CommunicationLog[]
-  deliverables         Deliverable[]
-  leadCaptureForms     LeadCaptureForm[]
+  approvalWorkflows      ApprovalWorkflow[]
+  approvalRequests       ApprovalRequest[]
+  subscriptions          Subscription[]
+  billingRecords         BillingRecord[]
+  changeRequests         ChangeRequest[]
+  clientOnboardings      ClientOnboarding[]
+  clientPortalUsers      ClientPortalUser[]
+  clientServices         ClientService[]
+  communicationLogs      CommunicationLog[]
+  deliverables           Deliverable[]
+  leadCaptureForms       LeadCaptureForm[]
   leadCaptureSubmissions LeadCaptureSubmission[]
-  previewLinks         PreviewLink[]
-  serviceBundles       ServiceBundle[]
-  accountHealthRecords AccountHealth[]
+  previewLinks           PreviewLink[]
+  serviceBundles         ServiceBundle[]
+  accountHealthRecords   AccountHealth[]
+  // Website Analysis module
+  websites               Website[]
+  websiteIntegrations    WebsiteIntegration[]
+  websiteSyncLogs        WebsiteSyncLog[]
 }
 
 // ============================================================================
@@ -438,56 +442,60 @@ model User {
   updatedAt         DateTime   @updatedAt
 
   // Relations
-  userRoles            UserRole[]
-  assignedLeads        Lead[]              @relation("LeadAssignee")
-  createdLeads         Lead[]              @relation("LeadCreator")
-  ownedOpportunities   Opportunity[]       @relation("OpportunityOwner")
-  createdOpportunities Opportunity[]       @relation("OpportunityCreator")
-  ownedCompanies       Company[]           @relation("CompanyOwner")
-  ownedProjects        Project[]           @relation("ProjectOwner")
-  projectMemberships   ProjectMember[]
-  assignedTasks        Task[]              @relation("TaskAssignee")
-  createdTasks         Task[]              @relation("TaskCreator")
-  assignedTickets      Ticket[]            @relation("TicketAssignee")
-  createdTickets       Ticket[]            @relation("TicketCreator")
-  createdInvoices      Invoice[]           @relation("InvoiceCreator")
-  createdExpenses      Expense[]           @relation("ExpenseCreator")
-  approvedExpenses     Expense[]           @relation("ExpenseApprover")
-  createdQuotations    Quotation[]         @relation("QuotationCreator")
-  ownedQuotations      Quotation[]         @relation("QuotationOwner")
-  createdProposals     Proposal[]          @relation("ProposalCreator")
-  createdContracts     Contract[]          @relation("ContractCreator")
-  activities           Activity[]
-  notifications        Notification[]
-  auditLogs            AuditLog[]
-  savedFilters         SavedFilter[]
-  taskWatchers         TaskWatcher[]
-  taskComments         TaskComment[]
-  ticketComments       TicketComment[]
-  contentDesigner      ContentItem[]       @relation("ContentDesigner")
-  contentCopywriter    ContentItem[]       @relation("ContentCopywriter")
-  contentVideographer  ContentItem[]       @relation("ContentVideographer")
-  contentCreator       ContentItem[]       @relation("ContentCreator")
-  contentApprovals     ContentApproval[]
-  timeEntries          TimeEntry[]
-  createdDocuments     Document[]
-  campaignsOwned       Campaign[]
-  createdPayments      Payment[]
+  userRoles                    UserRole[]
+  assignedLeads                Lead[]                    @relation("LeadAssignee")
+  createdLeads                 Lead[]                    @relation("LeadCreator")
+  ownedOpportunities           Opportunity[]             @relation("OpportunityOwner")
+  createdOpportunities         Opportunity[]             @relation("OpportunityCreator")
+  ownedCompanies               Company[]                 @relation("CompanyOwner")
+  ownedProjects                Project[]                 @relation("ProjectOwner")
+  projectMemberships           ProjectMember[]
+  assignedTasks                Task[]                    @relation("TaskAssignee")
+  createdTasks                 Task[]                    @relation("TaskCreator")
+  assignedTickets              Ticket[]                  @relation("TicketAssignee")
+  createdTickets               Ticket[]                  @relation("TicketCreator")
+  createdInvoices              Invoice[]                 @relation("InvoiceCreator")
+  createdExpenses              Expense[]                 @relation("ExpenseCreator")
+  approvedExpenses             Expense[]                 @relation("ExpenseApprover")
+  createdQuotations            Quotation[]               @relation("QuotationCreator")
+  ownedQuotations              Quotation[]               @relation("QuotationOwner")
+  createdProposals             Proposal[]                @relation("ProposalCreator")
+  createdContracts             Contract[]                @relation("ContractCreator")
+  activities                   Activity[]
+  notifications                Notification[]
+  auditLogs                    AuditLog[]
+  savedFilters                 SavedFilter[]
+  taskWatchers                 TaskWatcher[]
+  taskComments                 TaskComment[]
+  ticketComments               TicketComment[]
+  contentDesigner              ContentItem[]             @relation("ContentDesigner")
+  contentCopywriter            ContentItem[]             @relation("ContentCopywriter")
+  contentVideographer          ContentItem[]             @relation("ContentVideographer")
+  contentCreator               ContentItem[]             @relation("ContentCreator")
+  contentApprovals             ContentApproval[]
+  timeEntries                  TimeEntry[]
+  createdDocuments             Document[]
+  campaignsOwned               Campaign[]
+  createdPayments              Payment[]
   // New module back-relations
-  approvalRequestsRequested ApprovalRequest[]     @relation("ApprovalRequestedBy")
-  approvalSteps             ApprovalStep[]        @relation("ApprovalStepApprover")
-  createdSubscriptions      Subscription[]        @relation("SubscriptionCreator")
-  assignedSubscriptions     Subscription[]        @relation("SubscriptionAssignee")
-  changeRequestsRequested   ChangeRequest[]       @relation("ChangeRequestRequestedBy")
-  changeRequestComments     ChangeRequestComment[]
-  onboardingItemsCompleted  ClientOnboardingItem[]
-  clientServicesAssigned    ClientService[]       @relation("ClientServiceAssignee")
-  communicationLogsLogged   CommunicationLog[]    @relation("CommunicationLoggedBy")
-  deliverablesUploaded      Deliverable[]         @relation("DeliverableUploadedBy")
-  leadCaptureFormsAssigned  LeadCaptureForm[]     @relation("FormAssignedTo")
-  previewLinksShared        PreviewLink[]         @relation("PreviewLinkSharedBy")
-  previewFeedbacksAuthored  PreviewFeedback[]     @relation("PreviewFeedbackAuthor")
-  clientServiceTeamMembers  ClientServiceTeamMember[]
+  approvalRequestsRequested    ApprovalRequest[]         @relation("ApprovalRequestedBy")
+  approvalSteps                ApprovalStep[]            @relation("ApprovalStepApprover")
+  createdSubscriptions         Subscription[]            @relation("SubscriptionCreator")
+  assignedSubscriptions        Subscription[]            @relation("SubscriptionAssignee")
+  changeRequestsRequested      ChangeRequest[]           @relation("ChangeRequestRequestedBy")
+  changeRequestComments        ChangeRequestComment[]
+  onboardingItemsCompleted     ClientOnboardingItem[]
+  clientServicesAssigned       ClientService[]           @relation("ClientServiceAssignee")
+  communicationLogsLogged      CommunicationLog[]        @relation("CommunicationLoggedBy")
+  deliverablesUploaded         Deliverable[]             @relation("DeliverableUploadedBy")
+  leadCaptureFormsAssigned     LeadCaptureForm[]         @relation("FormAssignedTo")
+  previewLinksShared           PreviewLink[]             @relation("PreviewLinkSharedBy")
+  previewFeedbacksAuthored     PreviewFeedback[]         @relation("PreviewFeedbackAuthor")
+  clientServiceTeamMembers     ClientServiceTeamMember[]
+  // Website Analysis module
+  ownedWebsites                Website[]                 @relation("WebsiteOwner")
+  createdWebsites              Website[]                 @relation("WebsiteCreatedBy")
+  connectedWebsiteIntegrations WebsiteIntegration[]      @relation("WebsiteIntegrationConnectedBy")
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -500,14 +508,14 @@ model Role {
   tenant      Tenant   @relation(fields: [tenantId], references: [id])
   name        String
   nameAr      String?
-  description String? @db.Text
+  description String?  @db.Text
   isSystem    Boolean  @default(false) // System roles can't be deleted
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   userRoles       UserRole[]
   rolePermissions RolePermission[]
-  approvalSteps   ApprovalStep[]  @relation("ApprovalStepRole")
+  approvalSteps   ApprovalStep[]   @relation("ApprovalStepRole")
 
   @@unique([tenantId, name])
   @@index([tenantId])
@@ -515,8 +523,8 @@ model Role {
 
 model Permission {
   id          String  @id @default(cuid())
-  module      String  // "leads", "companies", "invoices", etc.
-  action      String  // "view", "create", "edit", "delete", "export", "approve"
+  module      String // "leads", "companies", "invoices", etc.
+  action      String // "view", "create", "edit", "delete", "export", "approve"
   description String? @db.Text
 
   rolePermissions RolePermission[]
@@ -525,9 +533,9 @@ model Permission {
 }
 
 model RolePermission {
-  id           String @id @default(cuid())
+  id           String     @id @default(cuid())
   roleId       String
-  role         Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
   permissionId String
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
@@ -552,7 +560,7 @@ model Company {
   id                    String         @id @default(cuid())
   tenantId              String
   tenant                Tenant         @relation(fields: [tenantId], references: [id])
-  companyNumber         String         // Auto: COM-0001
+  companyNumber         String // Auto: COM-0001
   legalName             String
   displayName           String
   industry              String?
@@ -574,32 +582,32 @@ model Company {
   employeeCount         Int?
   source                String?
   healthScore           Int?           @default(0) // 0-100 composite score
-  notes                 String? @db.Text
+  notes                 String?        @db.Text
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
   archivedAt            DateTime?
 
   // Relations
-  companyContacts CompanyContact[]
-  leads           Lead[]
-  leadsLinked     Lead[]            @relation("LeadCompany")
-  opportunities   Opportunity[]
-  projects        Project[]
-  invoices        Invoice[]
-  quotations      Quotation[]
-  proposals       Proposal[]
-  contracts       Contract[]
-  tickets         Ticket[]
-  socialAccounts  SocialAccount[]
-  payments        Payment[]       @relation("PaymentClient")
-  subscriptions        Subscription[]
-  changeRequests       ChangeRequest[]
-  clientOnboardings    ClientOnboarding[]
-  clientPortalUsers    ClientPortalUser[]
-  clientServices       ClientService[]
-  communicationLogs    CommunicationLog[]
-  previewLinksShared   PreviewLink[]        @relation("PreviewLinkSharedWith")
-  accountHealth        AccountHealth?
+  companyContacts    CompanyContact[]
+  leads              Lead[]
+  leadsLinked        Lead[]             @relation("LeadCompany")
+  opportunities      Opportunity[]
+  projects           Project[]
+  invoices           Invoice[]
+  quotations         Quotation[]
+  proposals          Proposal[]
+  contracts          Contract[]
+  tickets            Ticket[]
+  socialAccounts     SocialAccount[]
+  payments           Payment[]          @relation("PaymentClient")
+  subscriptions      Subscription[]
+  changeRequests     ChangeRequest[]
+  clientOnboardings  ClientOnboarding[]
+  clientPortalUsers  ClientPortalUser[]
+  clientServices     ClientService[]
+  communicationLogs  CommunicationLog[]
+  previewLinksShared PreviewLink[]      @relation("PreviewLinkSharedWith")
+  accountHealth      AccountHealth?
 
   @@unique([tenantId, companyNumber])
   @@index([tenantId])
@@ -611,10 +619,10 @@ model Company {
 }
 
 model Contact {
-  id                String        @id @default(cuid())
+  id                String       @id @default(cuid())
   tenantId          String
-  tenant            Tenant        @relation(fields: [tenantId], references: [id])
-  contactNumber     String        // Auto: CON-0001
+  tenant            Tenant       @relation(fields: [tenantId], references: [id])
+  contactNumber     String // Auto: CON-0001
   firstName         String
   lastName          String
   email             String?
@@ -622,33 +630,33 @@ model Contact {
   whatsapp          String?
   jobTitle          String?
   department        String?
-  decisionRole      DecisionRole  @default(OTHER)
-  preferredLanguage String?       @default("en")
+  decisionRole      DecisionRole @default(OTHER)
+  preferredLanguage String?      @default("en")
   avatar            String?
   linkedinUrl       String?
   lastContactedAt   DateTime?
   nextFollowUpAt    DateTime?
-  leadScore         Int?          @default(0)
+  leadScore         Int?         @default(0)
   source            String?
-  notes             String? @db.Text
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  notes             String?      @db.Text
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
   archivedAt        DateTime?
 
   // Relations
-  companyContacts      CompanyContact[]
-  leadsConverted       Lead[]          @relation("LeadConvertedContact")
-  opportunities        Opportunity[]   @relation("OpportunityContact")
-  quotations           Quotation[]
-  proposals            Proposal[]
-  contracts            Contract[]
-  invoiceContacts      Invoice[]
-  socialApprovalContact SocialAccount[] @relation("SocialApprovalContact")
-  communicationLogs    CommunicationLog[]
-  subscriptions        Subscription[]
-  clientServices       ClientService[]   @relation("ClientServiceContact")
-  tickets              Ticket[]          @relation("TicketContact")
-  leads                Lead[]            @relation("LeadContact")
+  companyContacts       CompanyContact[]
+  leadsConverted        Lead[]             @relation("LeadConvertedContact")
+  opportunities         Opportunity[]      @relation("OpportunityContact")
+  quotations            Quotation[]
+  proposals             Proposal[]
+  contracts             Contract[]
+  invoiceContacts       Invoice[]
+  socialApprovalContact SocialAccount[]    @relation("SocialApprovalContact")
+  communicationLogs     CommunicationLog[]
+  subscriptions         Subscription[]
+  clientServices        ClientService[]    @relation("ClientServiceContact")
+  tickets               Ticket[]           @relation("TicketContact")
+  leads                 Lead[]             @relation("LeadContact")
 
   @@unique([tenantId, contactNumber])
   @@index([tenantId])
@@ -659,14 +667,14 @@ model Contact {
 }
 
 model CompanyContact {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   companyId String
-  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  company   Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
   contactId String
-  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  role      String?  // "CEO", "CTO", "Marketing Manager", etc.
-  isPrimary Boolean  @default(false)
-  startDate DateTime @default(now())
+  contact   Contact   @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  role      String? // "CEO", "CTO", "Marketing Manager", etc.
+  isPrimary Boolean   @default(false)
+  startDate DateTime  @default(now())
   endDate   DateTime?
 
   @@unique([companyId, contactId])
@@ -679,10 +687,10 @@ model CompanyContact {
 // ============================================================================
 
 model Lead {
-  id                     String    @id @default(cuid())
+  id                     String         @id @default(cuid())
   tenantId               String
-  tenant                 Tenant    @relation(fields: [tenantId], references: [id])
-  leadNumber             String    // Auto: LD-0001
+  tenant                 Tenant         @relation(fields: [tenantId], references: [id])
+  leadNumber             String // Auto: LD-0001
   fullName               String
   companyName            String?
   email                  String?
@@ -692,41 +700,41 @@ model Lead {
   city                   String?
   website                String?
   companyId              String?
-  company                Company?    @relation("LeadCompany", fields: [companyId], references: [id])
+  company                Company?       @relation("LeadCompany", fields: [companyId], references: [id])
   contactId              String?
-  contact                Contact?    @relation("LeadContact", fields: [contactId], references: [id])
+  contact                Contact?       @relation("LeadContact", fields: [contactId], references: [id])
   sourceId               String?
-  source                 LeadSource? @relation(fields: [sourceId], references: [id])
+  source                 LeadSource?    @relation(fields: [sourceId], references: [id])
   campaignId             String?
-  campaign               Campaign?   @relation(fields: [campaignId], references: [id])
+  campaign               Campaign?      @relation(fields: [campaignId], references: [id])
   interestedServiceId    String?
-  interestedService      Service?    @relation(fields: [interestedServiceId], references: [id])
+  interestedService      Service?       @relation(fields: [interestedServiceId], references: [id])
   budgetRange            String?
-  urgency                Priority    @default(MEDIUM)
+  urgency                Priority       @default(MEDIUM)
   projectSize            String?
-  score                  Int         @default(0)
+  score                  Int            @default(0)
   // Pipeline
   pipelineId             String?
-  pipeline               Pipeline?   @relation(fields: [pipelineId], references: [id])
+  pipeline               Pipeline?      @relation(fields: [pipelineId], references: [id])
   stageId                String?
   stage                  PipelineStage? @relation(fields: [stageId], references: [id])
   // Assignment
   assignedToId           String?
-  assignedTo             User?       @relation("LeadAssignee", fields: [assignedToId], references: [id])
+  assignedTo             User?          @relation("LeadAssignee", fields: [assignedToId], references: [id])
   // Follow-up
   nextFollowUpAt         DateTime?
   lastContactedAt        DateTime?
   // Conversion
   convertedAt            DateTime?
   convertedCompanyId     String?
-  convertedCompany       Company?    @relation(fields: [convertedCompanyId], references: [id])
+  convertedCompany       Company?       @relation(fields: [convertedCompanyId], references: [id])
   convertedContactId     String?
-  convertedContact       Contact?    @relation("LeadConvertedContact", fields: [convertedContactId], references: [id])
+  convertedContact       Contact?       @relation("LeadConvertedContact", fields: [convertedContactId], references: [id])
   convertedOpportunityId String?
   // Loss
   lostAt                 DateTime?
   lostReasonId           String?
-  lostReason             LostReason? @relation(fields: [lostReasonId], references: [id])
+  lostReason             LostReason?    @relation(fields: [lostReasonId], references: [id])
   lostNotes              String?
   // Meta
   notesSummary           String?
@@ -737,14 +745,14 @@ model Lead {
   referrerUrl            String?
   landingPage            String?
   createdById            String?
-  createdBy              User?       @relation("LeadCreator", fields: [createdById], references: [id])
-  createdAt              DateTime    @default(now())
-  updatedAt              DateTime    @updatedAt
+  createdBy              User?          @relation("LeadCreator", fields: [createdById], references: [id])
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
   archivedAt             DateTime?
 
-  communicationLogs  CommunicationLog[]
+  communicationLogs      CommunicationLog[]
   leadCaptureSubmissions LeadCaptureSubmission[]
-  opportunities      Opportunity[]     @relation("LeadOpportunity")
+  opportunities          Opportunity[]           @relation("LeadOpportunity")
 
   @@unique([tenantId, leadNumber])
   @@index([tenantId])
@@ -756,14 +764,14 @@ model Lead {
 }
 
 model LeadSource {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   tenantId  String
-  tenant    Tenant  @relation(fields: [tenantId], references: [id])
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
   name      String
   nameAr    String?
   type      String? // WEBSITE, WHATSAPP, SOCIAL, REFERRAL, ADS, CHATBOT, MANUAL, IMPORT
   icon      String?
-  isActive  Boolean @default(true)
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 
   leads Lead[]
@@ -773,13 +781,13 @@ model LeadSource {
 }
 
 model LostReason {
-  id         String @id @default(cuid())
+  id         String   @id @default(cuid())
   tenantId   String
-  tenant     Tenant @relation(fields: [tenantId], references: [id])
+  tenant     Tenant   @relation(fields: [tenantId], references: [id])
   name       String
   nameAr     String?
   entityType String // "lead" or "opportunity"
-  isActive   Boolean @default(true)
+  isActive   Boolean  @default(true)
   createdAt  DateTime @default(now())
 
   leads         Lead[]
@@ -821,7 +829,7 @@ model PipelineStage {
   nameAr      String?
   color       String   @default("#3B82F6")
   order       Int
-  probability Int?     // For opportunity stages: 0-100
+  probability Int? // For opportunity stages: 0-100
   isWon       Boolean  @default(false)
   isLost      Boolean  @default(false)
   isClosed    Boolean  @default(false)
@@ -840,47 +848,47 @@ model PipelineStage {
 // ============================================================================
 
 model Opportunity {
-  id                 String        @id @default(cuid())
-  tenantId           String
-  tenant             Tenant        @relation(fields: [tenantId], references: [id])
-  opportunityNumber  String        // Auto: OPP-0001
-  title              String
-  description        String? @db.Text
-  companyId          String?
-  company            Company?      @relation(fields: [companyId], references: [id])
-  primaryContactId   String?
-  primaryContact     Contact?      @relation("OpportunityContact", fields: [primaryContactId], references: [id])
-  ownerId            String
-  owner              User          @relation("OpportunityOwner", fields: [ownerId], references: [id])
-  pipelineId         String?
-  pipeline           Pipeline?     @relation(fields: [pipelineId], references: [id])
-  stageId            String?
-  stage              PipelineStage? @relation(fields: [stageId], references: [id])
-  expectedValue      Decimal       @default(0)
-  currency           Currency      @default(AED)
-  probability        Int           @default(0) // 0-100
-  weightedValue      Decimal       @default(0) // auto: expectedValue * probability / 100
-  expectedCloseDate  DateTime?
-  forecastMonth      String?       // "2026-04"
-  riskLevel          RiskLevel     @default(LOW)
-  competitorNotes    String?
-  nextSteps          String?
+  id                String         @id @default(cuid())
+  tenantId          String
+  tenant            Tenant         @relation(fields: [tenantId], references: [id])
+  opportunityNumber String // Auto: OPP-0001
+  title             String
+  description       String?        @db.Text
+  companyId         String?
+  company           Company?       @relation(fields: [companyId], references: [id])
+  primaryContactId  String?
+  primaryContact    Contact?       @relation("OpportunityContact", fields: [primaryContactId], references: [id])
+  ownerId           String
+  owner             User           @relation("OpportunityOwner", fields: [ownerId], references: [id])
+  pipelineId        String?
+  pipeline          Pipeline?      @relation(fields: [pipelineId], references: [id])
+  stageId           String?
+  stage             PipelineStage? @relation(fields: [stageId], references: [id])
+  expectedValue     Decimal        @default(0)
+  currency          Currency       @default(AED)
+  probability       Int            @default(0) // 0-100
+  weightedValue     Decimal        @default(0) // auto: expectedValue * probability / 100
+  expectedCloseDate DateTime?
+  forecastMonth     String? // "2026-04"
+  riskLevel         RiskLevel      @default(LOW)
+  competitorNotes   String?
+  nextSteps         String?
   // Source lead
-  leadId             String?
-  lead               Lead?         @relation("LeadOpportunity", fields: [leadId], references: [id])
+  leadId            String?
+  lead              Lead?          @relation("LeadOpportunity", fields: [leadId], references: [id])
   // Resolution
-  wonAt              DateTime?
-  lostAt             DateTime?
-  lostReasonId       String?
-  lostReason         LostReason?   @relation("OpportunityLostReason", fields: [lostReasonId], references: [id])
-  lostNotes          String?
-  wonReasonNotes     String?
+  wonAt             DateTime?
+  lostAt            DateTime?
+  lostReasonId      String?
+  lostReason        LostReason?    @relation("OpportunityLostReason", fields: [lostReasonId], references: [id])
+  lostNotes         String?
+  wonReasonNotes    String?
   // Meta
-  createdById        String?
-  createdBy          User?         @relation("OpportunityCreator", fields: [createdById], references: [id])
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
-  archivedAt         DateTime?
+  createdById       String?
+  createdBy         User?          @relation("OpportunityCreator", fields: [createdById], references: [id])
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  archivedAt        DateTime?
 
   // Relations
   opportunityServices OpportunityService[]
@@ -903,14 +911,14 @@ model Opportunity {
 }
 
 model OpportunityService {
-  id            String      @id @default(cuid())
+  id            String          @id @default(cuid())
   opportunityId String
-  opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  opportunity   Opportunity     @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
   serviceId     String
-  service       Service     @relation(fields: [serviceId], references: [id])
+  service       Service         @relation(fields: [serviceId], references: [id])
   packageId     String?
   package       ServicePackage? @relation(fields: [packageId], references: [id])
-  quantity      Int         @default(1)
+  quantity      Int             @default(1)
   unitPrice     Decimal
   totalPrice    Decimal
 
@@ -922,17 +930,17 @@ model OpportunityService {
 // ============================================================================
 
 model ServiceCategory {
-  id        String   @id @default(cuid())
-  tenantId  String
-  tenant    Tenant   @relation(fields: [tenantId], references: [id])
-  name      String
-  nameAr    String?
-  description String? @db.Text
-  icon      String?
-  order     Int      @default(0)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  name        String
+  nameAr      String?
+  description String?  @db.Text
+  icon        String?
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   services Service[]
 
@@ -948,7 +956,7 @@ model Service {
   category    ServiceCategory @relation(fields: [categoryId], references: [id])
   name        String
   nameAr      String?
-  description String? @db.Text
+  description String?         @db.Text
   basePrice   Decimal?
   currency    Currency        @default(AED)
   pricingType PricingType     @default(FIXED)
@@ -973,17 +981,17 @@ model Service {
 }
 
 model ServicePackage {
-  id          String  @id @default(cuid())
+  id          String   @id @default(cuid())
   tenantId    String
-  tenant      Tenant  @relation(fields: [tenantId], references: [id])
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
   serviceId   String
-  service     Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  service     Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
   name        String
   nameAr      String?
-  description String? @db.Text
+  description String?  @db.Text
   price       Decimal
   currency    Currency @default(AED)
-  features    Json?    // ["Feature 1", "Feature 2", ...]
+  features    Json? // ["Feature 1", "Feature 2", ...]
   isActive    Boolean  @default(true)
   order       Int      @default(0)
   createdAt   DateTime @default(now())
@@ -1006,50 +1014,50 @@ model ServicePackage {
 // ============================================================================
 
 model Project {
-  id                    String        @id @default(cuid())
+  id                    String          @id @default(cuid())
   tenantId              String
-  tenant                Tenant        @relation(fields: [tenantId], references: [id])
-  projectNumber         String        // Auto: PRJ-0001
+  tenant                Tenant          @relation(fields: [tenantId], references: [id])
+  projectNumber         String // Auto: PRJ-0001
   name                  String
-  description           String? @db.Text
+  description           String?         @db.Text
   clientId              String?
-  client                Company?      @relation(fields: [clientId], references: [id])
+  client                Company?        @relation(fields: [clientId], references: [id])
   opportunityId         String?
-  opportunity           Opportunity?  @relation(fields: [opportunityId], references: [id])
+  opportunity           Opportunity?    @relation(fields: [opportunityId], references: [id])
   serviceId             String?
-  service               Service?      @relation(fields: [serviceId], references: [id])
+  service               Service?        @relation(fields: [serviceId], references: [id])
   packageId             String?
   package               ServicePackage? @relation(fields: [packageId], references: [id])
   ownerId               String
-  owner                 User          @relation("ProjectOwner", fields: [ownerId], references: [id])
+  owner                 User            @relation("ProjectOwner", fields: [ownerId], references: [id])
   startDate             DateTime?
   targetEndDate         DateTime?
   actualEndDate         DateTime?
-  status                ProjectStatus @default(NOT_STARTED)
-  healthStatus          ProjectHealth @default(ON_TRACK)
-  progressPercent       Int           @default(0)
+  status                ProjectStatus   @default(NOT_STARTED)
+  healthStatus          ProjectHealth   @default(ON_TRACK)
+  progressPercent       Int             @default(0)
   budgetValue           Decimal?
-  currency              Currency      @default(AED)
-  actualCost            Decimal?      @default(0)
+  currency              Currency        @default(AED)
+  actualCost            Decimal?        @default(0)
   profitabilityEstimate Decimal?
-  notes                 String? @db.Text
-  createdAt             DateTime      @default(now())
-  updatedAt             DateTime      @updatedAt
+  notes                 String?         @db.Text
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
   archivedAt            DateTime?
 
   // Relations
-  members          ProjectMember[]
-  milestones       ProjectMilestone[]
-  tasks            Task[]
-  invoices         Invoice[]
-  tickets          Ticket[]
-  expenses         Expense[]
-  timeEntries      TimeEntry[]
+  members           ProjectMember[]
+  milestones        ProjectMilestone[]
+  tasks             Task[]
+  invoices          Invoice[]
+  tickets           Ticket[]
+  expenses          Expense[]
+  timeEntries       TimeEntry[]
   clientOnboardings ClientOnboarding[]
-  changeRequests   ChangeRequest[]
+  changeRequests    ChangeRequest[]
   communicationLogs CommunicationLog[]
-  deliverables     Deliverable[]
-  previewLinks     PreviewLink[]
+  deliverables      Deliverable[]
+  previewLinks      PreviewLink[]
 
   @@unique([tenantId, projectNumber])
   @@index([tenantId])
@@ -1068,7 +1076,7 @@ model ProjectMember {
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   userId    String
   user      User     @relation(fields: [userId], references: [id])
-  role      String?  // "Project Manager", "Developer", "Designer", etc.
+  role      String? // "Project Manager", "Developer", "Designer", etc.
   joinedAt  DateTime @default(now())
 
   @@unique([projectId, userId])
@@ -1081,7 +1089,7 @@ model ProjectMilestone {
   projectId   String
   project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   name        String
-  description String? @db.Text
+  description String?   @db.Text
   dueDate     DateTime?
   completedAt DateTime?
   status      String    @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED, OVERDUE
@@ -1099,23 +1107,23 @@ model ProjectMilestone {
 // ============================================================================
 
 model SocialAccount {
-  id                 String         @id @default(cuid())
-  tenantId           String
-  tenant             Tenant         @relation(fields: [tenantId], references: [id])
-  clientId           String
-  client             Company        @relation(fields: [clientId], references: [id])
-  platform           SocialPlatform
-  accountName        String
-  accountUrl         String?
-  postingFrequency   String?        // "3x/week", "daily", etc.
-  contentPillars     Json?          // ["Educational", "Promotional", "Entertainment"]
-  brandGuidelines    String?
-  targetAudience     String?
-  approvalContactId  String?
-  approvalContact    Contact?       @relation("SocialApprovalContact", fields: [approvalContactId], references: [id])
-  isActive           Boolean        @default(true)
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
+  id                String         @id @default(cuid())
+  tenantId          String
+  tenant            Tenant         @relation(fields: [tenantId], references: [id])
+  clientId          String
+  client            Company        @relation(fields: [clientId], references: [id])
+  platform          SocialPlatform
+  accountName       String
+  accountUrl        String?
+  postingFrequency  String? // "3x/week", "daily", etc.
+  contentPillars    Json? // ["Educational", "Promotional", "Entertainment"]
+  brandGuidelines   String?
+  targetAudience    String?
+  approvalContactId String?
+  approvalContact   Contact?       @relation("SocialApprovalContact", fields: [approvalContactId], references: [id])
+  isActive          Boolean        @default(true)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
 
   contentItems ContentItem[]
 
@@ -1186,30 +1194,30 @@ model ContentApproval {
 // ============================================================================
 
 model Campaign {
-  id                    String         @id @default(cuid())
-  tenantId              String
-  tenant                Tenant         @relation(fields: [tenantId], references: [id])
-  name                  String
-  description           String? @db.Text
-  type                  CampaignType   @default(OTHER)
-  platform              String?
-  budget                Decimal?
-  actualSpend           Decimal?       @default(0)
-  currency              Currency       @default(AED)
-  startDate             DateTime?
-  endDate               DateTime?
-  status                CampaignStatus @default(DRAFT)
-  ownerId               String?
-  owner                 User?          @relation(fields: [ownerId], references: [id])
+  id                   String         @id @default(cuid())
+  tenantId             String
+  tenant               Tenant         @relation(fields: [tenantId], references: [id])
+  name                 String
+  description          String?        @db.Text
+  type                 CampaignType   @default(OTHER)
+  platform             String?
+  budget               Decimal?
+  actualSpend          Decimal?       @default(0)
+  currency             Currency       @default(AED)
+  startDate            DateTime?
+  endDate              DateTime?
+  status               CampaignStatus @default(DRAFT)
+  ownerId              String?
+  owner                User?          @relation(fields: [ownerId], references: [id])
   // Computed metrics
-  leadsGenerated        Int            @default(0)
-  opportunitiesCreated  Int            @default(0)
-  revenueGenerated      Decimal?       @default(0)
-  costPerLead           Decimal?
-  conversionRate        Decimal?
+  leadsGenerated       Int            @default(0)
+  opportunitiesCreated Int            @default(0)
+  revenueGenerated     Decimal?       @default(0)
+  costPerLead          Decimal?
+  conversionRate       Decimal?
   // Meta
-  createdAt             DateTime       @default(now())
-  updatedAt             DateTime       @updatedAt
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
 
   leads        Lead[]
   contentItems ContentItem[]
@@ -1226,9 +1234,9 @@ model Quotation {
   id                String          @id @default(cuid())
   tenantId          String
   tenant            Tenant          @relation(fields: [tenantId], references: [id])
-  quotationNumber   String          // Auto: QUO-0001
+  quotationNumber   String // Auto: QUO-0001
   title             String
-  description       String? @db.Text
+  description       String?         @db.Text
   companyId         String?
   company           Company?        @relation(fields: [companyId], references: [id])
   contactId         String?
@@ -1270,22 +1278,22 @@ model Quotation {
 }
 
 model QuotationItem {
-  id              String          @id @default(cuid())
-  quotationId     String
-  quotation       Quotation       @relation(fields: [quotationId], references: [id], onDelete: Cascade)
-  serviceId       String?
-  service         Service?        @relation(fields: [serviceId], references: [id])
-  packageId       String?
-  package         ServicePackage? @relation(fields: [packageId], references: [id])
-  description     String @db.Text
-  quantity        Int             @default(1)
-  unitPrice       Decimal
-  discountPercent Decimal?        @default(0)
-  taxRate         Decimal?        @default(0)
-  totalPrice      Decimal
-  isRecurring     Boolean         @default(false)
+  id                String             @id @default(cuid())
+  quotationId       String
+  quotation         Quotation          @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  serviceId         String?
+  service           Service?           @relation(fields: [serviceId], references: [id])
+  packageId         String?
+  package           ServicePackage?    @relation(fields: [packageId], references: [id])
+  description       String             @db.Text
+  quantity          Int                @default(1)
+  unitPrice         Decimal
+  discountPercent   Decimal?           @default(0)
+  taxRate           Decimal?           @default(0)
+  totalPrice        Decimal
+  isRecurring       Boolean            @default(false)
   recurringInterval RecurringInterval?
-  order           Int             @default(0)
+  order             Int                @default(0)
 
   @@index([quotationId])
 }
@@ -1295,43 +1303,43 @@ model QuotationItem {
 // ============================================================================
 
 model Proposal {
-  id                String          @id @default(cuid())
-  tenantId          String
-  tenant            Tenant          @relation(fields: [tenantId], references: [id])
-  proposalNumber    String          // Auto: PRP-0001
-  title             String
-  companyId         String?
-  company           Company?        @relation(fields: [companyId], references: [id])
-  contactId         String?
-  contact           Contact?        @relation(fields: [contactId], references: [id])
-  opportunityId     String?
-  opportunity       Opportunity?    @relation(fields: [opportunityId], references: [id])
-  ownerId           String
-  issueDate         DateTime        @default(now())
-  validUntil        DateTime?
-  executiveSummary  String?
-  scopeOfWork       String?
-  deliverables      String?
-  timeline          String?
-  methodology       String?
-  subtotal          Decimal         @default(0)
-  discountAmount    Decimal         @default(0)
-  taxAmount         Decimal         @default(0)
-  totalAmount       Decimal         @default(0)
-  currency          Currency        @default(AED)
-  terms             String?
-  assumptions       String?
-  exclusions        String?
-  status            QuotationStatus @default(DRAFT) // Reuse quotation statuses
-  version           Int             @default(1)
-  parentProposalId  String?
-  parentProposal    Proposal?       @relation("ProposalVersions", fields: [parentProposalId], references: [id])
-  childProposals    Proposal[]      @relation("ProposalVersions")
-  acceptedAt        DateTime?
-  createdById       String
-  createdBy         User            @relation("ProposalCreator", fields: [createdById], references: [id])
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
+  id               String          @id @default(cuid())
+  tenantId         String
+  tenant           Tenant          @relation(fields: [tenantId], references: [id])
+  proposalNumber   String // Auto: PRP-0001
+  title            String
+  companyId        String?
+  company          Company?        @relation(fields: [companyId], references: [id])
+  contactId        String?
+  contact          Contact?        @relation(fields: [contactId], references: [id])
+  opportunityId    String?
+  opportunity      Opportunity?    @relation(fields: [opportunityId], references: [id])
+  ownerId          String
+  issueDate        DateTime        @default(now())
+  validUntil       DateTime?
+  executiveSummary String?
+  scopeOfWork      String?
+  deliverables     String?
+  timeline         String?
+  methodology      String?
+  subtotal         Decimal         @default(0)
+  discountAmount   Decimal         @default(0)
+  taxAmount        Decimal         @default(0)
+  totalAmount      Decimal         @default(0)
+  currency         Currency        @default(AED)
+  terms            String?
+  assumptions      String?
+  exclusions       String?
+  status           QuotationStatus @default(DRAFT) // Reuse quotation statuses
+  version          Int             @default(1)
+  parentProposalId String?
+  parentProposal   Proposal?       @relation("ProposalVersions", fields: [parentProposalId], references: [id])
+  childProposals   Proposal[]      @relation("ProposalVersions")
+  acceptedAt       DateTime?
+  createdById      String
+  createdBy        User            @relation("ProposalCreator", fields: [createdById], references: [id])
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 
   items ProposalItem[]
 
@@ -1340,18 +1348,18 @@ model Proposal {
 }
 
 model ProposalItem {
-  id              String          @id @default(cuid())
-  proposalId      String
-  proposal        Proposal        @relation(fields: [proposalId], references: [id], onDelete: Cascade)
-  serviceId       String?
-  service         Service?        @relation(fields: [serviceId], references: [id])
-  packageId       String?
-  package         ServicePackage? @relation(fields: [packageId], references: [id])
-  description     String @db.Text
-  quantity        Int             @default(1)
-  unitPrice       Decimal
-  totalPrice      Decimal
-  order           Int             @default(0)
+  id          String          @id @default(cuid())
+  proposalId  String
+  proposal    Proposal        @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  serviceId   String?
+  service     Service?        @relation(fields: [serviceId], references: [id])
+  packageId   String?
+  package     ServicePackage? @relation(fields: [packageId], references: [id])
+  description String          @db.Text
+  quantity    Int             @default(1)
+  unitPrice   Decimal
+  totalPrice  Decimal
+  order       Int             @default(0)
 
   @@index([proposalId])
 }
@@ -1364,7 +1372,7 @@ model Contract {
   id                  String         @id @default(cuid())
   tenantId            String
   tenant              Tenant         @relation(fields: [tenantId], references: [id])
-  contractNumber      String         // Auto: CTR-0001
+  contractNumber      String // Auto: CTR-0001
   title               String
   type                ContractType   @default(SERVICE)
   clientId            String
@@ -1382,7 +1390,7 @@ model Contract {
   scopeSummary        String?
   terms               String?
   signedAt            DateTime?
-  signedDocumentId    String?        // Reference to Document
+  signedDocumentId    String? // Reference to Document
   createdById         String
   createdBy           User           @relation("ContractCreator", fields: [createdById], references: [id])
   createdAt           DateTime       @default(now())
@@ -1401,46 +1409,46 @@ model Contract {
 // ============================================================================
 
 model Invoice {
-  id                 String          @id @default(cuid())
-  tenantId           String
-  tenant             Tenant          @relation(fields: [tenantId], references: [id])
-  invoiceNumber      String          // Auto: INV-0001
-  clientId           String
-  client             Company         @relation(fields: [clientId], references: [id])
-  contactId          String?
-  contact            Contact?        @relation(fields: [contactId], references: [id])
-  contractId         String?
-  contract           Contract?       @relation(fields: [contractId], references: [id])
-  projectId          String?
-  project            Project?        @relation(fields: [projectId], references: [id])
-  opportunityId      String?
-  opportunity        Opportunity?    @relation(fields: [opportunityId], references: [id])
-  issueDate          DateTime        @default(now())
-  dueDate            DateTime
-  subtotal           Decimal         @default(0)
-  discountAmount     Decimal         @default(0)
-  taxAmount          Decimal         @default(0)
-  totalAmount        Decimal         @default(0)
-  currency           Currency        @default(AED)
-  taxRateId          String?
-  taxRate            TaxRate?        @relation("InvoiceTaxRate", fields: [taxRateId], references: [id])
-  amountPaid         Decimal         @default(0)
-  balanceDue         Decimal         @default(0)
-  status             InvoiceStatus   @default(DRAFT)
-  isRecurring        Boolean         @default(false)
-  recurringInterval  RecurringInterval?
-  nextRecurringDate  DateTime?
-  notes              String? @db.Text
-  terms              String?
-  createdById        String
-  createdBy          User            @relation("InvoiceCreator", fields: [createdById], references: [id])
-  createdAt          DateTime        @default(now())
-  updatedAt          DateTime        @updatedAt
+  id                String             @id @default(cuid())
+  tenantId          String
+  tenant            Tenant             @relation(fields: [tenantId], references: [id])
+  invoiceNumber     String // Auto: INV-0001
+  clientId          String
+  client            Company            @relation(fields: [clientId], references: [id])
+  contactId         String?
+  contact           Contact?           @relation(fields: [contactId], references: [id])
+  contractId        String?
+  contract          Contract?          @relation(fields: [contractId], references: [id])
+  projectId         String?
+  project           Project?           @relation(fields: [projectId], references: [id])
+  opportunityId     String?
+  opportunity       Opportunity?       @relation(fields: [opportunityId], references: [id])
+  issueDate         DateTime           @default(now())
+  dueDate           DateTime
+  subtotal          Decimal            @default(0)
+  discountAmount    Decimal            @default(0)
+  taxAmount         Decimal            @default(0)
+  totalAmount       Decimal            @default(0)
+  currency          Currency           @default(AED)
+  taxRateId         String?
+  taxRate           TaxRate?           @relation("InvoiceTaxRate", fields: [taxRateId], references: [id])
+  amountPaid        Decimal            @default(0)
+  balanceDue        Decimal            @default(0)
+  status            InvoiceStatus      @default(DRAFT)
+  isRecurring       Boolean            @default(false)
+  recurringInterval RecurringInterval?
+  nextRecurringDate DateTime?
+  notes             String?            @db.Text
+  terms             String?
+  createdById       String
+  createdBy         User               @relation("InvoiceCreator", fields: [createdById], references: [id])
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 
   items          InvoiceItem[]
   payments       Payment[]
   subscriptionId String?
-  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
+  subscription   Subscription?   @relation(fields: [subscriptionId], references: [id])
   billingRecords BillingRecord[]
 
   @@unique([tenantId, invoiceNumber])
@@ -1454,18 +1462,18 @@ model Invoice {
 }
 
 model InvoiceItem {
-  id          String   @id @default(cuid())
-  invoiceId   String
-  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  serviceId   String?
-  service     Service? @relation(fields: [serviceId], references: [id])
-  description String @db.Text
-  quantity    Int      @default(1)
-  unitPrice   Decimal
+  id              String   @id @default(cuid())
+  invoiceId       String
+  invoice         Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  serviceId       String?
+  service         Service? @relation(fields: [serviceId], references: [id])
+  description     String   @db.Text
+  quantity        Int      @default(1)
+  unitPrice       Decimal
   discountPercent Decimal? @default(0)
-  taxRate     Decimal? @default(0)
-  totalPrice  Decimal
-  order       Int      @default(0)
+  taxRate         Decimal? @default(0)
+  totalPrice      Decimal
+  order           Int      @default(0)
 
   @@index([invoiceId])
 }
@@ -1474,7 +1482,7 @@ model Payment {
   id            String        @id @default(cuid())
   tenantId      String
   tenant        Tenant        @relation(fields: [tenantId], references: [id])
-  paymentNumber String        // Auto: PAY-0001
+  paymentNumber String // Auto: PAY-0001
   invoiceId     String
   invoice       Invoice       @relation(fields: [invoiceId], references: [id])
   clientId      String
@@ -1484,7 +1492,7 @@ model Payment {
   paymentDate   DateTime
   paymentMethod PaymentMethod @default(BANK_TRANSFER)
   reference     String?
-  notes         String? @db.Text
+  notes         String?       @db.Text
   createdById   String
   createdBy     User          @relation(fields: [createdById], references: [id])
   createdAt     DateTime      @default(now())
@@ -1503,32 +1511,32 @@ model Payment {
 // ============================================================================
 
 model Expense {
-  id                String        @id @default(cuid())
+  id                String          @id @default(cuid())
   tenantId          String
-  tenant            Tenant        @relation(fields: [tenantId], references: [id])
-  expenseNumber     String        // Auto: EXP-0001
+  tenant            Tenant          @relation(fields: [tenantId], references: [id])
+  expenseNumber     String // Auto: EXP-0001
   vendorName        String
   categoryId        String
   category          ExpenseCategory @relation(fields: [categoryId], references: [id])
   amount            Decimal
-  taxAmount         Decimal       @default(0)
+  taxAmount         Decimal         @default(0)
   totalAmount       Decimal
-  currency          Currency      @default(AED)
+  currency          Currency        @default(AED)
   expenseDate       DateTime
-  paymentMethod     PaymentMethod @default(BANK_TRANSFER)
-  description       String? @db.Text
-  notes             String? @db.Text
+  paymentMethod     PaymentMethod   @default(BANK_TRANSFER)
+  description       String?         @db.Text
+  notes             String?         @db.Text
   linkedProjectId   String?
-  linkedProject     Project?      @relation(fields: [linkedProjectId], references: [id])
-  receiptDocumentId String?       // Reference to Document
-  status            ExpenseStatus @default(PENDING)
+  linkedProject     Project?        @relation(fields: [linkedProjectId], references: [id])
+  receiptDocumentId String? // Reference to Document
+  status            ExpenseStatus   @default(PENDING)
   approvedById      String?
-  approvedBy        User?         @relation("ExpenseApprover", fields: [approvedById], references: [id])
+  approvedBy        User?           @relation("ExpenseApprover", fields: [approvedById], references: [id])
   approvedAt        DateTime?
   createdById       String
-  createdBy         User          @relation("ExpenseCreator", fields: [createdById], references: [id])
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  createdBy         User            @relation("ExpenseCreator", fields: [createdById], references: [id])
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 
   @@unique([tenantId, expenseNumber])
   @@index([tenantId])
@@ -1539,14 +1547,14 @@ model Expense {
 }
 
 model ExpenseCategory {
-  id       String  @id @default(cuid())
-  tenantId String
-  tenant   Tenant  @relation(fields: [tenantId], references: [id])
-  name     String
-  nameAr   String?
-  icon     String?
-  isActive Boolean @default(true)
-  order    Int     @default(0)
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  name      String
+  nameAr    String?
+  icon      String?
+  isActive  Boolean  @default(true)
+  order     Int      @default(0)
   createdAt DateTime @default(now())
 
   expenses Expense[]
@@ -1556,15 +1564,15 @@ model ExpenseCategory {
 }
 
 model TaxRate {
-  id          String  @id @default(cuid())
+  id          String   @id @default(cuid())
   tenantId    String
-  tenant      Tenant  @relation(fields: [tenantId], references: [id])
-  name        String  // "UAE VAT", "Zero Rate", etc.
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  name        String // "UAE VAT", "Zero Rate", etc.
   nameAr      String?
   rate        Decimal // 5.00 = 5%
-  isDefault   Boolean @default(false)
-  isInclusive Boolean @default(false) // Tax-inclusive pricing
-  isActive    Boolean @default(true)
+  isDefault   Boolean  @default(false)
+  isInclusive Boolean  @default(false) // Tax-inclusive pricing
+  isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
 
   quotations Quotation[] @relation("QuotationTaxRate")
@@ -1582,9 +1590,9 @@ model Ticket {
   id                String       @id @default(cuid())
   tenantId          String
   tenant            Tenant       @relation(fields: [tenantId], references: [id])
-  ticketNumber      String       // Auto: TKT-0001
+  ticketNumber      String // Auto: TKT-0001
   subject           String
-  description       String? @db.Text
+  description       String?      @db.Text
   clientId          String?
   client            Company?     @relation(fields: [clientId], references: [id])
   projectId         String?
@@ -1635,39 +1643,39 @@ model TicketComment {
 // ============================================================================
 
 model Task {
-  id             String      @id @default(cuid())
-  tenantId       String
-  tenant         Tenant      @relation(fields: [tenantId], references: [id])
-  taskNumber     String      // Auto: TSK-0001
-  title          String
-  description    String? @db.Text
+  id                String             @id @default(cuid())
+  tenantId          String
+  tenant            Tenant             @relation(fields: [tenantId], references: [id])
+  taskNumber        String // Auto: TSK-0001
+  title             String
+  description       String?            @db.Text
   // Polymorphic linking
-  relatedType    String?     // "lead", "opportunity", "project", "ticket", "campaign"
-  relatedId      String?
-  parentTaskId   String?
-  parentTask     Task?       @relation("TaskSubtasks", fields: [parentTaskId], references: [id])
-  subtasks       Task[]      @relation("TaskSubtasks")
-  assignedToId   String?
-  assignedTo     User?       @relation("TaskAssignee", fields: [assignedToId], references: [id])
-  priority       Priority    @default(MEDIUM)
-  dueDate        DateTime?
-  completedAt    DateTime?
-  status         TaskStatus  @default(TODO)
-  isRecurring    Boolean     @default(false)
+  relatedType       String? // "lead", "opportunity", "project", "ticket", "campaign"
+  relatedId         String?
+  parentTaskId      String?
+  parentTask        Task?              @relation("TaskSubtasks", fields: [parentTaskId], references: [id])
+  subtasks          Task[]             @relation("TaskSubtasks")
+  assignedToId      String?
+  assignedTo        User?              @relation("TaskAssignee", fields: [assignedToId], references: [id])
+  priority          Priority           @default(MEDIUM)
+  dueDate           DateTime?
+  completedAt       DateTime?
+  status            TaskStatus         @default(TODO)
+  isRecurring       Boolean            @default(false)
   recurringInterval RecurringInterval?
   // Direct project/milestone link
-  projectId      String?
-  project        Project?    @relation(fields: [projectId], references: [id])
-  milestoneId    String?
-  milestone      ProjectMilestone? @relation(fields: [milestoneId], references: [id])
+  projectId         String?
+  project           Project?           @relation(fields: [projectId], references: [id])
+  milestoneId       String?
+  milestone         ProjectMilestone?  @relation(fields: [milestoneId], references: [id])
   // Meta
-  createdById    String?
-  createdBy      User?       @relation("TaskCreator", fields: [createdById], references: [id])
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  createdById       String?
+  createdBy         User?              @relation("TaskCreator", fields: [createdById], references: [id])
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 
-  comments TaskComment[]
-  watchers TaskWatcher[]
+  comments    TaskComment[]
+  watchers    TaskWatcher[]
   timeEntries TimeEntry[]
 
   @@unique([tenantId, taskNumber])
@@ -1681,12 +1689,12 @@ model Task {
 }
 
 model TaskComment {
-  id       String   @id @default(cuid())
-  taskId   String
-  task     Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  authorId String
-  author   User     @relation(fields: [authorId], references: [id])
-  content  String
+  id        String   @id @default(cuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  content   String
   createdAt DateTime @default(now())
 
   @@index([taskId])
@@ -1707,22 +1715,22 @@ model TaskWatcher {
 // ============================================================================
 
 model TimeEntry {
-  id          String   @id @default(cuid())
-  tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id])
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  taskId      String?
-  task        Task?    @relation(fields: [taskId], references: [id])
-  projectId   String?
-  project     Project? @relation(fields: [projectId], references: [id])
-  description String? @db.Text
-  startTime   DateTime
-  endTime     DateTime?
+  id              String    @id @default(cuid())
+  tenantId        String
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  taskId          String?
+  task            Task?     @relation(fields: [taskId], references: [id])
+  projectId       String?
+  project         Project?  @relation(fields: [projectId], references: [id])
+  description     String?   @db.Text
+  startTime       DateTime
+  endTime         DateTime?
   durationMinutes Int?
-  isBillable  Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isBillable      Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@index([tenantId])
   @@index([userId])
@@ -1739,13 +1747,13 @@ model Document {
   tenantId         String
   tenant           Tenant           @relation(fields: [tenantId], references: [id])
   name             String
-  description      String? @db.Text
-  fileType         String?          // "pdf", "png", "docx", etc.
+  description      String?          @db.Text
+  fileType         String? // "pdf", "png", "docx", etc.
   fileUrl          String
-  fileSize         Int?             // bytes
+  fileSize         Int? // bytes
   category         DocumentCategory @default(OTHER)
   // Polymorphic linking
-  linkedEntityType String?          // "company", "lead", "project", "invoice", etc.
+  linkedEntityType String? // "company", "lead", "project", "invoice", etc.
   linkedEntityId   String?
   version          Int              @default(1)
   parentDocumentId String?
@@ -1770,11 +1778,11 @@ model Activity {
   tenantId      String
   tenant        Tenant       @relation(fields: [tenantId], references: [id])
   type          ActivityType
-  entityType    String       // "lead", "company", "contact", "opportunity", "project", etc.
+  entityType    String // "lead", "company", "contact", "opportunity", "project", etc.
   entityId      String
   title         String
-  description   String? @db.Text
-  metadata      Json?        // Flexible: old/new values, related entity links, etc.
+  description   String?      @db.Text
+  metadata      Json? // Flexible: old/new values, related entity links, etc.
   performedById String?
   performedBy   User?        @relation(fields: [performedById], references: [id])
   performedAt   DateTime     @default(now())
@@ -1789,20 +1797,20 @@ model Activity {
 // ============================================================================
 
 model Notification {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   tenantId   String
-  tenant     Tenant   @relation(fields: [tenantId], references: [id])
+  tenant     Tenant    @relation(fields: [tenantId], references: [id])
   userId     String
-  user       User     @relation(fields: [userId], references: [id])
-  type       String   // Matches NotificationType values as string for flexibility
+  user       User      @relation(fields: [userId], references: [id])
+  type       String // Matches NotificationType values as string for flexibility
   title      String
-  body       String? @db.Text
+  body       String?   @db.Text
   entityType String?
   entityId   String?
   actionUrl  String?
-  isRead     Boolean  @default(false)
+  isRead     Boolean   @default(false)
   readAt     DateTime?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime  @default(now())
 
   @@index([tenantId, userId, isRead])
   @@index([tenantId, userId, createdAt])
@@ -1822,10 +1830,10 @@ model AuditLog {
   entityType   String
   entityId     String
   entityName   String?
-  changes      Json?       // { field: { old: value, new: value } }
-  beforeValue  Json?       // full snapshot before change
-  afterValue   Json?       // full snapshot after change
-  sourceModule String?     // e.g. "leads", "opportunities"
+  changes      Json? // { field: { old: value, new: value } }
+  beforeValue  Json? // full snapshot before change
+  afterValue   Json? // full snapshot after change
+  sourceModule String? // e.g. "leads", "opportunities"
   ipAddress    String?
   userAgent    String?
   createdAt    DateTime    @default(now())
@@ -1844,9 +1852,9 @@ model AuditLog {
 
 model NumberSequence {
   tenantId   String
-  entityType String   // "lead", "invoice", "opportunity", etc.
+  entityType String // "lead", "invoice", "opportunity", etc.
   lastNumber Int      @default(0)
-  prefix     String?  // optional override (e.g. "INV")
+  prefix     String? // optional override (e.g. "INV")
   padLength  Int      @default(4)
   updatedAt  DateTime @updatedAt
 
@@ -1859,11 +1867,11 @@ model NumberSequence {
 // ============================================================================
 
 model Tag {
-  id         String @id @default(cuid())
+  id         String   @id @default(cuid())
   tenantId   String
-  tenant     Tenant @relation(fields: [tenantId], references: [id])
+  tenant     Tenant   @relation(fields: [tenantId], references: [id])
   name       String
-  color      String @default("#3B82F6")
+  color      String   @default("#3B82F6")
   entityType String // "lead", "company", "contact", "project", etc.
   createdAt  DateTime @default(now())
 
@@ -1889,20 +1897,20 @@ model TagRelation {
 // ============================================================================
 
 model CustomField {
-  id          String          @id @default(cuid())
-  tenantId    String
-  tenant      Tenant          @relation(fields: [tenantId], references: [id])
-  entityType  String          // "lead", "company", "contact", "project", etc.
-  fieldName   String          // snake_case identifier
-  fieldLabel  String          // Display name (EN)
-  fieldLabelAr String?        // Display name (AR)
-  fieldType   CustomFieldType
-  options     Json?           // For SELECT/MULTISELECT: ["Option A", "Option B"]
-  isRequired  Boolean         @default(false)
-  isActive    Boolean         @default(true)
-  order       Int             @default(0)
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  id           String          @id @default(cuid())
+  tenantId     String
+  tenant       Tenant          @relation(fields: [tenantId], references: [id])
+  entityType   String // "lead", "company", "contact", "project", etc.
+  fieldName    String // snake_case identifier
+  fieldLabel   String // Display name (EN)
+  fieldLabelAr String? // Display name (AR)
+  fieldType    CustomFieldType
+  options      Json? // For SELECT/MULTISELECT: ["Option A", "Option B"]
+  isRequired   Boolean         @default(false)
+  isActive     Boolean         @default(true)
+  order        Int             @default(0)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
 
   values CustomFieldValue[]
 
@@ -1916,7 +1924,7 @@ model CustomFieldValue {
   customField   CustomField @relation(fields: [customFieldId], references: [id], onDelete: Cascade)
   entityType    String
   entityId      String
-  value         String      // Stored as text, parsed by fieldType
+  value         String // Stored as text, parsed by fieldType
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
@@ -1925,19 +1933,19 @@ model CustomFieldValue {
 }
 
 model AutomationRule {
-  id                String   @id @default(cuid())
+  id                String    @id @default(cuid())
   tenantId          String
-  tenant            Tenant   @relation(fields: [tenantId], references: [id])
+  tenant            Tenant    @relation(fields: [tenantId], references: [id])
   name              String
-  description       String? @db.Text
-  triggerEvent      String   // "lead.created", "invoice.overdue", "ticket.urgent", etc.
-  triggerConditions Json?    // { "field": "budget", "operator": "gt", "value": 50000 }
-  actions           Json     // [{ "type": "notify", "to": "sales_manager" }, { "type": "update_field", ... }]
-  isActive          Boolean  @default(true)
+  description       String?   @db.Text
+  triggerEvent      String // "lead.created", "invoice.overdue", "ticket.urgent", etc.
+  triggerConditions Json? // { "field": "budget", "operator": "gt", "value": 50000 }
+  actions           Json // [{ "type": "notify", "to": "sales_manager" }, { "type": "update_field", ... }]
+  isActive          Boolean   @default(true)
   lastTriggeredAt   DateTime?
-  triggerCount      Int      @default(0)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  triggerCount      Int       @default(0)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   @@index([tenantId])
   @@index([tenantId, triggerEvent])
@@ -1947,8 +1955,8 @@ model Setting {
   id        String   @id @default(cuid())
   tenantId  String
   tenant    Tenant   @relation(fields: [tenantId], references: [id])
-  key       String   // "invoice_prefix", "lead_prefix", "company_info", etc.
-  value     Json     // Flexible value
+  key       String // "invoice_prefix", "lead_prefix", "company_info", etc.
+  value     Json // Flexible value
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1963,8 +1971,8 @@ model SavedFilter {
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   name      String
-  module    String   // "leads", "companies", "invoices", etc.
-  filters   Json     // { status: ["NEW", "CONTACTED"], source: ["WEBSITE"] }
+  module    String // "leads", "companies", "invoices", etc.
+  filters   Json // { status: ["NEW", "CONTACTED"], source: ["WEBSITE"] }
   isDefault Boolean  @default(false)
   isShared  Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -1983,8 +1991,8 @@ model OnboardingTemplate {
   tenant      Tenant   @relation(fields: [tenantId], references: [id])
   name        String
   nameAr      String?
-  serviceType String?  // Links to service category for auto-assignment
-  items       Json     // [{ "title": "Collect brand assets", "order": 1 }, ...]
+  serviceType String? // Links to service category for auto-assignment
+  items       Json // [{ "title": "Collect brand assets", "order": 1 }, ...]
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -2015,25 +2023,25 @@ model ApprovalWorkflow {
 }
 
 model ApprovalRequest {
-  id               String    @id @default(cuid())
-  tenantId         String
-  tenant           Tenant    @relation(fields: [tenantId], references: [id])
-  workflowId       String?
-  workflow         ApprovalWorkflow? @relation(fields: [workflowId], references: [id])
-  entityType       String
-  entityId         String
-  entityTitle      String?
-  requestedById    String?
-  requestedBy      User?     @relation("ApprovalRequestedBy", fields: [requestedById], references: [id])
-  changeRequestId  String?
-  changeRequest    ChangeRequest? @relation("ChangeRequestApprovals", fields: [changeRequestId], references: [id])
-  currentStep      Int       @default(1)
-  totalSteps       Int       @default(1)
-  status           String    @default("IN_PROGRESS")
-  dueDate          DateTime?
-  completedAt      DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  id              String            @id @default(cuid())
+  tenantId        String
+  tenant          Tenant            @relation(fields: [tenantId], references: [id])
+  workflowId      String?
+  workflow        ApprovalWorkflow? @relation(fields: [workflowId], references: [id])
+  entityType      String
+  entityId        String
+  entityTitle     String?
+  requestedById   String?
+  requestedBy     User?             @relation("ApprovalRequestedBy", fields: [requestedById], references: [id])
+  changeRequestId String?
+  changeRequest   ChangeRequest?    @relation("ChangeRequestApprovals", fields: [changeRequestId], references: [id])
+  currentStep     Int               @default(1)
+  totalSteps      Int               @default(1)
+  status          String            @default("IN_PROGRESS")
+  dueDate         DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
   steps ApprovalStep[]
 
@@ -2043,22 +2051,22 @@ model ApprovalRequest {
 }
 
 model ApprovalStep {
-  id                   String    @id @default(cuid())
+  id                   String            @id @default(cuid())
   approvalRequestId    String
-  approvalRequest      ApprovalRequest @relation(fields: [approvalRequestId], references: [id], onDelete: Cascade)
+  approvalRequest      ApprovalRequest   @relation(fields: [approvalRequestId], references: [id], onDelete: Cascade)
   stepNumber           Int
   approverType         String
   approverId           String?
-  approver             User?     @relation("ApprovalStepApprover", fields: [approverId], references: [id])
+  approver             User?             @relation("ApprovalStepApprover", fields: [approverId], references: [id])
   approverRoleId       String?
-  approverRole         Role?     @relation("ApprovalStepRole", fields: [approverRoleId], references: [id])
+  approverRole         Role?             @relation("ApprovalStepRole", fields: [approverRoleId], references: [id])
   approverClientUserId String?
   approverClientUser   ClientPortalUser? @relation(fields: [approverClientUserId], references: [id])
-  status               String    @default("PENDING")
-  comments             String?   @db.Text
+  status               String            @default("PENDING")
+  comments             String?           @db.Text
   decidedAt            DateTime?
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
 
   @@index([approvalRequestId])
 }
@@ -2068,34 +2076,34 @@ model ApprovalStep {
 // ============================================================================
 
 model Subscription {
-  id              String    @id @default(cuid())
+  id              String          @id @default(cuid())
   tenantId        String
-  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenant          Tenant          @relation(fields: [tenantId], references: [id])
   companyId       String
-  company         Company   @relation(fields: [companyId], references: [id])
+  company         Company         @relation(fields: [companyId], references: [id])
   contactId       String?
-  contact         Contact?  @relation(fields: [contactId], references: [id])
+  contact         Contact?        @relation(fields: [contactId], references: [id])
   serviceId       String?
-  service         Service?  @relation(fields: [serviceId], references: [id])
+  service         Service?        @relation(fields: [serviceId], references: [id])
   packageId       String?
   package         ServicePackage? @relation(fields: [packageId], references: [id])
   assignedToId    String?
-  assignedTo      User?     @relation("SubscriptionAssignee", fields: [assignedToId], references: [id])
+  assignedTo      User?           @relation("SubscriptionAssignee", fields: [assignedToId], references: [id])
   createdById     String?
-  createdBy       User?     @relation("SubscriptionCreator", fields: [createdById], references: [id])
+  createdBy       User?           @relation("SubscriptionCreator", fields: [createdById], references: [id])
   name            String
-  description     String?   @db.Text
+  description     String?         @db.Text
   amount          Decimal
-  currency        Currency  @default(AED)
+  currency        Currency        @default(AED)
   interval        String
   startDate       DateTime
   endDate         DateTime?
   nextBillingDate DateTime?
-  status          String    @default("ACTIVE")
-  autoRenew       Boolean   @default(true)
-  notes           String?   @db.Text
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  status          String          @default("ACTIVE")
+  autoRenew       Boolean         @default(true)
+  notes           String?         @db.Text
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   billingHistory BillingRecord[]
   invoices       Invoice[]
@@ -2106,20 +2114,20 @@ model Subscription {
 }
 
 model BillingRecord {
-  id             String    @id @default(cuid())
+  id             String       @id @default(cuid())
   tenantId       String
-  tenant         Tenant    @relation(fields: [tenantId], references: [id])
+  tenant         Tenant       @relation(fields: [tenantId], references: [id])
   subscriptionId String
   subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
   invoiceId      String?
-  invoice        Invoice?  @relation(fields: [invoiceId], references: [id])
+  invoice        Invoice?     @relation(fields: [invoiceId], references: [id])
   amount         Decimal
-  currency       Currency  @default(AED)
+  currency       Currency     @default(AED)
   billingDate    DateTime
-  status         String    @default("PENDING")
-  notes          String?   @db.Text
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  status         String       @default("PENDING")
+  notes          String?      @db.Text
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   @@index([tenantId])
   @@index([subscriptionId])
@@ -2130,33 +2138,33 @@ model BillingRecord {
 // ============================================================================
 
 model ChangeRequest {
-  id                 String    @id @default(cuid())
-  tenantId           String
-  tenant             Tenant    @relation(fields: [tenantId], references: [id])
-  crNumber           String
-  title              String
-  description        String?   @db.Text
-  companyId          String?
-  company            Company?  @relation(fields: [companyId], references: [id])
-  projectId          String?
-  project            Project?  @relation(fields: [projectId], references: [id])
-  clientServiceId    String?
-  clientService      ClientService? @relation(fields: [clientServiceId], references: [id])
-  requestedById      String?
-  requestedBy        User?     @relation("ChangeRequestRequestedBy", fields: [requestedById], references: [id])
-  type               String    @default("OTHER")
-  priority           String    @default("MEDIUM")
-  status             String    @default("DRAFT")
-  impactDescription  String?   @db.Text
-  impactedAreas      String?
-  estimatedHours     Decimal?
-  estimatedCost      Decimal?
-  currency           Currency  @default(AED)
-  approvalRequired   Boolean   @default(false)
-  dueDate            DateTime?
-  completedAt        DateTime?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  id                String         @id @default(cuid())
+  tenantId          String
+  tenant            Tenant         @relation(fields: [tenantId], references: [id])
+  crNumber          String
+  title             String
+  description       String?        @db.Text
+  companyId         String?
+  company           Company?       @relation(fields: [companyId], references: [id])
+  projectId         String?
+  project           Project?       @relation(fields: [projectId], references: [id])
+  clientServiceId   String?
+  clientService     ClientService? @relation(fields: [clientServiceId], references: [id])
+  requestedById     String?
+  requestedBy       User?          @relation("ChangeRequestRequestedBy", fields: [requestedById], references: [id])
+  type              String         @default("OTHER")
+  priority          String         @default("MEDIUM")
+  status            String         @default("DRAFT")
+  impactDescription String?        @db.Text
+  impactedAreas     String?
+  estimatedHours    Decimal?
+  estimatedCost     Decimal?
+  currency          Currency       @default(AED)
+  approvalRequired  Boolean        @default(false)
+  dueDate           DateTime?
+  completedAt       DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
 
   comments         ChangeRequestComment[]
   approvalRequests ApprovalRequest[]      @relation("ChangeRequestApprovals")
@@ -2168,15 +2176,15 @@ model ChangeRequest {
 }
 
 model ChangeRequestComment {
-  id              String    @id @default(cuid())
+  id              String        @id @default(cuid())
   changeRequestId String
   changeRequest   ChangeRequest @relation(fields: [changeRequestId], references: [id], onDelete: Cascade)
   authorId        String
-  author          User      @relation(fields: [authorId], references: [id])
-  authorType      String    @default("INTERNAL")
-  content         String    @db.Text
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  author          User          @relation(fields: [authorId], references: [id])
+  authorType      String        @default("INTERNAL")
+  content         String        @db.Text
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   @@index([changeRequestId])
 }
@@ -2186,19 +2194,19 @@ model ChangeRequestComment {
 // ============================================================================
 
 model ClientOnboarding {
-  id          String    @id @default(cuid())
+  id          String              @id @default(cuid())
   tenantId    String
-  tenant      Tenant    @relation(fields: [tenantId], references: [id])
+  tenant      Tenant              @relation(fields: [tenantId], references: [id])
   companyId   String
-  company     Company   @relation(fields: [companyId], references: [id])
+  company     Company             @relation(fields: [companyId], references: [id])
   projectId   String?
-  project     Project?  @relation(fields: [projectId], references: [id])
+  project     Project?            @relation(fields: [projectId], references: [id])
   templateId  String?
   template    OnboardingTemplate? @relation(fields: [templateId], references: [id])
-  status      String    @default("IN_PROGRESS")
+  status      String              @default("IN_PROGRESS")
   completedAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
 
   items ClientOnboardingItem[]
 
@@ -2207,19 +2215,19 @@ model ClientOnboarding {
 }
 
 model ClientOnboardingItem {
-  id            String    @id @default(cuid())
+  id            String           @id @default(cuid())
   onboardingId  String
   onboarding    ClientOnboarding @relation(fields: [onboardingId], references: [id], onDelete: Cascade)
   title         String
-  description   String?   @db.Text
-  isRequired    Boolean   @default(true)
-  order         Int       @default(0)
+  description   String?          @db.Text
+  isRequired    Boolean          @default(true)
+  order         Int              @default(0)
   completedAt   DateTime?
   completedById String?
-  completedBy   User?     @relation(fields: [completedById], references: [id])
-  notes         String?   @db.Text
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  completedBy   User?            @relation(fields: [completedById], references: [id])
+  notes         String?          @db.Text
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
 
   @@index([onboardingId])
 }
@@ -2252,24 +2260,24 @@ model ClientPortalUser {
   createdAt               DateTime  @default(now())
   updatedAt               DateTime  @updatedAt
 
-  sessions       ClientPortalSession[]
-  approvalSteps  ApprovalStep[]
+  sessions      ClientPortalSession[]
+  approvalSteps ApprovalStep[]
 
   @@unique([tenantId, email])
   @@index([tenantId])
 }
 
 model ClientPortalSession {
-  id           String    @id @default(cuid())
+  id           String           @id @default(cuid())
   clientUserId String
   clientUser   ClientPortalUser @relation(fields: [clientUserId], references: [id], onDelete: Cascade)
   ipAddress    String?
-  userAgent    String?   @db.Text
-  isRevoked    Boolean   @default(false)
+  userAgent    String?          @db.Text
+  isRevoked    Boolean          @default(false)
   expiresAt    DateTime
   lastActiveAt DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
 
   @@index([clientUserId])
 }
@@ -2279,34 +2287,34 @@ model ClientPortalSession {
 // ============================================================================
 
 model ClientService {
-  id                  String    @id @default(cuid())
+  id                  String          @id @default(cuid())
   tenantId            String
-  tenant              Tenant    @relation(fields: [tenantId], references: [id])
+  tenant              Tenant          @relation(fields: [tenantId], references: [id])
   clientServiceNumber String
   companyId           String?
-  company             Company?  @relation(fields: [companyId], references: [id])
+  company             Company?        @relation(fields: [companyId], references: [id])
   contactId           String?
-  contact             Contact?  @relation("ClientServiceContact", fields: [contactId], references: [id])
+  contact             Contact?        @relation("ClientServiceContact", fields: [contactId], references: [id])
   serviceId           String?
-  service             Service?  @relation(fields: [serviceId], references: [id])
+  service             Service?        @relation(fields: [serviceId], references: [id])
   packageId           String?
   package             ServicePackage? @relation(fields: [packageId], references: [id])
   assignedToId        String?
-  assignedTo          User?     @relation("ClientServiceAssignee", fields: [assignedToId], references: [id])
+  assignedTo          User?           @relation("ClientServiceAssignee", fields: [assignedToId], references: [id])
   serviceName         String
-  status              String    @default("ACTIVE")
+  status              String          @default("ACTIVE")
   startDate           DateTime?
   endDate             DateTime?
   renewalDate         DateTime?
   supportEndDate      DateTime?
-  environment         String    @default("PRODUCTION")
+  environment         String          @default("PRODUCTION")
   version             String?
   monthlyValue        Decimal?
   totalContractValue  Decimal?
-  currency            Currency  @default(AED)
-  notes               String?   @db.Text
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  currency            Currency        @default(AED)
+  notes               String?         @db.Text
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
 
   milestones     ClientServiceMilestone[]
   teamMembers    ClientServiceTeamMember[]
@@ -2321,30 +2329,30 @@ model ClientService {
 }
 
 model ClientServiceMilestone {
-  id              String    @id @default(cuid())
+  id              String        @id @default(cuid())
   clientServiceId String
   clientService   ClientService @relation(fields: [clientServiceId], references: [id], onDelete: Cascade)
   name            String
-  description     String?   @db.Text
+  description     String?       @db.Text
   dueDate         DateTime?
   completedAt     DateTime?
-  status          String    @default("PENDING")
-  order           Int       @default(0)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  status          String        @default("PENDING")
+  order           Int           @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   @@index([clientServiceId])
 }
 
 model ClientServiceTeamMember {
-  id              String    @id @default(cuid())
+  id              String        @id @default(cuid())
   clientServiceId String
   clientService   ClientService @relation(fields: [clientServiceId], references: [id], onDelete: Cascade)
   userId          String
-  user            User      @relation(fields: [userId], references: [id])
-  role            String    @default("SUPPORT")
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  user            User          @relation(fields: [userId], references: [id])
+  role            String        @default("SUPPORT")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   @@unique([clientServiceId, userId])
   @@index([clientServiceId])
@@ -2355,29 +2363,29 @@ model ClientServiceTeamMember {
 // ============================================================================
 
 model CommunicationLog {
-  id              String    @id @default(cuid())
+  id              String       @id @default(cuid())
   tenantId        String
-  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenant          Tenant       @relation(fields: [tenantId], references: [id])
   type            String
   direction       String
   subject         String?
-  body            String?   @db.Text
+  body            String?      @db.Text
   companyId       String?
-  company         Company?  @relation(fields: [companyId], references: [id])
+  company         Company?     @relation(fields: [companyId], references: [id])
   contactId       String?
-  contact         Contact?  @relation(fields: [contactId], references: [id])
+  contact         Contact?     @relation(fields: [contactId], references: [id])
   leadId          String?
-  lead            Lead?     @relation(fields: [leadId], references: [id])
+  lead            Lead?        @relation(fields: [leadId], references: [id])
   opportunityId   String?
   opportunity     Opportunity? @relation(fields: [opportunityId], references: [id])
   projectId       String?
-  project         Project?  @relation(fields: [projectId], references: [id])
+  project         Project?     @relation(fields: [projectId], references: [id])
   durationSeconds Int?
   loggedById      String?
-  loggedBy        User?     @relation("CommunicationLoggedBy", fields: [loggedById], references: [id])
-  loggedAt        DateTime  @default(now())
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  loggedBy        User?        @relation("CommunicationLoggedBy", fields: [loggedById], references: [id])
+  loggedAt        DateTime     @default(now())
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 
   @@index([tenantId])
   @@index([tenantId, companyId])
@@ -2390,25 +2398,25 @@ model CommunicationLog {
 // ============================================================================
 
 model Deliverable {
-  id              String    @id @default(cuid())
+  id              String         @id @default(cuid())
   tenantId        String
-  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenant          Tenant         @relation(fields: [tenantId], references: [id])
   name            String
   fileUrl         String
   type            String
   visibility      String
   projectId       String?
-  project         Project?  @relation(fields: [projectId], references: [id])
+  project         Project?       @relation(fields: [projectId], references: [id])
   clientServiceId String?
   clientService   ClientService? @relation(fields: [clientServiceId], references: [id])
-  description     String?   @db.Text
+  description     String?        @db.Text
   fileName        String?
   fileSize        Int?
   mimeType        String?
   uploadedById    String?
-  uploadedBy      User?     @relation("DeliverableUploadedBy", fields: [uploadedById], references: [id])
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  uploadedBy      User?          @relation("DeliverableUploadedBy", fields: [uploadedById], references: [id])
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 
   @@index([tenantId])
   @@index([tenantId, projectId])
@@ -2420,21 +2428,21 @@ model Deliverable {
 // ============================================================================
 
 model LeadCaptureForm {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   tenantId    String
-  tenant      Tenant    @relation(fields: [tenantId], references: [id])
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
   name        String
   slug        String
-  description String?   @db.Text
-  fields      String    @db.Text
+  description String?  @db.Text
+  fields      String   @db.Text
   sourceTag   String?
   assignToId  String?
-  assignTo    User?     @relation("FormAssignedTo", fields: [assignToId], references: [id])
-  isActive    Boolean   @default(true)
+  assignTo    User?    @relation("FormAssignedTo", fields: [assignToId], references: [id])
+  isActive    Boolean  @default(true)
   redirectUrl String?
-  thankYouMsg String?   @db.Text
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  thankYouMsg String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   submissions LeadCaptureSubmission[]
 
@@ -2443,18 +2451,18 @@ model LeadCaptureForm {
 }
 
 model LeadCaptureSubmission {
-  id        String    @id @default(cuid())
+  id        String          @id @default(cuid())
   tenantId  String
-  tenant    Tenant    @relation(fields: [tenantId], references: [id])
+  tenant    Tenant          @relation(fields: [tenantId], references: [id])
   formId    String
   form      LeadCaptureForm @relation(fields: [formId], references: [id], onDelete: Cascade)
-  data      String    @db.Text
+  data      String          @db.Text
   ipAddress String?
-  userAgent String?   @db.Text
+  userAgent String?         @db.Text
   leadId    String?
-  lead      Lead?     @relation(fields: [leadId], references: [id])
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  lead      Lead?           @relation(fields: [leadId], references: [id])
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
 
   @@index([tenantId])
   @@index([formId])
@@ -2465,26 +2473,26 @@ model LeadCaptureSubmission {
 // ============================================================================
 
 model PreviewLink {
-  id                  String    @id @default(cuid())
+  id                  String         @id @default(cuid())
   tenantId            String
-  tenant              Tenant    @relation(fields: [tenantId], references: [id])
+  tenant              Tenant         @relation(fields: [tenantId], references: [id])
   title               String
   url                 String
   type                String
   projectId           String?
-  project             Project?  @relation(fields: [projectId], references: [id])
+  project             Project?       @relation(fields: [projectId], references: [id])
   clientServiceId     String?
   clientService       ClientService? @relation(fields: [clientServiceId], references: [id])
   sharedByUserId      String?
-  sharedByUser        User?     @relation("PreviewLinkSharedBy", fields: [sharedByUserId], references: [id])
+  sharedByUser        User?          @relation("PreviewLinkSharedBy", fields: [sharedByUserId], references: [id])
   sharedWithCompanyId String?
-  sharedWithCompany   Company?  @relation("PreviewLinkSharedWith", fields: [sharedWithCompanyId], references: [id])
+  sharedWithCompany   Company?       @relation("PreviewLinkSharedWith", fields: [sharedWithCompanyId], references: [id])
   password            String?
   expiresAt           DateTime?
-  status              String    @default("ACTIVE")
-  notes               String?   @db.Text
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  status              String         @default("ACTIVE")
+  notes               String?        @db.Text
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
 
   feedbacks PreviewFeedback[]
 
@@ -2493,16 +2501,16 @@ model PreviewLink {
 }
 
 model PreviewFeedback {
-  id            String    @id @default(cuid())
+  id            String      @id @default(cuid())
   previewLinkId String
   previewLink   PreviewLink @relation(fields: [previewLinkId], references: [id], onDelete: Cascade)
   authorId      String?
-  author        User?     @relation("PreviewFeedbackAuthor", fields: [authorId], references: [id])
-  authorType    String    @default("INTERNAL")
-  content       String    @db.Text
-  status        String    @default("OPEN")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  author        User?       @relation("PreviewFeedbackAuthor", fields: [authorId], references: [id])
+  authorType    String      @default("INTERNAL")
+  content       String      @db.Text
+  status        String      @default("OPEN")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   @@index([previewLinkId])
 }
@@ -2512,18 +2520,18 @@ model PreviewFeedback {
 // ============================================================================
 
 model ServiceBundle {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   tenantId    String
-  tenant      Tenant    @relation(fields: [tenantId], references: [id])
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
   name        String
-  description String?   @db.Text
+  description String?  @db.Text
   category    String?
   price       Decimal?
-  currency    Currency  @default(AED)
-  isActive    Boolean   @default(true)
-  sortOrder   Int       @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  currency    Currency @default(AED)
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   items ServiceBundleItem[]
 
@@ -2531,19 +2539,19 @@ model ServiceBundle {
 }
 
 model ServiceBundleItem {
-  id        String    @id @default(cuid())
+  id        String          @id @default(cuid())
   bundleId  String
-  bundle    ServiceBundle @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  bundle    ServiceBundle   @relation(fields: [bundleId], references: [id], onDelete: Cascade)
   serviceId String?
-  service   Service?  @relation(fields: [serviceId], references: [id])
+  service   Service?        @relation(fields: [serviceId], references: [id])
   packageId String?
   package   ServicePackage? @relation(fields: [packageId], references: [id])
-  quantity  Int       @default(1)
+  quantity  Int             @default(1)
   discount  Decimal?
-  notes     String?   @db.Text
-  sortOrder Int       @default(0)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  notes     String?         @db.Text
+  sortOrder Int             @default(0)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
 
   @@index([bundleId])
 }
@@ -2553,21 +2561,156 @@ model ServiceBundleItem {
 // ============================================================================
 
 model AccountHealth {
-  id                    String    @id @default(cuid())
-  tenantId              String
-  tenant                Tenant    @relation(fields: [tenantId], references: [id])
-  companyId             String    @unique
-  company               Company   @relation(fields: [companyId], references: [id])
-  healthScore           Int       @default(0)
-  activeServicesCount   Int       @default(0)
-  overdueInvoicesCount  Int       @default(0)
-  openTicketsCount      Int       @default(0)
-  delayedProjectsCount  Int       @default(0)
-  upsellReadiness       String    @default("LOW")
-  riskLevel             String    @default("LOW")
-  lastCalculatedAt      DateTime  @default(now())
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  id                   String   @id @default(cuid())
+  tenantId             String
+  tenant               Tenant   @relation(fields: [tenantId], references: [id])
+  companyId            String   @unique
+  company              Company  @relation(fields: [companyId], references: [id])
+  healthScore          Int      @default(0)
+  activeServicesCount  Int      @default(0)
+  overdueInvoicesCount Int      @default(0)
+  openTicketsCount     Int      @default(0)
+  delayedProjectsCount Int      @default(0)
+  upsellReadiness      String   @default("LOW")
+  riskLevel            String   @default("LOW")
+  lastCalculatedAt     DateTime @default(now())
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   @@index([tenantId])
+}
+
+// ============================================================================
+// WEBSITE ANALYSIS MODULE (Phase 1 — foundation)
+// Isolated new section. All models tenant-scoped.
+// ============================================================================
+
+enum WebsiteType {
+  CORPORATE
+  ECOMMERCE
+  LANDING_PAGE
+  PORTFOLIO
+  BLOG
+  SAAS
+  CAMPAIGN_PAGE
+  OTHER
+}
+
+enum WebsiteStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum WebsiteIntegrationProvider {
+  GA4
+  SEARCH_CONSOLE
+  CLARITY
+  GTM
+  GOOGLE_ADS
+  META_PIXEL
+  LINKEDIN_INSIGHT
+}
+
+enum IntegrationStatus {
+  NOT_CONNECTED
+  CONNECTED
+  ERROR
+  EXPIRED
+  SYNCING
+}
+
+enum SyncStatus {
+  SUCCESS
+  PARTIAL
+  FAILED
+}
+
+model Website {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  name            String
+  domain          String
+  brand           String?
+  type            WebsiteType   @default(CORPORATE)
+  primaryMarket   String?
+  primaryLanguage String?
+  notes           String?
+  status          WebsiteStatus @default(ACTIVE)
+
+  ownerUserId String?
+  ownerUser   User?   @relation("WebsiteOwner", fields: [ownerUserId], references: [id])
+
+  createdById String
+  createdBy   User     @relation("WebsiteCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  integrations WebsiteIntegration[]
+  syncLogs     WebsiteSyncLog[]
+
+  @@unique([tenantId, domain])
+  @@index([tenantId, status])
+  @@index([tenantId, type])
+}
+
+model WebsiteIntegration {
+  id        String  @id @default(cuid())
+  tenantId  String
+  tenant    Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  websiteId String
+  website   Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  provider WebsiteIntegrationProvider
+  status   IntegrationStatus          @default(NOT_CONNECTED)
+
+  externalAccountId    String?
+  externalAccountLabel String?
+
+  // Phase 1 never fills these — Phase 2 (OAuth) will
+  accessTokenEnc  String?
+  refreshTokenEnc String?
+  tokenExpiresAt  DateTime?
+  scopes          String[]
+
+  lastSyncAt     DateTime?
+  lastSyncStatus SyncStatus?
+  lastErrorMsg   String?
+
+  connectedById  String?
+  connectedBy    User?     @relation("WebsiteIntegrationConnectedBy", fields: [connectedById], references: [id])
+  connectedAt    DateTime?
+  disconnectedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  syncLogs WebsiteSyncLog[]
+
+  @@unique([websiteId, provider])
+  @@index([tenantId, status])
+  @@index([tenantId, provider])
+}
+
+model WebsiteSyncLog {
+  id            String             @id @default(cuid())
+  tenantId      String
+  tenant        Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  websiteId     String
+  website       Website            @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  integrationId String
+  integration   WebsiteIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  status        SyncStatus
+  startedAt     DateTime   @default(now())
+  finishedAt    DateTime?
+  rowsProcessed Int?
+  errorSummary  String?
+  errorDetail   Json?
+  retryOf       String?
+
+  @@index([tenantId, websiteId, startedAt])
+  @@index([integrationId, startedAt])
 }
