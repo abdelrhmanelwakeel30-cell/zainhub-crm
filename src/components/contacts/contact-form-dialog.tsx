@@ -31,12 +31,15 @@ interface ContactFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   defaultValues?: Partial<ContactFormData>
+  /** When provided the dialog PATCHes instead of POSTing */
+  entityId?: string
 }
 
-export function ContactFormDialog({ open, onOpenChange, defaultValues }: ContactFormDialogProps) {
+export function ContactFormDialog({ open, onOpenChange, defaultValues, entityId }: ContactFormDialogProps) {
   const t = useTranslations('contacts')
   const tc = useTranslations('common')
   const queryClient = useQueryClient()
+  const isEditing = !!entityId
 
   const { data: companiesData } = useQuery({
     queryKey: ['companies'],
@@ -54,9 +57,11 @@ export function ContactFormDialog({ open, onOpenChange, defaultValues }: Contact
   })
 
   const mutation = useMutation({
-    mutationFn: (data: ContactFormData) =>
-      fetch('/api/contacts', {
-        method: 'POST',
+    mutationFn: (data: ContactFormData) => {
+      const url = isEditing ? `/api/contacts/${entityId}` : '/api/contacts'
+      const method = isEditing ? 'PATCH' : 'POST'
+      return fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           firstName: data.firstName,
@@ -65,9 +70,14 @@ export function ContactFormDialog({ open, onOpenChange, defaultValues }: Contact
           phone: data.phone,
           jobTitle: data.jobTitle,
           companyId: data.companyId,
+          decisionRole: data.decisionRole,
           notes: data.department,
         }),
-      }).then(r => r.json()),
+      }).then(async (r) => {
+        if (!r.ok) { const e = await r.json(); throw new Error(e.error || 'Failed') }
+        return r.json()
+      })
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] })
       queryClient.invalidateQueries({ queryKey: ['leads'] })
@@ -76,12 +86,12 @@ export function ContactFormDialog({ open, onOpenChange, defaultValues }: Contact
       queryClient.invalidateQueries({ queryKey: ['quotations'] })
       queryClient.invalidateQueries({ queryKey: ['proposals'] })
       queryClient.invalidateQueries({ queryKey: ['contracts'] })
-      toast.success('Contact created successfully')
-      reset()
+      toast.success(isEditing ? 'Contact updated successfully' : 'Contact created successfully')
+      if (!isEditing) reset()
       onOpenChange(false)
     },
-    onError: () => {
-      toast.error('Failed to create contact')
+    onError: (err: Error) => {
+      toast.error(err.message || (isEditing ? 'Failed to update contact' : 'Failed to create contact'))
     },
   })
 

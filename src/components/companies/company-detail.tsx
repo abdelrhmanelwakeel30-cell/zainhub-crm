@@ -18,6 +18,7 @@ import {
   ArrowLeft, Edit, Building2, Globe, Phone, Mail, MapPin,
   Users, ExternalLink, Receipt, FolderOpen, FileText, Ticket
 } from 'lucide-react'
+import { CompanyFormDialog } from './company-form-dialog'
 
 interface CompanyDetailProps {
   companyId: string
@@ -54,6 +55,7 @@ export function CompanyDetail({ companyId }: CompanyDetailProps) {
   const tc = useTranslations('common')
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('overview')
+  const [showEdit, setShowEdit] = useState(false)
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['companies', companyId],
@@ -129,7 +131,7 @@ export function CompanyDetail({ companyId }: CompanyDetailProps) {
             </p>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={() => toast.info('Edit company form coming soon')}>
+        <Button variant="outline" size="sm" onClick={() => setShowEdit(true)}>
           <Edit className="h-4 w-4 me-2" /> Edit
         </Button>
       </div>
@@ -372,6 +374,23 @@ export function CompanyDetail({ companyId }: CompanyDetailProps) {
           </Card>
         </div>
       </div>
+
+      <CompanyFormDialog
+        open={showEdit}
+        onOpenChange={setShowEdit}
+        entityId={company.id}
+        defaultValues={{
+          legalName: company.legalName ?? company.displayName,
+          displayName: company.displayName,
+          industry: company.industry ?? '',
+          website: company.website ?? '',
+          email: company.email ?? '',
+          phone: company.phone ?? '',
+          country: company.country ?? '',
+          city: company.city ?? '',
+          lifecycleStage: company.lifecycleStage,
+        }}
+      />
     </div>
   )
 }

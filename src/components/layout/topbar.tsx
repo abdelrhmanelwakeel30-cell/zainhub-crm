@@ -96,14 +96,12 @@ export function Topbar({ onSearchOpen, onMobileMenuToggle }: TopbarProps) {
       <div className="flex items-center gap-1">
         {/* Quick new — dropdown */}
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className="h-10 px-3 rounded-xl text-[13px] font-medium text-foreground hover:bg-white/70 dark:hover:bg-white/10 hidden sm:flex items-center gap-1.5 transition"
-              aria-label="Create new"
-            >
-              <Plus className="w-4 h-4" strokeWidth={1.75} />
-              <span className="hidden xl:inline">New</span>
-            </button>
+          <DropdownMenuTrigger
+            className="h-10 px-3 rounded-xl text-[13px] font-medium text-foreground hover:bg-white/70 dark:hover:bg-white/10 hidden sm:flex items-center gap-1.5 transition outline-none"
+            aria-label="Create new"
+          >
+            <Plus className="w-4 h-4" strokeWidth={1.75} />
+            <span className="hidden xl:inline">New</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">Quick create</DropdownMenuLabel>

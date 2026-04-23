@@ -36,12 +36,15 @@ interface CompanyFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   defaultValues?: Partial<CompanyFormData>
+  /** When provided the dialog PATCHes instead of POSTing */
+  entityId?: string
 }
 
-export function CompanyFormDialog({ open, onOpenChange, defaultValues }: CompanyFormDialogProps) {
+export function CompanyFormDialog({ open, onOpenChange, defaultValues, entityId }: CompanyFormDialogProps) {
   const t = useTranslations('companies')
   const tc = useTranslations('common')
   const queryClient = useQueryClient()
+  const isEditing = !!entityId
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<CompanyFormData>({
     resolver: zodResolver(companySchema),
@@ -56,9 +59,11 @@ export function CompanyFormDialog({ open, onOpenChange, defaultValues }: Company
   const users: { id: string; firstName: string; lastName: string }[] = usersResponse?.data ?? []
 
   const mutation = useMutation({
-    mutationFn: (data: CompanyFormData) =>
-      fetch('/api/companies', {
-        method: 'POST',
+    mutationFn: (data: CompanyFormData) => {
+      const url = isEditing ? `/api/companies/${entityId}` : '/api/companies'
+      const method = isEditing ? 'PATCH' : 'POST'
+      return fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           legalName: data.legalName,
@@ -76,7 +81,8 @@ export function CompanyFormDialog({ open, onOpenChange, defaultValues }: Company
       }).then(async (r) => {
         if (!r.ok) { const e = await r.json(); throw new Error(e.error || 'Failed'); }
         return r.json();
-      }),
+      })
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['companies'] })
       queryClient.invalidateQueries({ queryKey: ['leads'] })
@@ -88,12 +94,12 @@ export function CompanyFormDialog({ open, onOpenChange, defaultValues }: Company
       queryClient.invalidateQueries({ queryKey: ['quotations'] })
       queryClient.invalidateQueries({ queryKey: ['proposals'] })
       queryClient.invalidateQueries({ queryKey: ['expenses'] })
-      toast.success('Company created successfully')
-      reset()
+      toast.success(isEditing ? 'Company updated successfully' : 'Company created successfully')
+      if (!isEditing) reset()
       onOpenChange(false)
     },
-    onError: () => {
-      toast.error('Failed to create company')
+    onError: (err: Error) => {
+      toast.error(err.message || (isEditing ? 'Failed to update company' : 'Failed to create company'))
     },
   })
 

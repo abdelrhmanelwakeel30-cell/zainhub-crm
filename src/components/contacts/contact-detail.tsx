@@ -17,6 +17,8 @@ import {
   ArrowLeft, Edit, Phone, Mail, Building2, Briefcase,
   UserCircle, Globe
 } from 'lucide-react'
+import { useState } from 'react'
+import { ContactFormDialog } from './contact-form-dialog'
 
 interface ContactDetailProps {
   contactId: string
@@ -46,6 +48,7 @@ export function ContactDetail({ contactId }: ContactDetailProps) {
   const t = useTranslations('contacts')
   const tc = useTranslations('common')
   const router = useRouter()
+  const [showEdit, setShowEdit] = useState(false)
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['contacts', contactId],
@@ -121,7 +124,7 @@ export function ContactDetail({ contactId }: ContactDetailProps) {
           <Button variant="outline" size="sm" onClick={() => { if (contact.email) { window.open(`mailto:${contact.email}`) } else { toast.info('No email on file') } }}>
             <Mail className="h-4 w-4 me-2" /> Email
           </Button>
-          <Button variant="outline" size="sm" onClick={() => toast.info('Edit contact form coming soon')}>
+          <Button variant="outline" size="sm" onClick={() => setShowEdit(true)}>
             <Edit className="h-4 w-4 me-2" /> Edit
           </Button>
         </div>
@@ -223,6 +226,22 @@ export function ContactDetail({ contactId }: ContactDetailProps) {
           )}
         </div>
       </div>
+
+      <ContactFormDialog
+        open={showEdit}
+        onOpenChange={setShowEdit}
+        entityId={contact.id}
+        defaultValues={{
+          firstName: contact.firstName,
+          lastName: contact.lastName,
+          email: contact.email ?? '',
+          phone: contact.phone ?? '',
+          jobTitle: contact.jobTitle ?? '',
+          department: contact.department ?? '',
+          decisionRole: contact.decisionRole ?? 'OTHER',
+          companyId: contact.companyContacts?.[0]?.company?.id ?? '',
+        }}
+      />
     </div>
   )
 }

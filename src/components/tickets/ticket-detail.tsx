@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -46,7 +46,25 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
   const t = useTranslations('tickets')
   const tc = useTranslations('common')
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [showAssign, setShowAssign] = useState(false)
+
+  const reopenMutation = useMutation({
+    mutationFn: () => fetch(`/api/tickets/${ticketId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'OPEN' }),
+    }).then(async (r) => {
+      if (!r.ok) { const e = await r.json(); throw new Error(e.error || 'Failed') }
+      return r.json()
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tickets', ticketId] })
+      queryClient.invalidateQueries({ queryKey: ['tickets'] })
+      toast.success('Ticket reopened and status set to Open')
+    },
+    onError: (err: Error) => toast.error(err.message || 'Failed to reopen ticket'),
+  })
 
   const { data, isLoading } = useQuery({
     queryKey: ['tickets', ticketId],
@@ -127,9 +145,11 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => toast.success('Ticket reopened. Status set to Open.')}
+              onClick={() => reopenMutation.mutate()}
+              disabled={reopenMutation.isPending}
             >
-              <RotateCcw className="h-4 w-4 me-2" /> Reopen
+              <RotateCcw className="h-4 w-4 me-2" />
+              {reopenMutation.isPending ? 'Reopening...' : 'Reopen'}
             </Button>
           )}
         </div>
