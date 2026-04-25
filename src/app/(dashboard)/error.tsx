@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import * as Sentry from '@sentry/nextjs'
 import { Button } from '@/components/ui/button'
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
 
@@ -12,6 +13,8 @@ export default function DashboardError({
   reset: () => void
 }) {
   useEffect(() => {
+    // Forward to Sentry (no-op when DSN unset). Closes R-002.
+    Sentry.captureException(error, { tags: { boundary: 'dashboard' }, extra: { digest: error.digest } })
     console.error('Dashboard error:', error)
   }, [error])
 
