@@ -1,5 +1,87 @@
 # CI workflow for CRM V3 (D-001 / Fix-033)
 #
+# Soft-fail status:
+#   - lint: continue-on-error (pre-existing any/React19 backlog; not a merge gate)
+#   - audit: continue-on-error (uploadthing chain pending upstream patch)
+# Both flip to required once their backlogs are closed.
+
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+env:
+  DATABASE_URL: postgresql://placeholder@localhost/placeholder
+  DIRECT_URL: postgresql://placeholder@localhost/placeholder
+  NEXTAUTH_SECRET: placeholder-not-for-runtime
+  PORTAL_JWT_SECRET: placeholder-not-for-runtime
+  NEXTAUTH_URL: http://localhost:3000
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run ESLint
+        run: npm run lint
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Generate Prisma client
+        run: npx prisma generate
+      - name: TypeScript --noEmit
+        run: npx tsc --noEmit
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Generate Prisma client
+        run: npx prisma generate
+      - name: Build
+        run: npm run build
+
+  audit:
+    name: npm audit (high)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - name: npm audit (fail on high or critical)
+        run: npm audit --audit-level=high
+# CI workflow for CRM V3 (D-001 / Fix-033)
+#
 # NOTE: The `audit` job is currently `continue-on-error: true` so PRs are not
 # blocked while we work through the vulnerability backlog (D-002). Once D-002
 # is fully closed, flip `continue-on-error` to false (or remove it) so the
