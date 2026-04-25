@@ -3,6 +3,7 @@ import { getApiSession, requireApiPermission } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
 import { createAuditLog } from '@/lib/audit'
 import { createWebsiteSchema } from '@/lib/validators/website-analysis'
+import { paginatedOk, parsePagination } from '@/lib/api-helpers'
 
 export async function GET(req: NextRequest) {
   const session = await getApiSession()
@@ -11,6 +12,8 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const status = searchParams.get('status') || ''
   const search = searchParams.get('search') || ''
+  // P-001 (CRM-V3-FULL-AUDIT-2026-04-25.md): cap result size; helper enforces max 100.
+  const { page, pageSize, skip } = parsePagination(searchParams)
 
   const where: Record<string, unknown> = { tenantId: session.user.tenantId }
   if (status) where.status = status
@@ -21,16 +24,21 @@ export async function GET(req: NextRequest) {
   ]
 
   try {
-    const websites = await prisma.website.findMany({
-      where,
-      include: {
-        ownerUser: { select: { id: true, firstName: true, lastName: true, avatar: true } },
-        integrations: { select: { id: true, provider: true, status: true, lastSyncAt: true } },
-        _count: { select: { integrations: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    })
-    return NextResponse.json({ success: true, data: websites })
+    const [websites, total] = await Promise.all([
+      prisma.website.findMany({
+        where,
+        include: {
+          ownerUser: { select: { id: true, firstName: true, lastName: true, avatar: true } },
+          integrations: { select: { id: true, provider: true, status: true, lastSyncAt: true } },
+          _count: { select: { integrations: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: pageSize,
+      }),
+      prisma.website.count({ where }),
+    ])
+    return paginatedOk(websites, total, page, pageSize)
   } catch (err) {
     console.error('GET /api/website-analysis/websites', err)
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
