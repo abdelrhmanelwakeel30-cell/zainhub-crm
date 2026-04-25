@@ -62,7 +62,7 @@ export function ContactDetail({ contactId }: ContactDetailProps) {
       <div className="space-y-6">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" aria-label="Back to contacts" onClick={() => router.push('/contacts')}>
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
           </Button>
           <Skeleton className="h-12 w-12 rounded-full" />
           <div className="space-y-2">
@@ -86,7 +86,7 @@ export function ContactDetail({ contactId }: ContactDetailProps) {
       <div className="flex flex-col items-center justify-center py-16">
         <p className="text-lg font-medium">Contact not found</p>
         <Button variant="outline" className="mt-4" onClick={() => router.push('/contacts')}>
-          <ArrowLeft className="h-4 w-4 me-2" /> Back to Contacts
+          <ArrowLeft className="h-4 w-4 me-2 rtl:rotate-180" /> Back to Contacts
         </Button>
       </div>
     )
@@ -100,7 +100,7 @@ export function ContactDetail({ contactId }: ContactDetailProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" aria-label="Back to contacts" onClick={() => router.push('/contacts')}>
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
           </Button>
           <Avatar className="h-12 w-12">
             <AvatarFallback className="bg-blue-100 text-blue-700 text-lg">

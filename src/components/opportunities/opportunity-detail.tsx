@@ -104,7 +104,7 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
       <div className="flex flex-col items-center justify-center py-16">
         <p className="text-lg font-medium">Opportunity not found</p>
         <Button variant="outline" className="mt-4" onClick={() => router.push('/opportunities')}>
-          <ArrowLeft className="h-4 w-4 me-2" /> Back to Opportunities
+          <ArrowLeft className="h-4 w-4 me-2 rtl:rotate-180" /> Back to Opportunities
         </Button>
       </div>
     )
@@ -143,7 +143,7 @@ export function OpportunityDetail({ opportunityId }: OpportunityDetailProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" aria-label="Back to opportunities" onClick={() => router.push('/opportunities')}>
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
           </Button>
           <div>
             <div className="flex items-center gap-3">

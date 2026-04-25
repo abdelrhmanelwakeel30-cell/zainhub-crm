@@ -69,7 +69,7 @@ export function CompanyDetail({ companyId }: CompanyDetailProps) {
       <div className="space-y-6">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" aria-label="Back to companies" onClick={() => router.push('/companies')}>
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
           </Button>
           <Skeleton className="h-12 w-12 rounded-xl" />
           <div className="space-y-2">
@@ -93,7 +93,7 @@ export function CompanyDetail({ companyId }: CompanyDetailProps) {
       <div className="flex flex-col items-center justify-center py-16">
         <p className="text-lg font-medium">Company not found</p>
         <Button variant="outline" className="mt-4" onClick={() => router.push('/companies')}>
-          <ArrowLeft className="h-4 w-4 me-2" /> Back to Companies
+          <ArrowLeft className="h-4 w-4 me-2 rtl:rotate-180" /> Back to Companies
         </Button>
       </div>
     )
@@ -116,7 +116,7 @@ export function CompanyDetail({ companyId }: CompanyDetailProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" aria-label="Back to companies" onClick={() => router.push('/companies')}>
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
           </Button>
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800">
             <Building2 className="h-6 w-6 text-gray-500" />

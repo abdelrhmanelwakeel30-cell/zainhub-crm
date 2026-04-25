@@ -57,7 +57,7 @@ export function CampaignDetail({ campaignId }: CampaignDetailProps) {
       <div className="space-y-6">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" aria-label="Back to campaigns" onClick={() => router.push('/campaigns')}>
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
           </Button>
           <div className="space-y-2">
             <Skeleton className="h-7 w-64" />
@@ -83,7 +83,7 @@ export function CampaignDetail({ campaignId }: CampaignDetailProps) {
       <div className="flex flex-col items-center justify-center py-16">
         <p className="text-lg font-medium">Campaign not found</p>
         <Button variant="outline" className="mt-4" onClick={() => router.push('/campaigns')}>
-          <ArrowLeft className="h-4 w-4 me-2" /> Back to Campaigns
+          <ArrowLeft className="h-4 w-4 me-2 rtl:rotate-180" /> Back to Campaigns
         </Button>
       </div>
     )
@@ -113,7 +113,7 @@ export function CampaignDetail({ campaignId }: CampaignDetailProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" aria-label="Back to campaigns" onClick={() => router.push('/campaigns')}>
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
           </Button>
           <div>
             <div className="flex items-center gap-3">

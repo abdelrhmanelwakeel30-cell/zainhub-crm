@@ -56,7 +56,7 @@ export function ContractDetail({ contractId }: ContractDetailProps) {
       <div className="flex flex-col items-center justify-center py-16">
         <p className="text-lg font-medium">Contract not found</p>
         <Button variant="outline" className="mt-4" onClick={() => router.push('/contracts')}>
-          <ArrowLeft className="h-4 w-4 me-2" /> Back
+          <ArrowLeft className="h-4 w-4 me-2 rtl:rotate-180" /> Back
         </Button>
       </div>
     )
@@ -68,7 +68,7 @@ export function ContractDetail({ contractId }: ContractDetailProps) {
     <div className="space-y-6 animate-slide-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" aria-label="Back to contracts" onClick={() => router.push('/contracts')}><ArrowLeft className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="icon" aria-label="Back to contracts" onClick={() => router.push('/contracts')}><ArrowLeft className="h-4 w-4 rtl:rotate-180" /></Button>
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold">{ctr.title}</h1>
