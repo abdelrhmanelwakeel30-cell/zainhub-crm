@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { SignJWT } from 'jose'
 import { prisma as _prisma } from '@/lib/prisma'
 import { getPortalJwtSecret } from '@/lib/portal-auth'
+import { otpVerifyRateLimit } from '@/lib/rate-limit'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const prisma = _prisma as any
 
@@ -21,6 +22,18 @@ export async function POST(req: NextRequest) {
     }
 
     const { phone, otp, tenantSlug } = parsed.data
+
+    // S-003 (CRM-V3-FULL-AUDIT-2026-04-25.md): rate-limit OTP verification per
+    // (phone, tenant). With S-001's CSPRNG OTP this caps brute-force feasibility
+    // — without this gate, the 1-in-900k space could be exhausted in seconds.
+    const rl = await otpVerifyRateLimit.limit(`otp-verify:${tenantSlug}:${phone}`)
+    if (!rl.success) {
+      console.warn('[client-portal/verify-otp] rate limit hit', { phone, tenantSlug })
+      return NextResponse.json(
+        { success: false, error: 'Too many attempts. Try again later.' },
+        { status: 429, headers: { 'Retry-After': '900' } },
+      )
+    }
 
     // Scope OTP verification by tenant to prevent cross-tenant OTP collisions
     const tenant = await prisma.tenant.findUnique({ where: { slug: tenantSlug }, select: { id: true } })

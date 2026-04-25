@@ -2,35 +2,12 @@ import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { loginRateLimit } from '@/lib/rate-limit'
 
-// ---------------------------------------------------------------------------
-// In-process login rate limiter (F-003)
-//
-// Tracks failed attempts per email within a sliding window. This works within
-// a single warm Node.js process. For full multi-instance protection, replace
-// with @upstash/ratelimit backed by Upstash Redis and set UPSTASH_REDIS_URL +
-// UPSTASH_REDIS_TOKEN env vars in Vercel.
-// ---------------------------------------------------------------------------
-const loginAttempts = new Map<string, { count: number; resetAt: number }>()
-const RATE_LIMIT_MAX = 5
-const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000 // 15 minutes
-
-function isRateLimited(email: string): boolean {
-  const now = Date.now()
-  const key = email.toLowerCase()
-  const rec = loginAttempts.get(key)
-  if (!rec || now > rec.resetAt) {
-    loginAttempts.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS })
-    return false
-  }
-  if (rec.count >= RATE_LIMIT_MAX) return true
-  rec.count++
-  return false
-}
-
-function clearRateLimit(email: string) {
-  loginAttempts.delete(email.toLowerCase())
-}
+// Login rate limiting now lives in src/lib/rate-limit.ts (S-008/Fix-004).
+// When UPSTASH_REDIS_REST_URL/TOKEN are set, attempts are tracked in Redis
+// and survive serverless cold starts; otherwise it falls back to per-process
+// memory with a boot-time warning.
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   session: { strategy: 'jwt' },
@@ -70,8 +47,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
 
-        if (isRateLimited(credentials.email as string)) {
-          console.warn('[auth] rate limit hit for', credentials.email)
+        const email = (credentials.email as string).toLowerCase()
+        const { success } = await loginRateLimit.limit(`login:${email}`)
+        if (!success) {
+          console.warn('[auth] rate limit hit for', email)
           return null
         }
 
@@ -105,8 +84,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (!isValid) return null
 
-        // Clear rate limit counter on successful auth
-        clearRateLimit(credentials.email as string)
+        // Note: with the Upstash sliding-window limiter we don't actively reset
+        // on success — the window naturally rolls forward. Successful logins are
+        // counted but the window is generous (5 attempts / 15 min).
 
         // Update last login
         await prisma.user.update({

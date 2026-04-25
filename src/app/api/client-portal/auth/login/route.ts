@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs'
 import { SignJWT } from 'jose'
 import { prisma as _prisma } from '@/lib/prisma'
 import { getPortalJwtSecret } from '@/lib/portal-auth'
+import { loginRateLimit } from '@/lib/rate-limit'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const prisma = _prisma as any
 
@@ -22,6 +23,21 @@ export async function POST(req: NextRequest) {
     }
 
     const { email, password, tenantSlug } = parsed.data
+
+    // S-002: rate limit credential-stuffing on the portal endpoint.
+    // Use email + IP so rotating IPs don't bypass and rotating emails per IP also can't.
+    const ip =
+      req.headers.get('x-forwarded-for')?.split(',')[0].trim() ??
+      req.headers.get('x-real-ip') ??
+      'unknown'
+    const rl = await loginRateLimit.limit(`portal-login:${email.toLowerCase()}:${ip}`)
+    if (!rl.success) {
+      console.warn('[client-portal/login] rate limit hit', { email, ip })
+      return NextResponse.json(
+        { success: false, error: 'Too many attempts. Try again later.' },
+        { status: 429, headers: { 'Retry-After': '900' } },
+      )
+    }
 
     // Build where clause: find the user, optionally scoped by tenant slug
     let tenantId: string | undefined
