@@ -45,6 +45,9 @@ export async function GET(req: NextRequest) {
         }),
         prisma.approvalStep.count({
           where: {
+            // T-003 (CRM-V3-FULL-AUDIT-2026-04-25.md): defense-in-depth — scope by tenant
+            // even though approverClientUserId is unique to one tenant today.
+            ...tenantFilter,
             approverClientUserId: payload.sub,
             status: 'PENDING',
           },

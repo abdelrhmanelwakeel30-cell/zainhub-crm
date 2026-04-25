@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { SignJWT } from 'jose'
 import { prisma as _prisma } from '@/lib/prisma'
+import { getPortalJwtSecret } from '@/lib/portal-auth'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const prisma = _prisma as any
 
@@ -10,12 +11,6 @@ const VerifyOtpSchema = z.object({
   otp: z.string().length(6),
   tenantSlug: z.string().min(1),
 })
-
-function getJwtSecret() {
-  const secret = process.env.PORTAL_JWT_SECRET || process.env.NEXTAUTH_SECRET
-  if (!secret) throw new Error('PORTAL_JWT_SECRET (or NEXTAUTH_SECRET) is not set')
-  return new TextEncoder().encode(secret)
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -86,7 +81,7 @@ export async function POST(req: NextRequest) {
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime('30d')
-      .sign(getJwtSecret())
+      .sign(getPortalJwtSecret())
 
     return NextResponse.json({
       success: true,

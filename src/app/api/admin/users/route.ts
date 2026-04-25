@@ -106,6 +106,14 @@ export async function POST(req: NextRequest) {
         data: { tenantId, passwordHash, ...userData },
       })
       if (roleIds.length > 0) {
+        // T-001: verify every role belongs to the caller's tenant before attaching.
+        const owned = await tx.role.findMany({
+          where: { id: { in: roleIds }, tenantId },
+          select: { id: true },
+        })
+        if (owned.length !== roleIds.length) {
+          throw new Error('FORBIDDEN_CROSS_TENANT_ROLE')
+        }
         await tx.userRole.createMany({
           data: roleIds.map((roleId) => ({ userId: newUser.id, roleId })),
         })

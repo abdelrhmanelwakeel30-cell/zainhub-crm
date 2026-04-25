@@ -54,16 +54,29 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         data: { amountPaid: newAmountPaid, balanceDue: Math.max(0, newBalanceDue), status: newStatus },
       })
 
+      // R-009 (CRM-V3-FULL-AUDIT-2026-04-25.md): write the audit log INSIDE the
+      // transaction. If the audit insert fails, the whole transaction rolls back
+      // — no payment recorded without a corresponding audit entry.
+      await tx.auditLog.create({
+        data: {
+          tenantId, userId, action: 'CREATE', entityType: 'payment',
+          entityId: payment.id, entityName: payment.paymentNumber,
+        },
+      })
+
       return payment
     })
 
-    await prisma.auditLog.create({ data: { tenantId, userId, action: 'CREATE', entityType: 'payment', entityId: result.id, entityName: result.paymentNumber } })
-
-    // Fire-and-forget payment confirmation email
+    // R-010: payment confirmation email — handle errors so a Resend outage
+    // doesn't silently disappear the notification.
     const client = await prisma.company.findUnique({ where: { id: invoice.clientId }, select: { email: true } })
     const tenant = await prisma.tenant.findUnique({ where: { id: tenantId }, select: { name: true } })
     if (client?.email && tenant) {
-      sendPaymentConfirmation(client.email, invoice.invoiceNumber, parsed.data.amount, invoice.currency, tenant.name)
+      Promise.resolve(
+        sendPaymentConfirmation(client.email, invoice.invoiceNumber, parsed.data.amount, invoice.currency, tenant.name),
+      ).catch((emailErr) => {
+        console.error('[payments] sendPaymentConfirmation failed', { paymentId: result.id, err: emailErr })
+      })
     }
 
     return NextResponse.json({ success: true, data: result }, { status: 201 })

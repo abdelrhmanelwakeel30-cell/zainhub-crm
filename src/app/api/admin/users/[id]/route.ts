@@ -76,6 +76,19 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
       const updated = await tx.user.update({ where: { id }, data: updateData })
 
       if (roleIds !== undefined) {
+        // T-001 (CRM-V3-FULL-AUDIT-2026-04-25.md): verify every role belongs to the
+        // caller's tenant before attaching. Without this, a tenant admin could
+        // attach Tenant B's roles to a Tenant A user, escalating privileges via
+        // permissions defined in another tenant's role.
+        if (roleIds.length > 0) {
+          const owned = await tx.role.findMany({
+            where: { id: { in: roleIds }, tenantId: session.user.tenantId },
+            select: { id: true },
+          })
+          if (owned.length !== roleIds.length) {
+            throw new Error('FORBIDDEN_CROSS_TENANT_ROLE')
+          }
+        }
         await tx.userRole.deleteMany({ where: { userId: id } })
         if (roleIds.length > 0) {
           await tx.userRole.createMany({ data: roleIds.map((roleId) => ({ userId: id, roleId })) })
