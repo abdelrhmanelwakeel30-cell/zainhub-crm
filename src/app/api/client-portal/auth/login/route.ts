@@ -2,12 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { SignJWT } from 'jose'
-import { prisma as _prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'
 import { getPortalJwtSecret } from '@/lib/portal-auth'
 import { loginRateLimit } from '@/lib/rate-limit'
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const prisma = _prisma as any
-
 const LoginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
@@ -70,8 +67,8 @@ export async function POST(req: NextRequest) {
               ? 'unverified'
               : null
 
-    if (denyReason) {
-      console.warn(`[client-portal/login] denied ${email}: ${denyReason}`)
+    if (denyReason || !clientUser) {
+      console.warn(`[client-portal/login] denied ${email}: ${denyReason ?? 'no-user'}`)
       return NextResponse.json({ success: false, error: 'Invalid credentials' }, { status: 401 })
     }
 

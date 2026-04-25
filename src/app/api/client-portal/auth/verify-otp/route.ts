@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { SignJWT } from 'jose'
-import { prisma as _prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'
 import { getPortalJwtSecret } from '@/lib/portal-auth'
 import { otpVerifyRateLimit } from '@/lib/rate-limit'
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const prisma = _prisma as any
-
 const VerifyOtpSchema = z.object({
   phone: z.string().min(5),
   otp: z.string().length(6),
@@ -57,11 +54,12 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Mark phone verified & clear OTP fields
+    // Q-001 fix: ClientPortalUser has no `phoneVerified` field on the model;
+    // a successful OTP verification is itself the proof of phone ownership.
+    // If we want to persist that flag, add the column to schema.prisma first.
     await prisma.clientPortalUser.update({
       where: { id: clientUser.id },
       data: {
-        phoneVerified: true,
         otpCode: null,
         otpExpiry: null,
         lastLoginAt: new Date(),
