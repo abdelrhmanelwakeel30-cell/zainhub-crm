@@ -35,6 +35,7 @@ export async function GET(req: NextRequest) {
         project: { select: { id: true, name: true } },
         uploadedBy: { select: { id: true, firstName: true, lastName: true } },
       },
+      take: 100, // P-001 defensive cap
     })
     return NextResponse.json({ success: true, data })
   } catch (err) { console.error(err); return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 }) }

@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
       where: { tenantId: session.user.tenantId, isActive: true },
       select: { id: true, name: true, nameAr: true, type: true, icon: true },
       orderBy: { name: 'asc' },
+      take: 200, // P-001: defensive cap on lookup table
     })
 
     return ok(sources)

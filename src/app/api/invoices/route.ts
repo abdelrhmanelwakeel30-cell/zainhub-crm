@@ -3,6 +3,7 @@ import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
 import { nextNumber } from '@/lib/number-sequence'
 import { logCreate } from '@/lib/activity'
+import { assertTenantOwnsAll } from '@/lib/api-helpers'
 import { z } from 'zod'
 
 const lineItemSchema = z.object({
@@ -84,6 +85,16 @@ export async function POST(req: NextRequest) {
     }, 0)
     const discountAmount = parsed.data.discountAmount || 0
     const totalAmount = subtotal + taxAmount - discountAmount
+
+    // T-002: every FK accepted from the body must belong to this tenant.
+    await assertTenantOwnsAll(prisma, tenantId, [
+      { model: 'company', id: parsed.data.clientId },
+      { model: 'contact', id: parsed.data.contactId },
+      { model: 'project', id: parsed.data.projectId },
+      { model: 'opportunity', id: parsed.data.opportunityId },
+      { model: 'contract', id: parsed.data.contractId },
+      { model: 'taxRate', id: parsed.data.taxRateId },
+    ])
 
     const invoice = await prisma.invoice.create({
       data: {

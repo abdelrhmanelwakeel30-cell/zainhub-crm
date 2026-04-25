@@ -50,6 +50,7 @@ export async function GET(req: NextRequest) {
         lead: { select: { id: true, fullName: true } },
         loggedBy: { select: { id: true, firstName: true, lastName: true } },
       },
+      take: 100, // P-001 defensive cap
     })
     return NextResponse.json({ success: true, data })
   } catch (err) { console.error(err); return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 }) }

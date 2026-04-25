@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
       ? { tenantId: session.user.tenantId, key }
       : { tenantId: session.user.tenantId }
 
-    const settings = await prisma.setting.findMany({ where, orderBy: { key: 'asc' } })
+    const settings = await prisma.setting.findMany({ where, orderBy: { key: 'asc' }, take: 500 })
 
     // Also include tenant-level settings
     const tenant = await prisma.tenant.findUnique({

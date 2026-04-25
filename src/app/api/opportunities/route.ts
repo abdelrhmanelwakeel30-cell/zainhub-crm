@@ -3,6 +3,7 @@ import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
 import { nextNumber } from '@/lib/number-sequence'
 import { logCreate } from '@/lib/activity'
+import { assertTenantOwnsAll } from '@/lib/api-helpers'
 import { z } from 'zod'
 
 const createSchema = z.object({
@@ -73,6 +74,15 @@ export async function POST(req: NextRequest) {
 
     const probability = parsed.data.probability
     const expectedValue = parsed.data.expectedValue
+
+    // T-002: validate FK ownership against caller's tenant.
+    await assertTenantOwnsAll(prisma, tenantId, [
+      { model: 'company', id: parsed.data.companyId },
+      { model: 'contact', id: parsed.data.primaryContactId },
+      { model: 'pipeline', id: pipelineId ?? null },
+      { model: 'pipelineStage', id: stageId ?? null },
+    ])
+
     const opportunity = await prisma.opportunity.create({
       data: {
         tenantId, opportunityNumber,

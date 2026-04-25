@@ -29,6 +29,7 @@ export async function GET(req: NextRequest) {
         ...(withCounts && { _count: { select: { services: true } } }),
       },
       orderBy: [{ order: 'asc' }, { name: 'asc' }],
+      take: 200, // P-001
     })
 
     return ok(categories)
