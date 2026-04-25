@@ -60,7 +60,7 @@ export function WebsiteList() {
             return (
               <Link
                 key={w.id}
-                href={`/website-analysis/websites/${w.id}/overview`}
+                href={`/website-analysis/websites/${w.id}`}
                 className="rounded-lg border bg-card p-5 transition-colors hover:border-primary/40 hover:bg-accent/30"
               >
                 <div className="mb-2 flex items-start justify-between gap-3">

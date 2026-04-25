@@ -33,7 +33,7 @@ export function WebsiteForm({ mode, websiteId, initial }: Props) {
       notes: initial?.notes ?? '',
       ownerUserId: initial?.ownerUserId ?? '',
     },
-  } as any)
+  })
 
   const submit = useMutation({
     mutationFn: async (values: CreateWebsiteInput) => {
@@ -50,10 +50,10 @@ export function WebsiteForm({ mode, websiteId, initial }: Props) {
       qc.invalidateQueries({ queryKey: ['websites'] })
       if (mode === 'create') {
         toast.success('Website added')
-        router.push(`/website-analysis/websites/${data.id}/integrations`)
+        router.push(`/website-analysis/websites/${data.id}?tab=integrations`)
       } else {
         toast.success('Website updated')
-        router.push(`/website-analysis/websites/${websiteId}/overview`)
+        router.push(`/website-analysis/websites/${websiteId}`)
       }
     },
     onError: (err: Error) => toast.error(err.message),
@@ -80,7 +80,7 @@ export function WebsiteForm({ mode, websiteId, initial }: Props) {
         </div>
         <div>
           <Label htmlFor="type">Type</Label>
-          <Select value={form.watch('type') || 'CORPORATE'} onValueChange={(v) => form.setValue('type', v as any)}>
+          <Select value={form.watch('type') || 'CORPORATE'} onValueChange={(v) => form.setValue('type', v as CreateWebsiteInput['type'])}>
             <SelectTrigger id="type"><SelectValue /></SelectTrigger>
             <SelectContent>
               {WEBSITE_TYPES.map((t) => <SelectItem key={t} value={t}>{t.replace('_', ' ')}</SelectItem>)}

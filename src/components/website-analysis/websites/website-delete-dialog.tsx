@@ -39,7 +39,7 @@ export function WebsiteDeleteDialog({ open, onOpenChange, websiteId, websiteName
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Archive "{websiteName}"?</DialogTitle>
+          <DialogTitle>Archive &ldquo;{websiteName}&rdquo;?</DialogTitle>
           <DialogDescription>
             The website will be hidden from the active list. Its historical data is preserved and it can be restored later.
           </DialogDescription>

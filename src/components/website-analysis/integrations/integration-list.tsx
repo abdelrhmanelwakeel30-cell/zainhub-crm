@@ -30,7 +30,7 @@ export function IntegrationList({ websiteId }: { websiteId: string }) {
       <div>
         <h2 className="text-lg font-semibold">Data sources</h2>
         <p className="text-sm text-muted-foreground">
-          Connect analytics, SEO, and behavior tools to power this website's dashboards.
+          Connect analytics, SEO, and behavior tools to power this website&apos;s dashboards.
         </p>
       </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

@@ -1,7 +1,4 @@
-'use client'
-
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
 const TABS = [
@@ -17,15 +14,18 @@ const TABS = [
   { key: 'reports',     label: 'Reports' },
 ] as const
 
-export function WebsiteAnalysisSubnav({ websiteId }: { websiteId: string }) {
-  const pathname = usePathname()
-  const base = `/website-analysis/websites/${websiteId}`
+interface Props {
+  websiteId: string
+  activeTab: string
+}
 
+export function WebsiteAnalysisSubnav({ websiteId, activeTab }: Props) {
+  const base = `/website-analysis/websites/${websiteId}`
   return (
     <nav className="flex gap-1 overflow-x-auto border-b" aria-label="Website analysis tabs">
       {TABS.map((t) => {
-        const href = `${base}/${t.key}`
-        const active = pathname === href || pathname.startsWith(`${href}/`)
+        const href = `${base}?tab=${t.key}`
+        const active = activeTab === t.key
         return (
           <Link
             key={t.key}
