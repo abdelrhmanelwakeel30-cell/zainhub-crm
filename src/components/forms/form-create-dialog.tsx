@@ -70,7 +70,7 @@ export function FormCreateDialog({ open, onOpenChange }: FormCreateDialogProps) 
       ])
       onOpenChange(false)
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     onError: (err) => toast.error(err instanceof Error ? err.message : 'Failed to create form'),
   })
 

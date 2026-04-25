@@ -10,6 +10,9 @@ generator client {
   // previewFeatures = ["fullTextSearch", "fullTextIndex"] // PostgreSQL-only; re-enable when switching back
 }
 
+// Prisma 7: connection URLs live in prisma.config.ts (datasource.url).
+// The @prisma/adapter-pg / adapter-neon used at runtime handles direct vs pooled routing,
+// so a separate `directUrl` is no longer needed here.
 datasource db {
   provider = "postgresql"
 }
@@ -908,6 +911,7 @@ model Opportunity {
   @@index([tenantId, pipelineId, stageId])
   @@index([tenantId, companyId])
   @@index([tenantId, forecastMonth])
+  @@index([tenantId, wonAt, lostAt])
 }
 
 model OpportunityService {
@@ -1686,6 +1690,7 @@ model Task {
   @@index([tenantId, projectId])
   @@index([tenantId, parentTaskId])
   @@index([tenantId, relatedType, relatedId])
+  @@index([tenantId, createdAt(sort: Desc)])
 }
 
 model TaskComment {
@@ -1790,6 +1795,7 @@ model Activity {
 
   @@index([tenantId, entityType, entityId])
   @@index([tenantId, performedAt])
+  @@index([tenantId, performedById, performedAt(sort: Desc)])
 }
 
 // ============================================================================

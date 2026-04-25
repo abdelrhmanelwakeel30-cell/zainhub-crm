@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Project-specific ignores:
+    "_DEPRECATED_CRM-dev/**",
+    "node_modules/next/dist/docs/**",
   ]),
 ]);
 
