@@ -116,6 +116,8 @@
     "socialAccounts": "حسابات التواصل",
     "campaigns": "الحملات",
     "marketing": "التسويق",
+    "websiteAnalysisSection": "تحليل المواقع",
+    "websiteAnalysis": "تحليل المواقع",
     "support": "الدعم الفني",
     "tickets": "التذاكر",
     "changeRequests": "طلبات التغيير",
@@ -743,5 +745,22 @@
     "sendOtp": "إرسال رمز التحقق",
     "verifyOtp": "التحقق من الرمز",
     "otpSent": "تم إرسال رمز التحقق إلى هاتفك."
+  },
+  "websiteAnalysis": {
+    "title": "تحليل المواقع",
+    "addWebsite": "إضافة موقع",
+    "noWebsites": "أضف موقعك الأول",
+    "tabs": {
+      "overview": "نظرة عامة",
+      "traffic": "الزيارات",
+      "behavior": "السلوك",
+      "conversions": "التحويلات",
+      "seo": "تحسين محركات البحث",
+      "pages": "الصفحات",
+      "devicesGeo": "الأجهزة والجغرافيا",
+      "integrations": "التكاملات",
+      "alerts": "التنبيهات",
+      "reports": "التقارير"
+    }
   }
 }

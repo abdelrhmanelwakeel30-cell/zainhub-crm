@@ -13,7 +13,7 @@ import {
   BarChart3, ChevronLeft, ChevronRight, ChevronDown, Bell,
   Handshake, Package, GitBranch, GitMerge, CheckSquare, X,
   Eye, PackageOpen, MessageSquare, HeartPulse, ClipboardList,
-  RefreshCw, Layers, FormInput, Crown,
+  RefreshCw, Layers, FormInput, Crown, Globe,
 } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
 import { useSession } from 'next-auth/react'
@@ -87,6 +87,12 @@ const navigation: NavGroup[] = [
       { titleKey: 'nav.contentCalendar', href: '/content-calendar', icon: CalendarIcon, permission: 'social_media:view' },
       { titleKey: 'nav.socialAccounts', href: '/social-accounts', icon: Share2, permission: 'social_media:view' },
       { titleKey: 'nav.campaigns', href: '/campaigns', icon: Megaphone, permission: 'campaigns:view' },
+    ],
+  },
+  {
+    titleKey: 'nav.websiteAnalysisSection',
+    items: [
+      { titleKey: 'nav.websiteAnalysis', href: '/website-analysis', icon: Globe, permission: 'website_analysis:view' },
     ],
   },
   {

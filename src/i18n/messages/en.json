@@ -116,6 +116,8 @@
     "socialAccounts": "Social Accounts",
     "campaigns": "Campaigns",
     "marketing": "Marketing",
+    "websiteAnalysisSection": "Website Analysis",
+    "websiteAnalysis": "Website Analysis",
     "support": "Support",
     "tickets": "Tickets",
     "changeRequests": "Change Requests",
@@ -743,5 +745,22 @@
     "sendOtp": "Send OTP",
     "verifyOtp": "Verify OTP",
     "otpSent": "OTP sent to your phone."
+  },
+  "websiteAnalysis": {
+    "title": "Website Analysis",
+    "addWebsite": "Add website",
+    "noWebsites": "Add your first website",
+    "tabs": {
+      "overview": "Overview",
+      "traffic": "Traffic",
+      "behavior": "Behavior",
+      "conversions": "Conversions",
+      "seo": "SEO",
+      "pages": "Pages",
+      "devicesGeo": "Devices & Geography",
+      "integrations": "Integrations",
+      "alerts": "Alerts",
+      "reports": "Reports"
+    }
   }
 }
