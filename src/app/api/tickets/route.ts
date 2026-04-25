@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getSession, unauthorized, serverError, paginatedOk, parsePagination, serializeDecimals } from '@/lib/api-helpers'
+import { getSession, unauthorized, serverError, paginatedOk, parsePagination, serializeDecimals, assertTenantOwnsAll } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
 import { nextNumber } from '@/lib/number-sequence'
 import { logCreate } from '@/lib/activity'
@@ -76,6 +76,14 @@ export async function POST(req: NextRequest) {
 
     const tenantId = session.user.tenantId
     const ticketNumber = await nextNumber(tenantId, 'ticket')
+
+    // T-002: every FK accepted from the body must belong to this tenant.
+    await assertTenantOwnsAll(prisma, tenantId, [
+      { model: 'company', id: parsed.data.clientId },
+      { model: 'project', id: parsed.data.projectId },
+      { model: 'contact', id: parsed.data.contactId },
+      { model: 'user', id: parsed.data.assignedToId },
+    ])
 
     const { slaDueAt, ...rest } = parsed.data
 

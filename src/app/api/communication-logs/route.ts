@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
+import { assertTenantOwnsAll } from '@/lib/api-helpers'
 import { z } from 'zod'
 
 const createSchema = z.object({
@@ -64,6 +65,16 @@ export async function POST(req: NextRequest) {
     const parsed = createSchema.safeParse(body)
     if (!parsed.success) return NextResponse.json({ success: false, error: parsed.error.flatten() }, { status: 422 })
     const { tenantId, id: userId } = session.user
+
+    // T-002: every FK accepted from the body must belong to this tenant.
+    await assertTenantOwnsAll(prisma, tenantId, [
+      { model: 'company', id: parsed.data.companyId },
+      { model: 'contact', id: parsed.data.contactId },
+      { model: 'lead', id: parsed.data.leadId },
+      { model: 'opportunity', id: parsed.data.opportunityId },
+      { model: 'project', id: parsed.data.projectId },
+    ])
+
     const log = await prisma.communicationLog.create({
       data: {
         tenantId,

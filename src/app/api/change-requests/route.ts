@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getSession, unauthorized, serverError, paginatedOk, parsePagination, serializeDecimals } from '@/lib/api-helpers'
+import { getSession, unauthorized, serverError, paginatedOk, parsePagination, serializeDecimals, assertTenantOwnsAll } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
 import { nextNumber } from '@/lib/number-sequence'
 
@@ -79,6 +79,12 @@ export async function POST(req: NextRequest) {
 
     const tenantId = session.user.tenantId
     const crNumber = await nextNumber(tenantId, 'changeRequest')
+
+    // T-002: every FK accepted from the body must belong to this tenant.
+    await assertTenantOwnsAll(prisma, tenantId, [
+      { model: 'company', id: parsed.data.companyId },
+      { model: 'project', id: parsed.data.projectId },
+    ])
 
     const { dueDate, estimatedHours, estimatedCost, ...rest } = parsed.data
 
