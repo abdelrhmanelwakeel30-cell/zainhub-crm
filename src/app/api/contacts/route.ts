@@ -3,6 +3,7 @@ import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
 import { nextNumber } from '@/lib/number-sequence'
 import { logCreate } from '@/lib/activity'
+import { assertTenantOwnsAll } from '@/lib/api-helpers'
 import { z } from 'zod'
 
 const createSchema = z.object({
@@ -50,6 +51,12 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) return NextResponse.json({ success: false, error: parsed.error.flatten() }, { status: 422 })
     const { tenantId, id: userId } = session.user
     const contactNumber = await nextNumber(tenantId, 'contact')
+
+    // T-002: every FK accepted from the body must belong to this tenant.
+    await assertTenantOwnsAll(prisma, tenantId, [
+      { model: 'company', id: parsed.data.companyId },
+    ])
+
     const contact = await prisma.contact.create({
       data: {
         tenantId, contactNumber,

@@ -29,6 +29,7 @@ export async function GET(req: NextRequest) {
         },
       },
       orderBy: { isDefault: 'desc' },
+      take: 200, // P-001
     })
 
     return ok(pipelines)

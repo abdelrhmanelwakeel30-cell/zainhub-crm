@@ -1,21 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { SignJWT } from 'jose'
-import { prisma as _prisma } from '@/lib/prisma'
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const prisma = _prisma as any
-
+import { prisma } from '@/lib/prisma'
+import { getPortalJwtSecret } from '@/lib/portal-auth'
+import { otpVerifyRateLimit } from '@/lib/rate-limit'
 const VerifyOtpSchema = z.object({
   phone: z.string().min(5),
   otp: z.string().length(6),
   tenantSlug: z.string().min(1),
 })
-
-function getJwtSecret() {
-  const secret = process.env.PORTAL_JWT_SECRET || process.env.NEXTAUTH_SECRET
-  if (!secret) throw new Error('PORTAL_JWT_SECRET (or NEXTAUTH_SECRET) is not set')
-  return new TextEncoder().encode(secret)
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,6 +19,18 @@ export async function POST(req: NextRequest) {
     }
 
     const { phone, otp, tenantSlug } = parsed.data
+
+    // S-003 (CRM-V3-FULL-AUDIT-2026-04-25.md): rate-limit OTP verification per
+    // (phone, tenant). With S-001's CSPRNG OTP this caps brute-force feasibility
+    // — without this gate, the 1-in-900k space could be exhausted in seconds.
+    const rl = await otpVerifyRateLimit.limit(`otp-verify:${tenantSlug}:${phone}`)
+    if (!rl.success) {
+      console.warn('[client-portal/verify-otp] rate limit hit', { phone, tenantSlug })
+      return NextResponse.json(
+        { success: false, error: 'Too many attempts. Try again later.' },
+        { status: 429, headers: { 'Retry-After': '900' } },
+      )
+    }
 
     // Scope OTP verification by tenant to prevent cross-tenant OTP collisions
     const tenant = await prisma.tenant.findUnique({ where: { slug: tenantSlug }, select: { id: true } })
@@ -49,11 +54,12 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Mark phone verified & clear OTP fields
+    // Q-001 fix: ClientPortalUser has no `phoneVerified` field on the model;
+    // a successful OTP verification is itself the proof of phone ownership.
+    // If we want to persist that flag, add the column to schema.prisma first.
     await prisma.clientPortalUser.update({
       where: { id: clientUser.id },
       data: {
-        phoneVerified: true,
         otpCode: null,
         otpExpiry: null,
         lastLoginAt: new Date(),
@@ -86,7 +92,7 @@ export async function POST(req: NextRequest) {
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime('30d')
-      .sign(getJwtSecret())
+      .sign(getPortalJwtSecret())
 
     return NextResponse.json({
       success: true,

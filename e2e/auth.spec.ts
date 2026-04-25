@@ -1,0 +1,8 @@
+import { test, expect } from '@playwright/test'
+
+test('login page renders', async ({ page }) => {
+  await page.goto('/login')
+  await expect(page).toHaveURL(/\/login/)
+  // page should have an email input
+  await expect(page.locator('input[type="email"]').first()).toBeVisible()
+})

@@ -3,6 +3,7 @@ import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
 import { nextNumber } from '@/lib/number-sequence'
 import { logCreate } from '@/lib/activity'
+import { assertTenantOwnsAll } from '@/lib/api-helpers'
 import { z } from 'zod'
 
 const createSchema = z.object({
@@ -60,6 +61,15 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) return NextResponse.json({ success: false, error: parsed.error.flatten() }, { status: 422 })
     const { tenantId, id: userId } = session.user
     const taskNumber = await nextNumber(tenantId, 'task')
+
+    // T-002: tenant-scope every FK from input.
+    await assertTenantOwnsAll(prisma, tenantId, [
+      { model: 'project', id: parsed.data.projectId },
+      { model: 'milestone', id: parsed.data.milestoneId },
+      { model: 'task', id: parsed.data.parentTaskId },
+      { model: 'user', id: parsed.data.assignedToId },
+    ])
+
     const task = await prisma.task.create({
       data: {
         tenantId, taskNumber,

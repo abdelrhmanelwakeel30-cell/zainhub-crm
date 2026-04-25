@@ -1,15 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { jwtVerify } from 'jose'
-import { prisma as _prisma } from '@/lib/prisma'
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const prisma = _prisma as any
-
-function getJwtSecret() {
-  const secret = process.env.PORTAL_JWT_SECRET || process.env.NEXTAUTH_SECRET
-  if (!secret) throw new Error('PORTAL_JWT_SECRET (or NEXTAUTH_SECRET) is not set')
-  return new TextEncoder().encode(secret)
-}
-
+import { prisma } from '@/lib/prisma'
+import { getPortalJwtSecret } from '@/lib/portal-auth'
 export async function GET(req: NextRequest) {
   try {
     const authHeader = req.headers.get('authorization')
@@ -21,7 +13,7 @@ export async function GET(req: NextRequest) {
 
     let payload: { sub?: string; tenantId?: string; sessionId?: string; type?: string }
     try {
-      const result = await jwtVerify(token, getJwtSecret())
+      const result = await jwtVerify(token, getPortalJwtSecret())
       payload = result.payload as typeof payload
     } catch {
       return NextResponse.json({ success: false, error: 'Invalid or expired token' }, { status: 401 })

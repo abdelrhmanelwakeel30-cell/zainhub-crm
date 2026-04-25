@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import * as Sentry from '@sentry/nextjs'
 import { Button } from '@/components/ui/button'
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
 
@@ -12,6 +13,8 @@ export default function DashboardError({
   reset: () => void
 }) {
   useEffect(() => {
+    // Forward to Sentry (no-op when DSN unset). Closes R-002.
+    Sentry.captureException(error, { tags: { boundary: 'dashboard' }, extra: { digest: error.digest } })
     console.error('Dashboard error:', error)
   }, [error])
 
@@ -28,9 +31,17 @@ export default function DashboardError({
           <p className="text-muted-foreground text-sm">
             An error occurred while loading this page.
           </p>
-          {error.message && (
+          {/* R-005 (CRM-V3-FULL-AUDIT-2026-04-25.md): only show error.message in
+              development. In production, Prisma/Zod messages can leak schema
+              details and table names. The digest is safe to show — it's a hash. */}
+          {process.env.NODE_ENV !== 'production' && error.message && (
             <p className="text-xs text-muted-foreground font-mono bg-muted px-3 py-2 rounded-md">
               {error.message}
+            </p>
+          )}
+          {error.digest && (
+            <p className="text-xs text-muted-foreground">
+              Reference: <code className="font-mono">{error.digest}</code>
             </p>
           )}
         </div>

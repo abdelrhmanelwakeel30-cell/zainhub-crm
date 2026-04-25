@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession, unauthorized, serverError, notFound, ok } from '@/lib/api-helpers'
-import { prisma as _prisma } from '@/lib/prisma'
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const prisma = _prisma as any
-
+import { prisma } from '@/lib/prisma'
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ companyId: string }> },

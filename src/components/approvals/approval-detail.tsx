@@ -201,7 +201,7 @@ export function ApprovalDetail({ id }: { id: string }) {
         description={`${request.entityType.replace(/_/g, ' ')} — ${request.status}`}
       >
         <Button variant="ghost" size="sm" onClick={() => router.back()}>
-          <ArrowLeft className="h-4 w-4 me-2" />
+          <ArrowLeft className="h-4 w-4 me-2 rtl:rotate-180" />
           Back
         </Button>
       </PageHeader>

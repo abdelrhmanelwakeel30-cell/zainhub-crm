@@ -152,3 +152,52 @@ export function serializeDecimals(obj: any): any {
   }
   return obj
 }
+
+/**
+ * Multi-tenant FK validator.
+ *
+ * Closes T-002 (cross-tenant FK trust) from CRM-V3-FULL-AUDIT-2026-04-25.md.
+ *
+ * Many POST endpoints accept FK ids from request body (e.g. `companyId`,
+ * `projectId`, `contactId`). Without validation, a tenant A user could
+ * reference a tenant B record — the new row is correctly tenant-scoped, but
+ * its FK points across tenants, creating dangling joins and an enumeration
+ * oracle on the response.
+ *
+ * Pass an array of `{ model, id }` pairs. The helper queries each model with
+ * `findFirst({ where: { id, tenantId } })` and throws a tagged Error if any
+ * id doesn't belong to the tenant. The error tag is `FORBIDDEN_CROSS_TENANT_FK`
+ * — handlers can map this to a 403/404 as appropriate.
+ *
+ *   await assertTenantOwnsAll(prisma, tenantId, [
+ *     { model: 'company', id: data.companyId },
+ *     { model: 'contact', id: data.primaryContactId },
+ *   ])
+ *
+ * Skips entries with null/undefined ids — caller controls "required" vs "optional"
+ * via Zod up the chain.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function assertTenantOwnsAll(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  prismaClient: any,
+  tenantId: string,
+  refs: Array<{ model: string; id: string | null | undefined }>,
+): Promise<void> {
+  const checks = refs.filter((r) => r.id != null && r.id !== '')
+  if (checks.length === 0) return
+
+  await Promise.all(
+    checks.map(async (r) => {
+      const found = await prismaClient[r.model].findFirst({
+        where: { id: r.id, tenantId },
+        select: { id: true },
+      })
+      if (!found) {
+        const err = new Error(`FORBIDDEN_CROSS_TENANT_FK: ${r.model}:${r.id}`)
+        ;(err as Error & { code: string }).code = 'FORBIDDEN_CROSS_TENANT_FK'
+        throw err
+      }
+    }),
+  )
+}

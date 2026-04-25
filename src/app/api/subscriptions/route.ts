@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
+import { assertTenantOwnsAll } from '@/lib/api-helpers'
 import { z } from 'zod'
 
 function calcNextBillingDate(startDate: Date, interval: string): Date {
@@ -82,6 +83,13 @@ export async function POST(req: NextRequest) {
     const { tenantId, id: userId } = session.user
     const startDate = new Date(parsed.data.startDate)
     const nextBillingDate = calcNextBillingDate(startDate, parsed.data.interval)
+
+    // T-002: every FK accepted from the body must belong to this tenant.
+    await assertTenantOwnsAll(prisma, tenantId, [
+      { model: 'company', id: parsed.data.companyId },
+      { model: 'contact', id: parsed.data.contactId },
+      { model: 'service', id: parsed.data.serviceId },
+    ])
 
     const subscription = await prisma.subscription.create({
       data: {

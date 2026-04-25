@@ -8,6 +8,8 @@ import { QueryProvider } from '@/components/providers/query-provider'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { TenantThemeProvider } from '@/components/providers/tenant-theme-provider'
 import { Toaster } from '@/components/ui/sonner'
+import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { localeDirections } from '@/i18n/config'
 import type { Locale } from '@/i18n/config'
 import './globals.css'
@@ -65,6 +67,9 @@ export default async function RootLayout({
                   <TooltipProvider>
                     {children}
                     <Toaster position="top-right" richColors />
+                    {/* R-002: Vercel Analytics + Speed Insights — auto-enabled on Vercel deploys, no-op locally. */}
+                    <Analytics />
+                    <SpeedInsights />
                   </TooltipProvider>
                 </TenantThemeProvider>
               </QueryProvider>

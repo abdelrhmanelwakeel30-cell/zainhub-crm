@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSession, unauthorized, serverError, ok } from '@/lib/api-helpers'
-import { prisma as _prisma } from '@/lib/prisma'
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const prisma = _prisma as any
-
+import { prisma } from '@/lib/prisma'
 export async function GET(req: NextRequest) {
   try {
     const session = await getSession()
@@ -53,19 +49,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Company not found' }, { status: 404 })
     }
 
-    // Gather metrics in parallel
+    // Q-001 fix: Invoice/Ticket/Project use `clientId` (FK → Company), not
+    // `companyId`. The previous `_prisma as any` cast hid this mismatch.
+    // ClientService does use companyId.
     const [activeServices, overdueInvoices, openTickets, delayedProjects] = await Promise.all([
       prisma.clientService.count({
         where: { tenantId, companyId, status: 'ACTIVE' },
       }),
       prisma.invoice.count({
-        where: { tenantId, companyId, status: 'OVERDUE' },
+        where: { tenantId, clientId: companyId, status: 'OVERDUE' },
       }),
       prisma.ticket.count({
-        where: { tenantId, companyId, status: { in: ['NEW', 'OPEN', 'IN_PROGRESS'] } },
+        where: { tenantId, clientId: companyId, status: { in: ['NEW', 'OPEN', 'IN_PROGRESS'] } },
       }),
       prisma.project.count({
-        where: { tenantId, companyId, healthStatus: { in: ['DELAYED', 'BLOCKED'] } },
+        where: { tenantId, clientId: companyId, healthStatus: { in: ['DELAYED', 'BLOCKED'] } },
       }),
     ])
 

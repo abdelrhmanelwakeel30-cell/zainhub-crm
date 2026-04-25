@@ -12,6 +12,13 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Project-specific ignores:
+    "_DEPRECATED_CRM-dev/**",
+    "node_modules/next/dist/docs/**",
+    "prisma/**",        // Mirrors tsconfig "exclude": ["prisma"]; seed.ts has intentional `any`s
+    "src/test/**",      // Test setup may use loose types intentionally
+    "**/__tests__/**",  // ditto for test files
+    "e2e/**",           // Playwright tests
   ]),
 ]);
 

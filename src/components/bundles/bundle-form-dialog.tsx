@@ -97,7 +97,7 @@ export function BundleFormDialog({ open, onOpenChange, bundle }: BundleFormDialo
       reset()
       onOpenChange(false)
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     onError: () => toast.error(isEditing ? 'Failed to update bundle' : 'Failed to create bundle'),
   })
 

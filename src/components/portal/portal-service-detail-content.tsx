@@ -87,7 +87,7 @@ export function PortalServiceDetailContent({ id }: { id: string }) {
         href="/portal/services"
         className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-blue-600 transition-colors w-fit"
       >
-        <ArrowLeft className="h-4 w-4" />
+        <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
         Back to Services
       </Link>
 

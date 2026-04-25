@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
       where: { tenantId: session.user.tenantId, isActive: true },
       select: { id: true, name: true, nameAr: true, icon: true },
       orderBy: [{ order: 'asc' }, { name: 'asc' }],
+      take: 200, // P-001
     })
 
     return ok(categories)

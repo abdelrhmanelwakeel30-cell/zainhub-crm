@@ -92,11 +92,14 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
         },
       })
 
-      return { company, contact, opportunity }
-    })
+      // R-009 (CRM-V3-FULL-AUDIT-2026-04-25.md): write the audit log INSIDE the
+      // transaction. If audit insert fails, the conversion rolls back —
+      // no orphaned converted leads without an audit entry.
+      await tx.auditLog.create({
+        data: { tenantId, userId, action: 'CONVERT', entityType: 'lead', entityId: id, entityName: lead.fullName },
+      })
 
-    await prisma.auditLog.create({
-      data: { tenantId, userId, action: 'CONVERT', entityType: 'lead', entityId: id, entityName: lead.fullName },
+      return { company, contact, opportunity }
     })
 
     return NextResponse.json({ success: true, data: result }, { status: 201 })

@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { verifyPortalToken, extractBearerToken } from '@/lib/portal-auth'
-import { prisma as _prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'
 import { nextNumber } from '@/lib/number-sequence'
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const prisma = _prisma as any
-
 const CreateCRSchema = z.object({
   title: z.string().min(1),
   description: z.string().optional(),
@@ -31,13 +28,15 @@ export async function GET(req: NextRequest) {
     const user = await getPortalUser(token)
     if (!user) return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 })
 
+    // Q-001 fix: ChangeRequest has no clientUserId field on the model — we
+    // scope visibility by the portal user's companyId (the user's organisation).
+    // Without a companyId, the user sees nothing.
     const changeRequests = await prisma.changeRequest.findMany({
       where: {
         tenantId: user.tenantId,
-        OR: [
-          { clientUserId: user.id },
-          ...(user.companyId ? [{ companyId: user.companyId }] : []),
-        ],
+        ...(user.companyId
+          ? { companyId: user.companyId }
+          : { id: '__no_company_no_results__' }),
       },
       orderBy: { createdAt: 'desc' },
       select: {
@@ -77,13 +76,15 @@ export async function POST(req: NextRequest) {
 
     const crNumber = await nextNumber(user.tenantId, 'changeRequest')
 
+    // Q-001 fix: ChangeRequest has no clientUserId field. Provenance is captured
+    // via companyId (the portal user's org). When we wire a real "submitted by
+    // portal user" relation, add it to the schema first.
     const cr = await prisma.changeRequest.create({
       data: {
         tenantId: user.tenantId,
         crNumber,
         title,
         description: description ?? null,
-        clientUserId: user.id,
         companyId: user.companyId ?? null,
         clientServiceId: clientServiceId ?? null,
         status: 'SUBMITTED',

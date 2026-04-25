@@ -2,21 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { SignJWT } from 'jose'
-import { prisma as _prisma } from '@/lib/prisma'
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const prisma = _prisma as any
-
+import { prisma } from '@/lib/prisma'
+import { getPortalJwtSecret } from '@/lib/portal-auth'
+import { loginRateLimit } from '@/lib/rate-limit'
 const LoginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
   tenantSlug: z.string().optional(),
 })
-
-function getJwtSecret() {
-  const secret = process.env.PORTAL_JWT_SECRET || process.env.NEXTAUTH_SECRET
-  if (!secret) throw new Error('PORTAL_JWT_SECRET (or NEXTAUTH_SECRET) is not set')
-  return new TextEncoder().encode(secret)
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,6 +20,21 @@ export async function POST(req: NextRequest) {
     }
 
     const { email, password, tenantSlug } = parsed.data
+
+    // S-002: rate limit credential-stuffing on the portal endpoint.
+    // Use email + IP so rotating IPs don't bypass and rotating emails per IP also can't.
+    const ip =
+      req.headers.get('x-forwarded-for')?.split(',')[0].trim() ??
+      req.headers.get('x-real-ip') ??
+      'unknown'
+    const rl = await loginRateLimit.limit(`portal-login:${email.toLowerCase()}:${ip}`)
+    if (!rl.success) {
+      console.warn('[client-portal/login] rate limit hit', { email, ip })
+      return NextResponse.json(
+        { success: false, error: 'Too many attempts. Try again later.' },
+        { status: 429, headers: { 'Retry-After': '900' } },
+      )
+    }
 
     // Build where clause: find the user, optionally scoped by tenant slug
     let tenantId: string | undefined
@@ -45,27 +53,23 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    if (!clientUser || !clientUser.passwordHash) {
+    // S-011: collapse all authentication failures to a single generic 401 to prevent
+    // account enumeration. Distinct reasons (no user, bad password, inactive,
+    // unverified) are logged server-side only.
+    const denyReason: string | null =
+      !clientUser || !clientUser.passwordHash
+        ? 'no-user-or-no-password'
+        : !(await bcrypt.compare(password, clientUser.passwordHash))
+          ? 'wrong-password'
+          : clientUser.status !== 'ACTIVE'
+            ? 'inactive'
+            : !clientUser.emailVerified
+              ? 'unverified'
+              : null
+
+    if (denyReason || !clientUser) {
+      console.warn(`[client-portal/login] denied ${email}: ${denyReason ?? 'no-user'}`)
       return NextResponse.json({ success: false, error: 'Invalid credentials' }, { status: 401 })
-    }
-
-    const passwordMatch = await bcrypt.compare(password, clientUser.passwordHash)
-    if (!passwordMatch) {
-      return NextResponse.json({ success: false, error: 'Invalid credentials' }, { status: 401 })
-    }
-
-    if (clientUser.status !== 'ACTIVE') {
-      return NextResponse.json(
-        { success: false, error: 'Account is not active. Please verify your email or contact support.' },
-        { status: 403 },
-      )
-    }
-
-    if (!clientUser.emailVerified) {
-      return NextResponse.json(
-        { success: false, error: 'Email not verified. Please check your inbox.' },
-        { status: 403 },
-      )
     }
 
     // Create session record
@@ -101,7 +105,7 @@ export async function POST(req: NextRequest) {
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime('30d')
-      .sign(getJwtSecret())
+      .sign(getPortalJwtSecret())
 
     return NextResponse.json({
       success: true,

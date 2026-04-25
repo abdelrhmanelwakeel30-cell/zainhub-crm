@@ -1,17 +1,21 @@
 import { jwtVerify } from 'jose'
 
-function getPortalJwtSecret() {
-  // Prefer a dedicated portal secret so a staff-session leak does not forge
-  // portal tokens (and vice-versa). Fall back to NEXTAUTH_SECRET for backwards
-  // compat in dev — production MUST set PORTAL_JWT_SECRET.
-  const secret = process.env.PORTAL_JWT_SECRET || process.env.NEXTAUTH_SECRET
-  if (!secret) throw new Error('PORTAL_JWT_SECRET (or NEXTAUTH_SECRET) is not set')
-  if (
-    process.env.NODE_ENV === 'production' &&
-    !process.env.PORTAL_JWT_SECRET
-  ) {
-    console.warn(
-      '[security] PORTAL_JWT_SECRET not set in production; using NEXTAUTH_SECRET as fallback. Rotate and configure PORTAL_JWT_SECRET.'
+/**
+ * Returns the encoded PORTAL_JWT_SECRET for signing/verifying client-portal JWTs.
+ *
+ * S-009 (CRM-V3-FULL-AUDIT-2026-04-25.md): the previous implementation fell back
+ * to NEXTAUTH_SECRET when PORTAL_JWT_SECRET was missing. That defeated the threat
+ * model — a leaked staff session secret could forge portal tokens. This now
+ * throws instead. Set PORTAL_JWT_SECRET in `.env.local` and Vercel env vars.
+ *
+ * Exported so portal route handlers stop duplicating this logic (they used to
+ * each have their own copy with the same fallback bug).
+ */
+export function getPortalJwtSecret(): Uint8Array {
+  const secret = process.env.PORTAL_JWT_SECRET
+  if (!secret) {
+    throw new Error(
+      'PORTAL_JWT_SECRET is required. Add it to .env.local (and Vercel env vars in prod).',
     )
   }
   return new TextEncoder().encode(secret)

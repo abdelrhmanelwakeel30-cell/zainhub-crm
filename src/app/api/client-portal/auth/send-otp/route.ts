@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { prisma as _prisma } from '@/lib/prisma'
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const prisma = _prisma as any
-
+import { randomInt } from 'node:crypto'
+import { prisma } from '@/lib/prisma'
 const SendOtpSchema = z.object({
   phone: z.string().min(5),
 })
 
+/**
+ * 6-digit OTP using crypto.randomInt (CSPRNG).
+ * Replaces predictable Math.random() — S-001 in CRM-V3-FULL-AUDIT-2026-04-25.md.
+ */
 function generateOtp(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString()
+  return randomInt(100000, 1000000).toString()
 }
 
 export async function POST(req: NextRequest) {
@@ -36,13 +38,15 @@ export async function POST(req: NextRequest) {
       data: { otpCode: otp, otpExpiry },
     })
 
-    // In production: send SMS via Twilio/etc
-    // In dev: return the OTP in response
-    const isDev = process.env.NODE_ENV !== 'production'
+    // In production: send SMS via Twilio/etc.
+    // The OTP is NEVER returned over the wire (S-003). For local testing,
+    // tail the server logs — the line below logs in non-production only.
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`[client-portal/send-otp] DEV OTP for ${phone}: ${otp}`)
+    }
     return NextResponse.json({
       success: true,
       message: 'OTP sent to your phone.',
-      ...(isDev && { otp, note: 'DEV MODE: OTP included in response' }),
     })
   } catch (err) {
     console.error('[client-portal/auth/send-otp]', err)

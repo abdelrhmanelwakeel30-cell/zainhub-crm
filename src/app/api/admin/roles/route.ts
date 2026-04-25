@@ -44,6 +44,7 @@ export async function GET(req: NextRequest) {
         }),
       },
       orderBy: [{ isSystem: 'desc' }, { name: 'asc' }],
+      take: 200, // P-001
     })
 
     return ok(roles)

@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyPortalToken, extractBearerToken } from '@/lib/portal-auth'
-import { prisma as _prisma } from '@/lib/prisma'
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const prisma = _prisma as any
-
+import { prisma } from '@/lib/prisma'
 export async function GET(req: NextRequest) {
   try {
     const token = extractBearerToken(req.headers.get('authorization'))
@@ -45,6 +42,9 @@ export async function GET(req: NextRequest) {
         }),
         prisma.approvalStep.count({
           where: {
+            // T-003 (CRM-V3-FULL-AUDIT-2026-04-25.md): defense-in-depth — scope by tenant
+            // even though approverClientUserId is unique to one tenant today.
+            ...tenantFilter,
             approverClientUserId: payload.sub,
             status: 'PENDING',
           },
