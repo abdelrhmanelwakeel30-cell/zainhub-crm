@@ -4,6 +4,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* I-004 follow-up: register the rtl: variant so `rtl:rotate-180` and friends actually emit
+   selectors targeting [dir="rtl"]. Tailwind 4 doesn't ship this built-in. */
+@custom-variant rtl ([dir="rtl"] &);
+@custom-variant ltr ([dir="ltr"] &);
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
