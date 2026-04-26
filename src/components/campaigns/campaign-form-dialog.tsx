@@ -1,7 +1,7 @@
 'use client'
 
 import { useForm, Controller } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { zodFormResolver } from '@/lib/forms/zod-resolver'
 import { z } from 'zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -38,7 +38,7 @@ interface Props {
 export function CampaignFormDialog({ open, onOpenChange }: Props) {
   const queryClient = useQueryClient()
   const { register, handleSubmit, control, formState: { errors }, reset } = useForm<FormInput>({
-    resolver: zodResolver(schema) as any,
+    resolver: zodFormResolver(schema),
     defaultValues: { type: 'OTHER', status: 'DRAFT', currency: 'AED' },
   })
 

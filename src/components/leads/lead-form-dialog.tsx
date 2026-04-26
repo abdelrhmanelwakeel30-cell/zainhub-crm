@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { FormField } from '@/components/ui/form-field'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -107,9 +108,14 @@ export function LeadFormDialog({ open, onOpenChange, defaultValues }: LeadFormDi
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <Label htmlFor="fullName">{t('fullName')} *</Label>
-              <Input id="fullName" {...register('fullName')} className="mt-1" />
-              {errors.fullName && <p className="text-xs text-red-500 mt-1">{errors.fullName.message}</p>}
+              <FormField
+                id="fullName"
+                label={t('fullName')}
+                required
+                error={errors.fullName?.message}
+              >
+                <Input {...register('fullName')} className="mt-1" />
+              </FormField>
             </div>
 
             <div>

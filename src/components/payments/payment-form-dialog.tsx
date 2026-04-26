@@ -1,7 +1,7 @@
 'use client'
 
 import { useForm, Controller } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { zodFormResolver } from '@/lib/forms/zod-resolver'
 import { z } from 'zod'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -44,7 +44,7 @@ export function PaymentFormDialog({ open, onOpenChange }: Props) {
   })
 
   const { register, handleSubmit, control, formState: { errors }, reset } = useForm<FormInput>({
-    resolver: zodResolver(schema) as any,
+    resolver: zodFormResolver(schema),
     defaultValues: {
       paymentMethod: 'BANK_TRANSFER',
       paymentDate: new Date().toISOString().slice(0, 10),

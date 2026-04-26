@@ -1,7 +1,7 @@
 'use client'
 
 import { useForm, Controller, useFieldArray } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { zodFormResolver } from '@/lib/forms/zod-resolver'
 import { z } from 'zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -52,7 +52,7 @@ export function PipelineFormDialog({ open, onOpenChange }: Props) {
   const queryClient = useQueryClient()
 
   const { register, handleSubmit, control, formState: { errors }, reset } = useForm<FormInput>({
-    resolver: zodResolver(schema) as any,
+    resolver: zodFormResolver(schema),
     defaultValues: {
       entityType: 'OPPORTUNITY',
       isDefault: false,
