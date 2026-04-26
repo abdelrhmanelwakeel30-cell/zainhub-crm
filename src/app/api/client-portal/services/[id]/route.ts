@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyPortalToken, extractBearerToken } from '@/lib/portal-auth'
 import { prisma } from '@/lib/prisma'
+import { log } from '@/lib/logger'
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -54,7 +55,7 @@ export async function GET(
 
     return NextResponse.json({ success: true, data: service })
   } catch (err) {
-    console.error('[client-portal/services/[id]]', err)
+    log.error('[client-portal/services/[id]]', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

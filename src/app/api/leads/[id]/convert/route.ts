@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
+import { invalidate } from '@/lib/cache'
 
+import { log } from '@/lib/logger'
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getApiSession()
   if (!session) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
@@ -102,9 +104,10 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
       return { company, contact, opportunity }
     })
 
+
     return NextResponse.json({ success: true, data: result }, { status: 201 })
   } catch (err) {
-    console.error('POST /api/leads/[id]/convert', err)
+    log.error('POST /api/leads/[id]/convert', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { jwtVerify } from 'jose'
 import { prisma } from '@/lib/prisma'
 import { getPortalJwtSecret } from '@/lib/portal-auth'
+import { log } from '@/lib/logger'
 export async function GET(req: NextRequest) {
   try {
     const authHeader = req.headers.get('authorization')
@@ -76,7 +77,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ success: true, data: clientUser })
   } catch (err) {
-    console.error('[client-portal/auth/me]', err)
+    log.error('[client-portal/auth/me]', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
+import { log } from '@/lib/logger'
 import { z } from 'zod'
 
 const createSchema = z.object({
@@ -41,7 +42,7 @@ export async function GET(req: NextRequest) {
     ])
     return NextResponse.json({ success: true, data, total })
   } catch (err) {
-    console.error(err)
+    log.error('error', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -83,7 +84,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, data: bundle }, { status: 201 })
   } catch (err) {
-    console.error(err)
+    log.error('error', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -4,6 +4,7 @@ import { SignJWT } from 'jose'
 import { prisma } from '@/lib/prisma'
 import { getPortalJwtSecret } from '@/lib/portal-auth'
 import { otpVerifyRateLimit } from '@/lib/rate-limit'
+import { log } from '@/lib/logger'
 const VerifyOtpSchema = z.object({
   phone: z.string().min(5),
   otp: z.string().length(6),
@@ -106,7 +107,7 @@ export async function POST(req: NextRequest) {
       },
     })
   } catch (err) {
-    console.error('[client-portal/auth/verify-otp]', err)
+    log.error('[client-portal/auth/verify-otp]', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

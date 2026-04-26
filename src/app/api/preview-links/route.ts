@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
+import { log } from '@/lib/logger'
 import { z } from 'zod'
 
 const createSchema = z.object({
@@ -37,7 +38,7 @@ export async function GET(req: NextRequest) {
       take: 100, // P-001 defensive cap
     })
     return NextResponse.json({ success: true, data })
-  } catch (err) { console.error(err); return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 }) }
+  } catch (err) { log.error('error', { err: err }); return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 }) }
 }
 
 export async function POST(req: NextRequest) {
@@ -65,5 +66,5 @@ export async function POST(req: NextRequest) {
     })
     await prisma.auditLog.create({ data: { tenantId, userId, action: 'CREATE', entityType: 'previewLink', entityId: link.id, entityName: link.title } })
     return NextResponse.json({ success: true, data: link }, { status: 201 })
-  } catch (err) { console.error(err); return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 }) }
+  } catch (err) { log.error('error', { err: err }); return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 }) }
 }

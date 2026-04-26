@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyPortalToken, extractBearerToken } from '@/lib/portal-auth'
 import { prisma } from '@/lib/prisma'
+import { log } from '@/lib/logger'
 export async function GET(req: NextRequest) {
   try {
     const token = extractBearerToken(req.headers.get('authorization'))
@@ -45,7 +46,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ success: true, data: services })
   } catch (err) {
-    console.error('[client-portal/services]', err)
+    log.error('[client-portal/services]', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

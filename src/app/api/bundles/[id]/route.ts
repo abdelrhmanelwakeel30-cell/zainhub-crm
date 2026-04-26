@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
+import { log } from '@/lib/logger'
 import { z } from 'zod'
 
 const patchSchema = z.object({
@@ -33,7 +34,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     if (!bundle) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
     return NextResponse.json({ success: true, data: bundle })
   } catch (err) {
-    console.error(err)
+    log.error('error', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -65,7 +66,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     })
     return NextResponse.json({ success: true, data: bundle })
   } catch (err) {
-    console.error(err)
+    log.error('error', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -81,7 +82,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     await prisma.serviceBundle.delete({ where: { id } })
     return NextResponse.json({ success: true })
   } catch (err) {
-    console.error(err)
+    log.error('error', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

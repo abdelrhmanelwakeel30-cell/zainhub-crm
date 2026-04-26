@@ -31,10 +31,11 @@ interface Limiter {
   limit(identifier: string): Promise<LimitResult>
 }
 
-const REDIS_URL =
-  process.env.UPSTASH_REDIS_REST_URL ?? process.env.UPSTASH_REDIS_URL
-const REDIS_TOKEN =
-  process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.UPSTASH_REDIS_TOKEN
+// D-008: only the canonical _REST_* names. The legacy _URL/_TOKEN names
+// are intentionally NOT supported to avoid silent fallbacks where two
+// modules read different vars.
+const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL
+const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN
 
 const upstashConfigured = Boolean(REDIS_URL && REDIS_TOKEN)
 

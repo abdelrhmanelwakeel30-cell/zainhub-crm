@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
 import { logUpdate } from '@/lib/activity'
+import { log } from '@/lib/logger'
 import { z } from 'zod'
 
 const updateSchema = z.object({
@@ -50,7 +51,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     if (!lead) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
     return NextResponse.json({ success: true, data: lead })
   } catch (err) {
-    console.error('GET /api/leads/[id]', err)
+    log.error('GET /api/leads/[id]', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -89,7 +90,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     logUpdate(session.user.tenantId, 'lead', lead.id, lead.fullName, session.user.id)
     return NextResponse.json({ success: true, data: lead })
   } catch (err) {
-    console.error('PATCH /api/leads/[id]', err)
+    log.error('PATCH /api/leads/[id]', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -107,7 +108,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     })
     return NextResponse.json({ success: true })
   } catch (err) {
-    console.error('DELETE /api/leads/[id]', err)
+    log.error('DELETE /api/leads/[id]', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

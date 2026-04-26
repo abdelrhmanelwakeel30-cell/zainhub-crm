@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
 import { nextNumber } from '@/lib/number-sequence'
+import { log } from '@/lib/logger'
 import { z } from 'zod'
 
 const createBillingSchema = z.object({
@@ -28,7 +29,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     })
     return NextResponse.json({ success: true, data: records })
   } catch (err) {
-    console.error(err)
+    log.error('error', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -104,7 +105,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     return NextResponse.json({ success: true, data: billingRecord }, { status: 201 })
   } catch (err) {
-    console.error(err)
+    log.error('error', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

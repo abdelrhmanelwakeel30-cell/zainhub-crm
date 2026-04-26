@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
 
+import { log } from '@/lib/logger'
 function toMonthlyAmount(amount: number, interval: string): number {
   switch (interval) {
     case 'WEEKLY':      return amount * 4.33
@@ -69,7 +70,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ success: true, data: { months } })
   } catch (err) {
-    console.error(err)
+    log.error('error', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

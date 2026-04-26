@@ -25,10 +25,9 @@ import { prisma } from './prisma'
 
 const TTL_SECONDS = 5 * 60 // 5 minutes
 
-const REDIS_URL =
-  process.env.UPSTASH_REDIS_REST_URL ?? process.env.UPSTASH_REDIS_URL
-const REDIS_TOKEN =
-  process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.UPSTASH_REDIS_TOKEN
+// D-008: only the canonical _REST_* names (mirrors src/lib/rate-limit.ts).
+const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL
+const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN
 const upstashConfigured = Boolean(REDIS_URL && REDIS_TOKEN)
 const redis = upstashConfigured
   ? new Redis({ url: REDIS_URL!, token: REDIS_TOKEN! })

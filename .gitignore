@@ -35,6 +35,7 @@ yarn-error.log*
 .env.local
 .env.production
 .env*
+!.env.example
 
 # sqlite database files
 prisma/dev.db
@@ -53,3 +54,7 @@ tmux.tar.gz
 *.tsbuildinfo
 next-env.d.ts
 /_DEPRECATED_*/
+
+# Local SQLite dev database — production uses Postgres on Neon
+prisma/dev.db
+prisma/dev.db-journal

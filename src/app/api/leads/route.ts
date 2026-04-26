@@ -3,6 +3,8 @@ import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
 import { nextNumber } from '@/lib/number-sequence'
 import { logCreate } from '@/lib/activity'
+import { invalidate } from '@/lib/cache'
+import { log } from '@/lib/logger'
 import { z } from 'zod'
 
 const createLeadSchema = z.object({
@@ -62,9 +64,10 @@ export async function GET(req: NextRequest) {
       }),
       prisma.lead.count({ where }),
     ])
+
     return NextResponse.json({ success: true, data, total, page, pageSize, totalPages: Math.ceil(total / pageSize) })
   } catch (err) {
-    console.error('GET /api/leads', err)
+    log.error('GET /api/leads', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -130,7 +133,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, data: lead }, { status: 201 })
   } catch (err) {
-    console.error('POST /api/leads', err)
+    log.error('POST /api/leads', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

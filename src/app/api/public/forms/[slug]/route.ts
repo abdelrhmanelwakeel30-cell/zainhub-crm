@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { nextNumber } from '@/lib/number-sequence'
 
+import { log } from '@/lib/logger'
 export async function GET(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   try {
@@ -26,7 +27,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
       },
     })
   } catch (err) {
-    console.error(err)
+    log.error('error', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -69,7 +70,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
         leadId = lead.id
       }
     } catch (leadErr) {
-      console.error('Could not create lead from form submission:', leadErr)
+      log.error('Could not create lead from form submission:', { err: leadErr })
     }
 
     const submission = await prisma.leadCaptureSubmission.create({
@@ -92,7 +93,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
       },
     }, { status: 201 })
   } catch (err) {
-    console.error(err)
+    log.error('error', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

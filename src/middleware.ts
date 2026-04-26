@@ -76,14 +76,17 @@ export async function middleware(request: NextRequest) {
       )
     }
 
-    // S-006 / Fix-013 (CSRF): require Origin to match Host on mutating requests.
-    // Same-origin browsers always send Origin; CSRF attempts cross-origin won't.
+    // S-006 / Fix-013 / S-015 (CSRF): require Origin OR Referer to match Host on mutating requests.
+    // Modern browsers always send Origin; older clients/proxies may strip it but include Referer.
+    // If neither is present on a mutation, reject (defense-in-depth).
     if (MUTATING_METHODS.has(request.method)) {
       const origin = request.headers.get('origin')
+      const referer = request.headers.get('referer')
       const host = request.headers.get('host')
-      if (origin) {
+      const sourceUrl = origin ?? referer
+      if (sourceUrl) {
         try {
-          if (new URL(origin).host !== host) {
+          if (new URL(sourceUrl).host !== host) {
             return NextResponse.json(
               { success: false, error: 'CSRF: origin mismatch' },
               { status: 403 },
@@ -95,6 +98,12 @@ export async function middleware(request: NextRequest) {
             { status: 403 },
           )
         }
+      } else {
+        // S-015: neither Origin nor Referer present — reject
+        return NextResponse.json(
+          { success: false, error: 'CSRF: missing origin and referer' },
+          { status: 403 },
+        )
       }
     }
 

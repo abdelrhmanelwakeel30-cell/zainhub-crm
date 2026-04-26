@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
 
+import { log } from '@/lib/logger'
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string; itemId: string }> }
@@ -20,7 +21,7 @@ export async function DELETE(
     await prisma.serviceBundleItem.delete({ where: { id: itemId } })
     return NextResponse.json({ success: true })
   } catch (err) {
-    console.error(err)
+    log.error('error', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

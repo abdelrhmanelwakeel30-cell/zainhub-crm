@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { verifyPortalToken, extractBearerToken } from '@/lib/portal-auth'
 import { prisma } from '@/lib/prisma'
 import { nextNumber } from '@/lib/number-sequence'
+import { log } from '@/lib/logger'
 const CreateCRSchema = z.object({
   title: z.string().min(1),
   description: z.string().optional(),
@@ -53,7 +54,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ success: true, data: changeRequests })
   } catch (err) {
-    console.error('[client-portal/change-requests GET]', err)
+    log.error('[client-portal/change-requests GET]', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -95,7 +96,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, data: cr }, { status: 201 })
   } catch (err) {
-    console.error('[client-portal/change-requests POST]', err)
+    log.error('[client-portal/change-requests POST]', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
 import { sendPaymentConfirmation } from '@/lib/email'
+import { invalidate } from '@/lib/cache'
+import { log } from '@/lib/logger'
 import { z } from 'zod'
 
 const paymentSchema = z.object({
@@ -75,10 +77,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       Promise.resolve(
         sendPaymentConfirmation(client.email, invoice.invoiceNumber, parsed.data.amount, invoice.currency, tenant.name),
       ).catch((emailErr) => {
-        console.error('[payments] sendPaymentConfirmation failed', { paymentId: result.id, err: emailErr })
+        log.error('[payments] sendPaymentConfirmation failed', { err: { paymentId: result.id, err: emailErr } })
       })
     }
 
+
     return NextResponse.json({ success: true, data: result }, { status: 201 })
-  } catch (err) { console.error(err); return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 }) }
+  } catch (err) { log.error('error', { err: err }); return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 }) }
 }

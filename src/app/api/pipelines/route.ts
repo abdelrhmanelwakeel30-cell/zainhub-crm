@@ -4,18 +4,13 @@ import { getSession, unauthorized, serverError, ok, parseJson } from '@/lib/api-
 import { prisma } from '@/lib/prisma'
 import { createAuditLog } from '@/lib/audit'
 import { PipelineEntityType } from '@prisma/client'
+import { cached, invalidate } from '@/lib/cache'
 
-export async function GET(req: NextRequest) {
-  try {
-    const session = await getSession()
-    if (!session?.user) return unauthorized()
-
-    const { searchParams } = new URL(req.url)
-    const entityType = (searchParams.get('entityType') || searchParams.get('type') || '') as PipelineEntityType | ''
-
-    const pipelines = await prisma.pipeline.findMany({
+const getPipelines = cached(
+  async (tenantId: string, entityType: string) => {
+    return prisma.pipeline.findMany({
       where: {
-        tenantId: session.user.tenantId,
+        tenantId,
         isActive: true,
         ...(entityType && { entityType: entityType as PipelineEntityType }),
       },
@@ -31,7 +26,20 @@ export async function GET(req: NextRequest) {
       orderBy: { isDefault: 'desc' },
       take: 200, // P-001
     })
+  },
+  ['pipelines'],
+  { revalidate: 300, tags: ['lookup-pipelines'] },
+)
 
+export async function GET(req: NextRequest) {
+  try {
+    const session = await getSession()
+    if (!session?.user) return unauthorized()
+
+    const { searchParams } = new URL(req.url)
+    const entityType = (searchParams.get('entityType') || searchParams.get('type') || '') as PipelineEntityType | ''
+
+    const pipelines = await getPipelines(session.user.tenantId, entityType)
     return ok(pipelines)
   } catch (err) {
     return serverError(err)

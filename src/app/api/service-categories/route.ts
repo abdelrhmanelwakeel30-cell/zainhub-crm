@@ -3,19 +3,13 @@ import { z } from 'zod'
 import { getSession, unauthorized, serverError, ok, parseJson } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
 import { createAuditLog } from '@/lib/audit'
+import { cached } from '@/lib/cache'
 
-export async function GET(req: NextRequest) {
-  try {
-    const session = await getSession()
-    if (!session?.user) return unauthorized()
-
-    const { searchParams } = new URL(req.url)
-    const includeInactive = searchParams.get('includeInactive') === 'true'
-    const withCounts = searchParams.get('withCounts') === 'true'
-
-    const categories = await prisma.serviceCategory.findMany({
+const getServiceCategories = cached(
+  async (tenantId: string, includeInactive: boolean, withCounts: boolean) => {
+    return prisma.serviceCategory.findMany({
       where: {
-        tenantId: session.user.tenantId,
+        tenantId,
         ...(includeInactive ? {} : { isActive: true }),
       },
       select: {
@@ -31,6 +25,21 @@ export async function GET(req: NextRequest) {
       orderBy: [{ order: 'asc' }, { name: 'asc' }],
       take: 200, // P-001
     })
+  },
+  ['service-categories'],
+  { revalidate: 300, tags: ['lookup-service-categories'] },
+)
+
+export async function GET(req: NextRequest) {
+  try {
+    const session = await getSession()
+    if (!session?.user) return unauthorized()
+
+    const { searchParams } = new URL(req.url)
+    const includeInactive = searchParams.get('includeInactive') === 'true'
+    const withCounts = searchParams.get('withCounts') === 'true'
+
+    const categories = await getServiceCategories(session.user.tenantId, includeInactive, withCounts)
 
     return ok(categories)
   } catch (err) {

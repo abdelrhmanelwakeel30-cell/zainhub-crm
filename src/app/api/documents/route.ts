@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { logCreate } from '@/lib/activity'
 
+import { log } from '@/lib/logger'
 const createSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
@@ -75,7 +76,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, data: doc }, { status: 201 })
   } catch (err) {
-    console.error(err)
+    log.error('error', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

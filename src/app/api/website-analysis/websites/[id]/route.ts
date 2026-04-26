@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { createAuditLog } from '@/lib/audit'
 import { updateWebsiteSchema } from '@/lib/validators/website-analysis'
 
+import { log } from '@/lib/logger'
 interface Ctx { params: Promise<{ id: string }> }
 
 export async function GET(req: NextRequest, ctx: Ctx) {
@@ -68,7 +69,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
 
     return NextResponse.json({ success: true, data: updated })
   } catch (err) {
-    console.error('PATCH /api/website-analysis/websites/[id]', err)
+    log.error('PATCH /api/website-analysis/websites/[id]', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

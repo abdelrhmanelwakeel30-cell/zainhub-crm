@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { nextNumber } from '@/lib/number-sequence'
 import { logCreate } from '@/lib/activity'
 import { assertTenantOwnsAll } from '@/lib/api-helpers'
+import { log } from '@/lib/logger'
 import { z } from 'zod'
 
 const createSchema = z.object({
@@ -39,7 +40,7 @@ export async function GET(req: NextRequest) {
       prisma.contact.count({ where }),
     ])
     return NextResponse.json({ success: true, data, total, page, pageSize, totalPages: Math.ceil(total/pageSize) })
-  } catch (err) { console.error(err); return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 }) }
+  } catch (err) { log.error('error', { err: err }); return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 }) }
 }
 
 export async function POST(req: NextRequest) {
@@ -71,5 +72,5 @@ export async function POST(req: NextRequest) {
     await prisma.auditLog.create({ data: { tenantId, userId, action: 'CREATE', entityType: 'contact', entityId: contact.id, entityName: `${contact.firstName} ${contact.lastName}` } })
     logCreate(tenantId, 'contact', contact.id, contact.firstName + ' ' + contact.lastName, userId)
     return NextResponse.json({ success: true, data: contact }, { status: 201 })
-  } catch (err) { console.error(err); return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 }) }
+  } catch (err) { log.error('error', { err: err }); return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 }) }
 }

@@ -5,6 +5,7 @@ import { createAuditLog } from '@/lib/audit'
 import { createWebsiteSchema } from '@/lib/validators/website-analysis'
 import { paginatedOk, parsePagination } from '@/lib/api-helpers'
 
+import { log } from '@/lib/logger'
 export async function GET(req: NextRequest) {
   const session = await getApiSession()
   if (!session) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
@@ -40,7 +41,7 @@ export async function GET(req: NextRequest) {
     ])
     return paginatedOk(websites, total, page, pageSize)
   } catch (err) {
-    console.error('GET /api/website-analysis/websites', err)
+    log.error('GET /api/website-analysis/websites', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -91,7 +92,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, data: website }, { status: 201 })
   } catch (err) {
-    console.error('POST /api/website-analysis/websites', err)
+    log.error('POST /api/website-analysis/websites', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

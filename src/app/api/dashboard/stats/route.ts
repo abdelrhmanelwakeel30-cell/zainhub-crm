@@ -1,13 +1,10 @@
 import { NextRequest } from 'next/server'
 import { getSession, unauthorized, serverError, ok, serializeDecimals } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
+import { cached } from '@/lib/cache'
 
-export async function GET(req: NextRequest) {
-  try {
-    const session = await getSession()
-    if (!session?.user) return unauthorized()
-
-    const tenantId = session.user.tenantId
+const getDashboardStats = cached(
+  async (tenantId: string) => {
     const now = new Date()
 
     // Current month boundaries
@@ -151,7 +148,7 @@ export async function GET(req: NextRequest) {
       value: Number(r._sum.expectedValue || 0),
     }))
 
-    return ok(serializeDecimals({
+    return {
       totalLeads,
       activeOpportunities,
       pipelineValue,
@@ -163,7 +160,19 @@ export async function GET(req: NextRequest) {
       revenueByMonth,
       leadsBySource,
       pipelineByStage,
-    }))
+    }
+  },
+  ['dashboard-stats'],
+  { revalidate: 60, tags: ['dashboard'] },
+)
+
+export async function GET(_req: NextRequest) {
+  try {
+    const session = await getSession()
+    if (!session?.user) return unauthorized()
+
+    const data = await getDashboardStats(session.user.tenantId)
+    return ok(serializeDecimals(data))
   } catch (err) {
     return serverError(err)
   }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { log } from '@/lib/logger'
 export async function GET(req: NextRequest) {
   try {
     const token = req.nextUrl.searchParams.get('token')
@@ -33,7 +34,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ success: true, message: 'Email verified successfully. You can now sign in.' })
   } catch (err) {
-    console.error('[client-portal/auth/verify-email]', err)
+    log.error('[client-portal/auth/verify-email]', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

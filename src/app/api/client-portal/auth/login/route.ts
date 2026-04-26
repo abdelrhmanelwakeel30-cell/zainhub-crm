@@ -5,10 +5,13 @@ import { SignJWT } from 'jose'
 import { prisma } from '@/lib/prisma'
 import { getPortalJwtSecret } from '@/lib/portal-auth'
 import { loginRateLimit } from '@/lib/rate-limit'
+import { log } from '@/lib/logger'
+// S-016: tenantSlug MUST be present. Without it, findFirst by email
+// matches the first user across all tenants — auth oracle + wrong-tenant login.
 const LoginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
-  tenantSlug: z.string().optional(),
+  tenantSlug: z.string().min(1),
 })
 
 export async function POST(req: NextRequest) {
@@ -119,7 +122,7 @@ export async function POST(req: NextRequest) {
       },
     })
   } catch (err) {
-    console.error('[client-portal/auth/login]', err)
+    log.error('[client-portal/auth/login]', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

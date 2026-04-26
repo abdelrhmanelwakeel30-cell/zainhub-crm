@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
+import { log } from '@/lib/logger'
 const RegisterSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8, 'Password must be at least 8 characters'),
@@ -70,7 +71,7 @@ export async function POST(req: NextRequest) {
       { status: 201 },
     )
   } catch (err) {
-    console.error('[client-portal/auth/register]', err)
+    log.error('[client-portal/auth/register]', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

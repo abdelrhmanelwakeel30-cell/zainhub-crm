@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { randomInt } from 'node:crypto'
 import { prisma } from '@/lib/prisma'
+import { log } from '@/lib/logger'
 const SendOtpSchema = z.object({
   phone: z.string().min(5),
 })
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
       message: 'OTP sent to your phone.',
     })
   } catch (err) {
-    console.error('[client-portal/auth/send-otp]', err)
+    log.error('[client-portal/auth/send-otp]', { err: err })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
