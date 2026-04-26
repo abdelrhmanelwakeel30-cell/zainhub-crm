@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireApiPermission } from '@/lib/auth-utils'
 import { z } from 'zod'
 import { getSession, unauthorized, serverError, ok, parseJson } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
@@ -57,6 +58,10 @@ const CreateCategorySchema = z.object({
 })
 
 export async function POST(req: NextRequest) {
+
+  // S-004: RBAC gate
+  const __guard = await requireApiPermission('settings:create')
+  if (!__guard.ok) return __guard.response
   try {
     const session = await getSession()
     if (!session?.user) return unauthorized()

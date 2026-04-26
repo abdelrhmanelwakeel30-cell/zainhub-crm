@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getApiSession } from '@/lib/auth-utils'
+import { getApiSession, requireApiPermission } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
 import { sanitizeUpdateBody } from '@/lib/api-helpers'
 
@@ -29,6 +29,10 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  // S-004: RBAC gate
+  const __guard = await requireApiPermission('preview_links:edit')
+  if (!__guard.ok) return __guard.response
   const session = await getApiSession()
   if (!session) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
   const { id } = await params
@@ -44,6 +48,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  // S-004: RBAC gate
+  const __guard = await requireApiPermission('preview_links:delete')
+  if (!__guard.ok) return __guard.response
   const session = await getApiSession()
   if (!session) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
   const { id } = await params

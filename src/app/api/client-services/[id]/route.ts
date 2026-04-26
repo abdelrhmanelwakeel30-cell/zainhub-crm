@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireApiPermission } from '@/lib/auth-utils'
 import { z } from 'zod'
 import { getSession, unauthorized, notFound, serverError, ok, serializeDecimals } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
@@ -57,6 +58,10 @@ export async function GET(req: NextRequest, ctx: RouteContext) {
 }
 
 export async function PATCH(req: NextRequest, ctx: RouteContext) {
+
+  // S-004: RBAC gate
+  const __guard = await requireApiPermission('client_services:edit')
+  if (!__guard.ok) return __guard.response
   try {
     const session = await getSession()
     if (!session?.user) return unauthorized()
@@ -102,6 +107,10 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
 }
 
 export async function DELETE(req: NextRequest, ctx: RouteContext) {
+
+  // S-004: RBAC gate
+  const __guard = await requireApiPermission('client_services:delete')
+  if (!__guard.ok) return __guard.response
   try {
     const session = await getSession()
     if (!session?.user) return unauthorized()

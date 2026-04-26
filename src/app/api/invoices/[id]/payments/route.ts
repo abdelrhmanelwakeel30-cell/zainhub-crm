@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getApiSession } from '@/lib/auth-utils'
+import { getApiSession, requireApiPermission } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
 import { sendPaymentConfirmation } from '@/lib/email'
 import { invalidate } from '@/lib/cache'
@@ -15,6 +15,10 @@ const paymentSchema = z.object({
 })
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  // S-004: RBAC gate
+  const __guard = await requireApiPermission('invoices:create')
+  if (!__guard.ok) return __guard.response
   const session = await getApiSession()
   if (!session) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
   const { id: invoiceId } = await params

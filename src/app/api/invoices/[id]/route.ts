@@ -46,7 +46,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const guard = await requireApiPermission('invoices:write')
+  const guard = await requireApiPermission('invoices:edit')
   if (!guard.ok) return guard.response
   const { session } = guard
   const { id } = await params

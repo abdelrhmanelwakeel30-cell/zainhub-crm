@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireApiPermission } from '@/lib/auth-utils'
 import { z } from 'zod'
 import { getSession, unauthorized, serverError, paginatedOk, parsePagination, serializeDecimals, assertTenantOwnsAll } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
@@ -69,6 +70,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+
+  // S-004: RBAC gate
+  const __guard = await requireApiPermission('expenses:create')
+  if (!__guard.ok) return __guard.response
   try {
     const session = await getSession()
     if (!session?.user) return unauthorized()

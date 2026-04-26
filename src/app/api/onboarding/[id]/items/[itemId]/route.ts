@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireApiPermission } from '@/lib/auth-utils'
 import { getSession, unauthorized, serverError, notFound, ok } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
@@ -12,6 +13,10 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string; itemId: string }> },
 ) {
+
+  // S-004: RBAC gate
+  const __guard = await requireApiPermission('onboarding:edit')
+  if (!__guard.ok) return __guard.response
   try {
     const session = await getSession()
     if (!session?.user) return unauthorized()

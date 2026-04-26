@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getApiSession } from '@/lib/auth-utils'
+import { getApiSession, requireApiPermission } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
 import { nextNumber } from '@/lib/number-sequence'
 import { log } from '@/lib/logger'
@@ -35,6 +35,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  // S-004: RBAC gate
+  const __guard = await requireApiPermission('subscriptions:create')
+  if (!__guard.ok) return __guard.response
   const session = await getApiSession()
   if (!session) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 

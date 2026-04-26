@@ -42,7 +42,7 @@ export async function requirePermission(permission: string) {
  * Use in every mutation (POST/PATCH/DELETE) route.
  *
  * Example:
- *   const guard = await requireApiPermission('invoices:write')
+ *   const guard = await requireApiPermission('invoices:edit')
  *   if (!guard.ok) return guard.response
  *   const { session } = guard
  */
