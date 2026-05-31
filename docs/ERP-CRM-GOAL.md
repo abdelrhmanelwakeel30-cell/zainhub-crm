@@ -33,7 +33,7 @@
 
 ## Phase C — ERP modules
 - [x] **E-1** HR & Workforce — `Employee` + `LeaveRequest` models + migration; manager hierarchy (org chart via managerId); `employees`/`leave` perms in both seeds + HR role; full APIs (employees CRUD+archive, leave create + approve/reject/cancel) RBAC+audit; **UI** at `/admin/hr` (employees DataTable + leave tab with approve/reject + New-employee dialog) + sidebar nav (EN/AR). Verified E2E (sales 403; HR creates EMP-0001, files+approves leave) + build. (Attendance/payslip-linkage are future add-ons.)
-- [ ] **E-2** Payroll: salary structures, payslips, run processing, GL postings
+- [~] **E-2** Payroll — **backend done**: `PayrollRun` + `Payslip` models + migration; `payroll` perm in both seeds + Finance role; APIs — `/api/payroll-runs` (GET/POST), `/api/payroll-runs/[id]` (GET + PATCH process→generates payslips for active salaried employees / mark-paid, state-guarded), `/api/payslips` (GET) — RBAC + tenant-scope + audit. Verified E2E (sales 403; finance creates PRN-0001 → process (1 payslip, gross 15000) → list → mark-paid). **Next:** payroll UI tab + GL posting hook.
 - [ ] **E-3** Finance/Accounting: chart of accounts, journal entries, ledgers, trial balance
 - [ ] **E-4** Procurement & Vendors: purchase orders, vendor bills, approvals
 - [ ] **E-5** Inventory / Assets: items, stock movements, asset register
@@ -81,3 +81,4 @@
 - 2026-05-31 — C-9 done: SSE /api/notifications/stream + useNotificationStream hook in app-shell (live unread updates). Verified E2E (401 no-auth, streams ready+notifications events). tsc + 44 tests + build (120 routes) green. **Phase B fully complete.** Next: F-4 route factory / F-5 perf, then Phase C ERP (E-1 HR).
 - 2026-05-31 — Phase C started. E-1 HR backend: Employee + LeaveRequest models + curated migration (122 routes); employees/leave permissions in both seeds + HR role; full CRUD/approve APIs with RBAC+audit. Verified E2E (sales 403; HR creates EMP-0001 + files/approves leave). tsc + 44 tests + build green. Next: E-1 HR UI (list page + nav + attendance), then E-2 payroll.
 - 2026-05-31 — E-1 DONE: HR UI at /admin/hr (employees DataTable + leave approve/reject tab + New-employee dialog) + sidebar nav (EN/AR). tsc + 44 tests + build (123 routes) green. Next: E-2 Payroll (SalaryStructure/Payslip + run processing).
+- 2026-05-31 — E-2 backend done: PayrollRun + Payslip models + migration (125 routes); payroll perm in both seeds + Finance role; runs CRUD + process (payslip generation) + mark-paid + payslips list, RBAC+audit. Verified E2E (sales 403; finance PRN-0001 → process 1 payslip gross 15000 → mark-paid PAID). tsc + 44 tests + build green. Next: payroll UI tab, then E-3 Accounting.

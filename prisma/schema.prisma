@@ -367,6 +367,8 @@ model Tenant {
   agentApiKeys           AgentApiKey[]
   employees              Employee[]
   leaveRequests          LeaveRequest[]
+  payrollRuns            PayrollRun[]
+  payslips               Payslip[]
   companies              Company[]
   contacts               Contact[]
   leads                  Lead[]
@@ -2782,6 +2784,7 @@ model Employee {
   updatedAt      DateTime   @updatedAt
 
   leaveRequests LeaveRequest[]
+  payslips      Payslip[]
 
   @@unique([tenantId, employeeNumber])
   @@index([tenantId])
@@ -2808,4 +2811,52 @@ model LeaveRequest {
   @@index([tenantId])
   @@index([tenantId, employeeId])
   @@index([tenantId, status])
+}
+
+// ============================================================================
+// ERP — PAYROLL (E-2)
+// ============================================================================
+
+model PayrollRun {
+  id          String    @id @default(cuid())
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id])
+  runNumber   String // Auto: PRN-0001
+  periodStart DateTime
+  periodEnd   DateTime
+  status      String    @default("DRAFT") // DRAFT, PROCESSED, PAID
+  currency    Currency  @default(AED)
+  totalGross  Decimal   @default(0) @db.Decimal(14, 2)
+  totalNet    Decimal   @default(0) @db.Decimal(14, 2)
+  processedAt DateTime?
+  paidAt      DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  payslips Payslip[]
+
+  @@unique([tenantId, runNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+}
+
+model Payslip {
+  id           String     @id @default(cuid())
+  tenantId     String
+  tenant       Tenant     @relation(fields: [tenantId], references: [id])
+  payrollRunId String
+  payrollRun   PayrollRun @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+  employeeId   String
+  employee     Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  gross        Decimal    @db.Decimal(12, 2)
+  deductions   Decimal    @default(0) @db.Decimal(12, 2)
+  net          Decimal    @db.Decimal(12, 2)
+  currency     Currency   @default(AED)
+  status       String     @default("PENDING") // PENDING, PAID
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([payrollRunId, employeeId])
+  @@index([tenantId])
+  @@index([tenantId, employeeId])
 }
