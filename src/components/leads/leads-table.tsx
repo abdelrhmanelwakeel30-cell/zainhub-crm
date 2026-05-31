@@ -27,15 +27,18 @@ type Lead = {
   createdAt: string
 }
 
-export function LeadsTable() {
+export function LeadsTable({ filters }: { filters?: { urgency?: string } }) {
   const router = useRouter()
   const t = useTranslations('leads')
   const queryClient = useQueryClient()
 
+  const urgency = filters?.urgency ?? ''
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['leads', 'list'],
+    queryKey: ['leads', 'list', urgency],
     queryFn: async () => {
-      const res = await fetch('/api/leads')
+      const params = new URLSearchParams({ pageSize: '100' })
+      if (urgency) params.set('urgency', urgency)
+      const res = await fetch(`/api/leads?${params.toString()}`)
       if (!res.ok) throw new Error('Failed to load leads')
       return res.json()
     },
