@@ -364,6 +364,7 @@ model Tenant {
 
   // Relations
   users                  User[]
+  agentApiKeys           AgentApiKey[]
   companies              Company[]
   contacts               Contact[]
   leads                  Lead[]
@@ -500,9 +501,38 @@ model User {
   createdWebsites              Website[]                 @relation("WebsiteCreatedBy")
   connectedWebsiteIntegrations WebsiteIntegration[]      @relation("WebsiteIntegrationConnectedBy")
 
+  // AI agent service accounts (paperclip 166-agent platform)
+  isServiceAccount Boolean      @default(false)
+  agentId          String?      @unique // paperclip org-chart agent id, set for agent users
+  agentApiKey      AgentApiKey?
+
   @@unique([tenantId, email])
   @@index([tenantId])
   @@index([email])
+}
+
+/// Programmatic credential for an AI agent (paperclip platform) to call the CRM.
+/// Each agent gets one CRM User + one AgentApiKey. RBAC (via the user's roles)
+/// is the source of truth for what the agent may do; `scopes` is an optional
+/// extra allow-list consumed by the CRM MCP server tool surface.
+model AgentApiKey {
+  id         String    @id @default(cuid())
+  tenantId   String
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId     String    @unique
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agentId    String    @unique // paperclip agent id
+  name       String
+  keyHash    String    @unique // sha256 hex of the full secret key
+  keyPrefix  String // first chars of the key, for display/audit only
+  scopes     String[] // optional MCP tool allow-list; empty = RBAC governs
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([tenantId])
+  @@index([keyHash])
 }
 
 model Role {
