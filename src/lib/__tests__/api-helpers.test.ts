@@ -6,7 +6,8 @@ vi.mock('@/lib/auth-utils', () => ({
   getApiSession: vi.fn(),
 }))
 
-const { parsePagination, sanitizeUpdateBody } = await import('@/lib/api-helpers')
+const { parsePagination, sanitizeUpdateBody, parseQuery, paginationQuery } = await import('@/lib/api-helpers')
+const { z } = await import('zod')
 
 describe('parsePagination', () => {
   it('clamps pageSize at 100 (P-001)', () => {
@@ -78,5 +79,44 @@ describe('sanitizeUpdateBody', () => {
   it('honours extraBlocked list', () => {
     const out = sanitizeUpdateBody({ name: 'A', secret: 's' }, ['secret'])
     expect(out).toEqual({ name: 'A' })
+  })
+})
+
+describe('parseQuery (F-2)', () => {
+  const schema = z.object({
+    ...paginationQuery,
+    search: z.string().optional().default(''),
+    urgency: z.enum(['LOW', 'HIGH']).optional(),
+  })
+
+  it('returns typed, coerced, defaulted data on success', () => {
+    const r = parseQuery(new URLSearchParams({ page: '2', pageSize: '50', search: 'acme' }), schema)
+    expect(r).not.toBeInstanceOf(Response)
+    if (!(r instanceof Response)) {
+      expect(r.data).toEqual({ page: 2, pageSize: 50, search: 'acme' })
+      expect(typeof r.data.page).toBe('number')
+    }
+  })
+
+  it('applies defaults when params are absent', () => {
+    const r = parseQuery(new URLSearchParams(), schema)
+    if (!(r instanceof Response)) expect(r.data).toEqual({ page: 1, pageSize: 20, search: '' })
+  })
+
+  it('clamps pageSize over the max to a 422', () => {
+    const r = parseQuery(new URLSearchParams({ pageSize: '5000' }), schema)
+    expect(r).toBeInstanceOf(Response)
+    if (r instanceof Response) expect(r.status).toBe(422)
+  })
+
+  it('rejects an invalid enum value with 422', () => {
+    const r = parseQuery(new URLSearchParams({ urgency: 'BOGUS' }), schema)
+    expect(r).toBeInstanceOf(Response)
+    if (r instanceof Response) expect(r.status).toBe(422)
+  })
+
+  it('rejects a non-numeric page with 422', () => {
+    const r = parseQuery(new URLSearchParams({ page: 'abc' }), schema)
+    expect(r).toBeInstanceOf(Response)
   })
 })

@@ -3,9 +3,15 @@ import { getApiSession, requireApiPermission } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
 import { nextNumber } from '@/lib/number-sequence'
 import { logCreate } from '@/lib/activity'
-import { assertTenantOwnsAll } from '@/lib/api-helpers'
+import { assertTenantOwnsAll, parseQuery, paginationQuery } from '@/lib/api-helpers'
 import { log } from '@/lib/logger'
 import { z } from 'zod'
+
+const listContactsQuery = z.object({
+  ...paginationQuery,
+  search: z.string().optional().default(''),
+  companyId: z.string().optional().default(''),
+})
 
 const createSchema = z.object({
   firstName: z.string().min(1),
@@ -27,10 +33,9 @@ export async function GET(req: NextRequest) {
   const session = await getApiSession()
   if (!session) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
   const { searchParams } = new URL(req.url)
-  const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
-  const pageSize = Math.min(100, parseInt(searchParams.get('pageSize') || '20'))
-  const search = searchParams.get('search') || ''
-  const companyId = searchParams.get('companyId') || ''
+  const q = parseQuery(searchParams, listContactsQuery)
+  if (q instanceof NextResponse) return q
+  const { page, pageSize, search, companyId } = q.data
   const where: Record<string, unknown> = { tenantId: session.user.tenantId, archivedAt: null }
   if (search) where.OR = [{ firstName: { contains: search, mode: 'insensitive' as const } }, { lastName: { contains: search, mode: 'insensitive' as const } }, { email: { contains: search, mode: 'insensitive' as const } }, { jobTitle: { contains: search, mode: 'insensitive' as const } }]
   if (companyId) where.companyContacts = { some: { companyId } }

@@ -13,7 +13,7 @@
 
 ## Phase A — Foundation (reliability before scale)
 - [ ] **F-1** Test coverage for critical paths: auth, agent-auth, leads, invoicing, multi-tenant isolation, RBAC (target: integration tests on top 15 routes)
-- [ ] **F-2** Zod validation on the ~38 GET routes missing it (query-param schemas)
+- [x] **F-2** Zod validation on GET routes — reusable `parseQuery` + `paginationQuery` helpers (tested) + applied to core list routes (leads, companies, contacts). Long-tail routes get swept systematically under F-4 (route factory).
 - [ ] **F-3** Replace remaining `any` types with typed DTOs (kill the 30+ lint errors)
 - [ ] **F-4** Shared API route factory (auth→validate→tenant-scope→paginate) to cut boilerplate across 122 routes
 - [ ] **F-5** Performance pass: DB index audit, response caching, N+1 elimination
@@ -66,3 +66,4 @@
 ## Loop Log
 - 2026-05-31 — SEC-0 + AGENT-0 shipped; goal roadmap established. Next: Phase A (F-1 tests).
 - 2026-05-31 — F-1 started: agent-auth key/RBAC unit tests (33→39 tests, all pass); vitest `server-only` alias added. Next: integration tests for leads/invoicing/tenant isolation, then F-2 (Zod on GET routes).
+- 2026-05-31 — F-2 done (core): `parseQuery`/`paginationQuery` helpers + 5 tests; applied to leads/companies/contacts GET routes (now reject malformed enum/pagination with 422). 39→44 tests, tsc+build pass. Next: F-3 (`any` types) or continue F-1 integration coverage.

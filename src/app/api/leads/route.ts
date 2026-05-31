@@ -1,11 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession, requireApiPermission } from '@/lib/auth-utils'
+import { parseQuery, paginationQuery } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
 import { nextNumber } from '@/lib/number-sequence'
 import { logCreate } from '@/lib/activity'
 import { invalidate } from '@/lib/cache'
 import { log } from '@/lib/logger'
 import { z } from 'zod'
+
+const listLeadsQuery = z.object({
+  ...paginationQuery,
+  search: z.string().optional().default(''),
+  stageId: z.string().optional().default(''),
+  assignedToId: z.string().optional().default(''),
+  urgency: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
+})
 
 const createLeadSchema = z.object({
   fullName: z.string().min(2),
@@ -32,12 +41,9 @@ export async function GET(req: NextRequest) {
   if (!session) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
   const { searchParams } = new URL(req.url)
-  const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
-  const pageSize = Math.min(100, parseInt(searchParams.get('pageSize') || '20'))
-  const search = searchParams.get('search') || ''
-  const stageId = searchParams.get('stageId') || ''
-  const assignedToId = searchParams.get('assignedToId') || ''
-  const urgency = searchParams.get('urgency') || ''
+  const q = parseQuery(searchParams, listLeadsQuery)
+  if (q instanceof NextResponse) return q
+  const { page, pageSize, search, stageId, assignedToId, urgency } = q.data
 
   const where: Record<string, unknown> = { tenantId: session.user.tenantId, archivedAt: null }
   if (search) where.OR = [{ fullName: { contains: search, mode: 'insensitive' as const } }, { email: { contains: search, mode: 'insensitive' as const } }, { companyName: { contains: search, mode: 'insensitive' as const } }]
