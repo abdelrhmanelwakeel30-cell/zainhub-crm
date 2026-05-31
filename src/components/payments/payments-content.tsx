@@ -34,6 +34,8 @@ interface PaymentsApiResponse {
 
 export function PaymentsContent() {
   const [showCreate, setShowCreate] = useState(false)
+  // Capture "now" once (lazy init) — keeps render pure (react-hooks/purity).
+  const [nowMs] = useState(() => Date.now())
 
   const { data: response } = useQuery<PaymentsApiResponse>({
     queryKey: ['payments'],
@@ -43,7 +45,7 @@ export function PaymentsContent() {
   const payments = response?.data ?? []
 
   const totalReceived = payments.reduce((s, p) => s + Number(p.amount ?? 0), 0)
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000)
+  const thirtyDaysAgo = new Date(nowMs - 30 * 86400000)
   const thisMonthCount = payments.filter(p => new Date(p.paymentDate) > thirtyDaysAgo).length
 
   return (

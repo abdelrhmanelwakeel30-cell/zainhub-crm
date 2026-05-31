@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
@@ -33,6 +34,8 @@ interface Contract {
 
 export function ContractDetail({ contractId }: ContractDetailProps) {
   const router = useRouter()
+  // Capture "now" once (lazy init) — keeps render pure (react-hooks/purity).
+  const [nowMs] = useState(() => Date.now())
 
   const { data, isLoading } = useQuery({
     queryKey: ['contracts', contractId],
@@ -62,7 +65,7 @@ export function ContractDetail({ contractId }: ContractDetailProps) {
     )
   }
 
-  const isExpiringSoon = ctr.endDate && new Date(ctr.endDate) < new Date(Date.now() + 30 * 86400000)
+  const isExpiringSoon = ctr.endDate && new Date(ctr.endDate) < new Date(nowMs + 30 * 86400000)
 
   return (
     <div className="space-y-6 animate-slide-in">

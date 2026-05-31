@@ -61,6 +61,9 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
     }
   }, [])
 
+  // Hydrate auth from localStorage on mount — localStorage is unavailable
+  // during SSR render, so this must run in an effect.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     const stored = localStorage.getItem('portal_token')
     if (stored) {
@@ -70,6 +73,7 @@ export function PortalAuthProvider({ children }: { children: React.ReactNode }) 
       setIsLoading(false)
     }
   }, [fetchUser])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const setToken = useCallback(
     (jwt: string) => {

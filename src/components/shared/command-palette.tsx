@@ -178,6 +178,9 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     }
   }, [flatResults, activeIndex, navigate])
 
+  // Reset search state each time the palette opens — an intentional
+  // open/close side-effect.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (open) {
       setQuery('')
@@ -186,6 +189,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       setTimeout(() => inputRef.current?.focus(), 50)
     }
   }, [open])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     const active = listRef.current?.querySelector('[data-active="true"]')

@@ -13,15 +13,15 @@ type Status = 'loading' | 'success' | 'error'
 export default function VerifyEmailPage() {
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
-  const [status, setStatus] = useState<Status>('loading')
-  const [errorMessage, setErrorMessage] = useState('')
+  // Derive the no-token error state during render (avoids a synchronous
+  // setState in the effect — react-hooks/set-state-in-effect).
+  const [status, setStatus] = useState<Status>(token ? 'loading' : 'error')
+  const [errorMessage, setErrorMessage] = useState(
+    token ? '' : 'No verification token found in the URL.',
+  )
 
   useEffect(() => {
-    if (!token) {
-      setStatus('error')
-      setErrorMessage('No verification token found in the URL.')
-      return
-    }
+    if (!token) return
 
     fetch(`/api/client-portal/auth/verify-email?token=${encodeURIComponent(token)}`)
       .then((res) => res.json())

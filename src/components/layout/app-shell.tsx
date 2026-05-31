@@ -15,8 +15,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const handleSearchOpen = useCallback(() => setSearchOpen(true), [])
 
-  // Close mobile sidebar on route change
+  // Close mobile sidebar on route change — a genuine navigation side-effect.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMobileOpen(false)
   }, [pathname])
 

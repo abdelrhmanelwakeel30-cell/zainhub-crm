@@ -44,12 +44,16 @@ export function SettingsContent() {
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [pushNotifications, setPushNotifications] = useState(true)
 
-  // Pre-populate form once data loads
+  // Seed editable form fields from async-loaded tenant data (the form must
+  // remain user-editable, so deriving from props directly isn't an option).
+  // Synchronous setState here is intentional and bounded by the deps.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (tenant.name) setTenantName(tenant.name)
     if (tenant.defaultCurrency) setCurrency(tenant.defaultCurrency)
     if (tenant.timezone) setTimezone(tenant.timezone)
   }, [tenant.name, tenant.defaultCurrency, tenant.timezone])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const mutation = useMutation({
     mutationFn: (payload: TenantSettings) =>
