@@ -10,6 +10,7 @@
 ## Done (shipped to branch)
 - [x] **SEC-0** Patch Next.js auth-bypass CVEs (16.2.4→16.2.6), npm audit 17→9, secrets, console→logger, repo cleanup
 - [x] **AGENT-0** Connect 166 AI agents to CRM: AgentApiKey + RBAC, 19 dept roles, 166 users, CRM MCP server, paperclip wiring
+- [x] **AGENT-DASH** In-CRM Agents dashboard at `/admin/agents` (+ sidebar nav, EN/AR) — `GET /api/agents` fleet API (status active/idle/never/revoked from API-key lastUsedAt, per-department breakdown, summary). Animated UI via framer-motion: count-up KPIs, staggered agent cards, pulsing "active" status dots, animated department bars. Verified E2E (RBAC 403 for sales, 200 fleet of 166/19-depts for leadership) + build.
 
 ## Phase A — Foundation (reliability before scale)
 - [ ] **F-1** Test coverage for critical paths: auth, agent-auth, leads, invoicing, multi-tenant isolation, RBAC (target: integration tests on top 15 routes)
@@ -76,3 +77,4 @@
 - 2026-05-31 — C-5 done: optimistic notifications mark-read/mark-all (onMutate snapshot + rollback + onSettled invalidate); joins existing optimistic opportunities-kanban. tsc + 44 tests + build green. Next: C-6 soft deletes + recycle bin, or F-4 route factory.
 - 2026-05-31 — C-7 done: per-record GET /api/audit-trail + reusable <AuditTimeline> wired into lead detail (global admin audit viewer already existed). Verified E2E (2 entries, 422 on missing param). tsc + 44 tests + build (118 routes) green. Next: C-6 soft deletes, C-8 PDF, or F-4 route factory.
 - 2026-05-31 — C-8 verified done (PDF route + download buttons already wired; route returns valid application/pdf). C-6 done: archivedAt soft-delete standardized + bulk restore + ?archived listing + leads recycle-bin toggle. Verified E2E (archive→list→restore→gone). tsc + 44 tests + build (118 routes) green. Phase B complete except C-9 (realtime). Next: C-9 or F-4 route factory / F-5 perf, then Phase C (ERP).
+- 2026-05-31 — AGENT-DASH done (goal directive): in-CRM Agents dashboard /admin/agents + /api/agents fleet API + sidebar nav (EN/AR). framer-motion animations (count-up KPIs, staggered cards, pulsing active dots, animated dept bars). Verified E2E (403 sales / 200 leadership, 166 agents/19 depts) + build (120 routes). tsc + 44 tests green.
