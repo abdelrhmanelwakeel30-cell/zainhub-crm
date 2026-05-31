@@ -365,6 +365,8 @@ model Tenant {
   // Relations
   users                  User[]
   agentApiKeys           AgentApiKey[]
+  employees              Employee[]
+  leaveRequests          LeaveRequest[]
   companies              Company[]
   contacts               Contact[]
   leads                  Lead[]
@@ -2749,4 +2751,61 @@ model WebsiteSyncLog {
 
   @@index([tenantId, websiteId, startedAt])
   @@index([integrationId, startedAt])
+}
+
+// ============================================================================
+// ERP — HR & WORKFORCE (E-1)
+// ============================================================================
+
+model Employee {
+  id             String     @id @default(cuid())
+  tenantId       String
+  tenant         Tenant     @relation(fields: [tenantId], references: [id])
+  employeeNumber String // Auto: EMP-0001
+  firstName      String
+  lastName       String
+  email          String?
+  phone          String?
+  jobTitle       String?
+  department     String?
+  employmentType String     @default("FULL_TIME") // FULL_TIME, PART_TIME, CONTRACT, INTERN
+  status         String     @default("ACTIVE") // ACTIVE, ON_LEAVE, TERMINATED
+  hireDate       DateTime?
+  managerId      String?
+  manager        Employee?  @relation("EmployeeManager", fields: [managerId], references: [id])
+  reports        Employee[] @relation("EmployeeManager")
+  userId         String? // optional link to a CRM User
+  salary         Decimal?   @db.Decimal(12, 2)
+  currency       Currency   @default(AED)
+  archivedAt     DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  leaveRequests LeaveRequest[]
+
+  @@unique([tenantId, employeeNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, department])
+}
+
+model LeaveRequest {
+  id           String   @id @default(cuid())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+  employeeId   String
+  employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type         String   @default("ANNUAL") // ANNUAL, SICK, UNPAID, OTHER
+  startDate    DateTime
+  endDate      DateTime
+  days         Decimal  @db.Decimal(5, 1)
+  reason       String?  @db.Text
+  status       String   @default("PENDING") // PENDING, APPROVED, REJECTED, CANCELLED
+  reviewedById String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, employeeId])
+  @@index([tenantId, status])
 }

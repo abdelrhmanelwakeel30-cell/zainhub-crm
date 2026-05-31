@@ -103,6 +103,8 @@ async function main() {
     'client_services', 'subscriptions', 'bundles', 'forms', 'account_health', 'onboarding',
     // Website Analysis (Phase 1)
     'website_analysis',
+    // ERP (Phase C)
+    'employees', 'leave',
   ]
   const actions = ['view', 'create', 'edit', 'delete', 'export', 'approve']
 

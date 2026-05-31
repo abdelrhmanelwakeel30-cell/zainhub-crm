@@ -32,7 +32,7 @@
 - [x] **C-9** Realtime notifications (SSE) — `GET /api/notifications/stream` (Node runtime, server-side poll pushes unread count on change, heartbeat + 4-min cap with EventSource auto-reconnect) + `useNotificationStream` hook mounted in app-shell (invalidates ['notifications'] live). Verified E2E (401 no-auth; streams ready + notifications events with agent key).
 
 ## Phase C — ERP modules
-- [ ] **E-1** HR & Workforce: employees, departments, leave requests, attendance, org chart
+- [~] **E-1** HR & Workforce — **backend done**: `Employee` + `LeaveRequest` Prisma models + migration; manager hierarchy (org chart via managerId); `employees`/`leave` permission modules added to both seeds + granted to HR dept role; full APIs (`/api/employees` GET/POST + `[id]` GET/PATCH/DELETE-archive; `/api/leave-requests` GET/POST + `[id]` approve/reject/cancel) with RBAC + tenant-scope + audit. Verified E2E (sales→403; HR creates EMP-0001, lists, files+approves leave). **Next:** HR list page + sidebar nav + attendance.
 - [ ] **E-2** Payroll: salary structures, payslips, run processing, GL postings
 - [ ] **E-3** Finance/Accounting: chart of accounts, journal entries, ledgers, trial balance
 - [ ] **E-4** Procurement & Vendors: purchase orders, vendor bills, approvals
@@ -79,3 +79,4 @@
 - 2026-05-31 — C-8 verified done (PDF route + download buttons already wired; route returns valid application/pdf). C-6 done: archivedAt soft-delete standardized + bulk restore + ?archived listing + leads recycle-bin toggle. Verified E2E (archive→list→restore→gone). tsc + 44 tests + build (118 routes) green. Phase B complete except C-9 (realtime). Next: C-9 or F-4 route factory / F-5 perf, then Phase C (ERP).
 - 2026-05-31 — AGENT-DASH done (goal directive): in-CRM Agents dashboard /admin/agents + /api/agents fleet API + sidebar nav (EN/AR). framer-motion animations (count-up KPIs, staggered cards, pulsing active dots, animated dept bars). Verified E2E (403 sales / 200 leadership, 166 agents/19 depts) + build (120 routes). tsc + 44 tests green.
 - 2026-05-31 — C-9 done: SSE /api/notifications/stream + useNotificationStream hook in app-shell (live unread updates). Verified E2E (401 no-auth, streams ready+notifications events). tsc + 44 tests + build (120 routes) green. **Phase B fully complete.** Next: F-4 route factory / F-5 perf, then Phase C ERP (E-1 HR).
+- 2026-05-31 — Phase C started. E-1 HR backend: Employee + LeaveRequest models + curated migration (122 routes); employees/leave permissions in both seeds + HR role; full CRUD/approve APIs with RBAC+audit. Verified E2E (sales 403; HR creates EMP-0001 + files/approves leave). tsc + 44 tests + build green. Next: E-1 HR UI (list page + nav + attendance), then E-2 payroll.
