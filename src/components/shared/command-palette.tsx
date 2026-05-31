@@ -92,60 +92,25 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 
   const enabled = open && debouncedQuery.length >= 2
 
-  const { data: leadsData, isFetching: leadsFetching } = useQuery({
-    queryKey: ['cmd-search', 'leads', debouncedQuery],
-    queryFn: () => fetch(`/api/leads?search=${encodeURIComponent(debouncedQuery)}&pageSize=5`).then(r => r.json()),
+  // C-2: single unified, ranked, tenant-scoped search endpoint (covers leads,
+  // companies, contacts, opportunities, invoices, tickets, projects).
+  const { data: searchData, isFetching } = useQuery({
+    queryKey: ['cmd-search', debouncedQuery],
+    queryFn: () => fetch(`/api/search?q=${encodeURIComponent(debouncedQuery)}`).then(r => r.json()),
     enabled,
     staleTime: 30_000,
   })
-  const { data: companiesData, isFetching: companiesFetching } = useQuery({
-    queryKey: ['cmd-search', 'companies', debouncedQuery],
-    queryFn: () => fetch(`/api/companies?search=${encodeURIComponent(debouncedQuery)}&pageSize=5`).then(r => r.json()),
-    enabled,
-    staleTime: 30_000,
-  })
-  const { data: contactsData, isFetching: contactsFetching } = useQuery({
-    queryKey: ['cmd-search', 'contacts', debouncedQuery],
-    queryFn: () => fetch(`/api/contacts?search=${encodeURIComponent(debouncedQuery)}&pageSize=5`).then(r => r.json()),
-    enabled,
-    staleTime: 30_000,
-  })
-
-  const isFetching = leadsFetching || companiesFetching || contactsFetching
 
   const results = useMemo((): SearchResult[] => {
     const q = debouncedQuery.toLowerCase()
     if (!q) return pages
 
-    const matched: SearchResult[] = []
-
-    // Leads from API
-    const leadsArr: Array<{ id: string; leadNumber: string; fullName: string; companyName?: string; stage?: { name: string } }> = leadsData?.data ?? []
-    leadsArr.forEach(l => {
-      matched.push({ id: l.id, type: 'lead', title: l.fullName, subtitle: `${l.leadNumber} · ${l.companyName || ''} · ${l.stage?.name ?? ''}`, href: `/leads/${l.id}` })
-    })
-
-    // Companies from API
-    const companiesArr: Array<{ id: string; companyNumber: string; displayName: string; industry?: string }> = companiesData?.data ?? []
-    companiesArr.forEach(c => {
-      matched.push({ id: c.id, type: 'company', title: c.displayName, subtitle: `${c.companyNumber} · ${c.industry ?? ''}`, href: `/companies/${c.id}` })
-    })
-
-    // Contacts from API
-    const contactsArr: Array<{ id: string; contactNumber?: string; firstName: string; lastName: string; email?: string; jobTitle?: string }> = contactsData?.data ?? []
-    contactsArr.forEach(c => {
-      matched.push({ id: c.id, type: 'contact', title: `${c.firstName} ${c.lastName}`, subtitle: `${c.email ?? ''} · ${c.jobTitle ?? ''}`, href: `/contacts/${c.id}` })
-    })
-
-    // Pages (static filter)
-    pages.forEach(p => {
-      if (p.title.toLowerCase().includes(q) || p.subtitle.toLowerCase().includes(q)) {
-        matched.push(p)
-      }
-    })
-
-    return matched
-  }, [debouncedQuery, leadsData, companiesData, contactsData])
+    const entities: SearchResult[] = searchData?.data ?? []
+    const matchedPages = pages.filter(
+      p => p.title.toLowerCase().includes(q) || p.subtitle.toLowerCase().includes(q),
+    )
+    return [...entities, ...matchedPages]
+  }, [debouncedQuery, searchData])
 
   const grouped = useMemo(() => {
     const groups: Record<string, SearchResult[]> = {}
