@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     // — without this gate, the 1-in-900k space could be exhausted in seconds.
     const rl = await otpVerifyRateLimit.limit(`otp-verify:${tenantSlug}:${phone}`)
     if (!rl.success) {
-      console.warn('[client-portal/verify-otp] rate limit hit', { phone, tenantSlug })
+      log.warn('[client-portal/verify-otp] rate limit hit', { phone, tenantSlug })
       return NextResponse.json(
         { success: false, error: 'Too many attempts. Try again later.' },
         { status: 429, headers: { 'Retry-After': '900' } },

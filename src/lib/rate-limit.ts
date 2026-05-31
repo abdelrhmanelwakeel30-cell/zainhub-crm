@@ -20,6 +20,7 @@
 
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
+import { log } from '@/lib/logger'
 
 interface LimitResult {
   success: boolean
@@ -41,7 +42,7 @@ const upstashConfigured = Boolean(REDIS_URL && REDIS_TOKEN)
 
 if (!upstashConfigured) {
   // Single boot-time warning — not a per-request log.
-  console.warn(
+  log.warn(
     '[rate-limit] UPSTASH_REDIS_* env vars not set. Falling back to in-memory ' +
       'rate limiter — DO NOT deploy this state to production with multiple instances. ' +
       'Set UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN to enable Redis-backed limits.',

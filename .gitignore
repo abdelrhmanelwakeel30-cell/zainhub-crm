@@ -50,6 +50,12 @@ prisma/dev.db-journal
 CRM-dev/
 tmux.tar.gz
 
+# local audit history & artifacts (A-HIGH-01) — kept local, not committed
+docs/audits/
+docs/audit-artifacts/
+docs/test-scenarios.md
+*.backup-*
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

@@ -1,4 +1,5 @@
 import { getApiSession } from '@/lib/auth-utils'
+import { log } from '@/lib/logger'
 import { NextResponse } from 'next/server'
 import { ZodError, type ZodType } from 'zod'
 
@@ -58,7 +59,7 @@ export function badRequest(msg: string) {
 export function serverError(err: unknown) {
   // Always return a generic message — never leak ORM/DB internals to the client.
   // The full error is logged server-side for debugging.
-  console.error('[API Error]', err)
+  log.error('[API Error]', { err })
   return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
 }
 

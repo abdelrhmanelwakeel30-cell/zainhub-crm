@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { log } from '@/lib/logger'
 
 let _resend: Resend | null = null
 function getResend() {
@@ -17,7 +18,7 @@ interface SendEmailParams {
 
 export async function sendEmail({ to, subject, html, replyTo }: SendEmailParams) {
   if (!process.env.RESEND_API_KEY) {
-    console.warn('[Email] RESEND_API_KEY not set — skipping email send')
+    log.warn('[Email] RESEND_API_KEY not set — skipping email send')
     return null
   }
 
@@ -31,13 +32,13 @@ export async function sendEmail({ to, subject, html, replyTo }: SendEmailParams)
     })
 
     if (error) {
-      console.error('[Email] Send failed:', error)
+      log.error('[Email] Send failed', { err: error })
       return null
     }
 
     return data
   } catch (err) {
-    console.error('[Email] Unexpected error:', err)
+    log.error('[Email] Unexpected error', { err })
     return null
   }
 }
@@ -74,7 +75,7 @@ export function sendInvoiceEmail(
         <p style="color:#666;font-size:12px;margin-top:32px;">This email was sent from ${companyName}'s CRM system.</p>
       </div>
     `,
-  }).catch((err) => console.error('[Email] Invoice email failed:', err))
+  }).catch((err) => log.error('[Email] Invoice email failed', { err }))
 }
 
 export function sendPaymentConfirmation(
@@ -96,7 +97,7 @@ export function sendPaymentConfirmation(
         <p style="color:#666;font-size:12px;margin-top:32px;">This email was sent from ${companyName}'s CRM system.</p>
       </div>
     `,
-  }).catch((err) => console.error('[Email] Payment confirmation failed:', err))
+  }).catch((err) => log.error('[Email] Payment confirmation failed', { err }))
 }
 
 export function sendQuotationEmail(
@@ -125,7 +126,7 @@ export function sendQuotationEmail(
         <p style="color:#666;font-size:12px;margin-top:32px;">This email was sent from ${companyName}'s CRM system.</p>
       </div>
     `,
-  }).catch((err) => console.error('[Email] Quotation email failed:', err))
+  }).catch((err) => log.error('[Email] Quotation email failed', { err }))
 }
 
 export function sendProposalEmail(
@@ -151,7 +152,7 @@ export function sendProposalEmail(
         <p style="color:#666;font-size:12px;margin-top:32px;">This email was sent from ${companyName}'s CRM system.</p>
       </div>
     `,
-  }).catch((err) => console.error('[Email] Proposal email failed:', err))
+  }).catch((err) => log.error('[Email] Proposal email failed', { err }))
 }
 
 export function sendTicketUpdateEmail(
@@ -171,5 +172,5 @@ export function sendTicketUpdateEmail(
         <p style="color:#666;font-size:12px;margin-top:32px;">This email was sent from ${companyName}'s CRM system.</p>
       </div>
     `,
-  }).catch((err) => console.error('[Email] Ticket update email failed:', err))
+  }).catch((err) => log.error('[Email] Ticket update email failed', { err }))
 }

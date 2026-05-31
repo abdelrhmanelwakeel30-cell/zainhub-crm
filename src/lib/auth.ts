@@ -3,6 +3,7 @@ import Credentials from 'next-auth/providers/credentials'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { loginRateLimit } from '@/lib/rate-limit'
+import { log } from '@/lib/logger'
 
 // Login rate limiting now lives in src/lib/rate-limit.ts (S-008/Fix-004).
 // When UPSTASH_REDIS_REST_URL/TOKEN are set, attempts are tracked in Redis
@@ -50,7 +51,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const email = (credentials.email as string).toLowerCase()
         const { success } = await loginRateLimit.limit(`login:${email}`)
         if (!success) {
-          console.warn('[auth] rate limit hit for', email)
+          log.warn('[auth] rate limit hit', { email })
           return null
         }
 
