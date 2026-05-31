@@ -7,11 +7,11 @@ import { z } from 'zod'
 
 /**
  * Bulk operations on leads (C-3). Tenant-scoped, RBAC-gated, audited.
- *   archive -> leads:delete   | assign/stage -> leads:edit
+ *   archive -> leads:delete   | assign/stage/restore -> leads:edit
  */
 const bulkSchema = z
   .object({
-    action: z.enum(['archive', 'assign', 'stage']),
+    action: z.enum(['archive', 'assign', 'stage', 'restore']),
     ids: z.array(z.string().min(1)).min(1).max(200),
     assignedToId: z.string().optional().nullable(),
     stageId: z.string().optional().nullable(),
@@ -34,8 +34,12 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // Tenant-scope the target set (never trust client ids alone).
-    const where = { id: { in: ids }, tenantId, archivedAt: null }
+    // Tenant-scope the target set (never trust client ids alone). Restore acts
+    // on archived rows; every other action acts on live rows.
+    const where =
+      action === 'restore'
+        ? { id: { in: ids }, tenantId, archivedAt: { not: null } }
+        : { id: { in: ids }, tenantId, archivedAt: null }
 
     // For assign/stage, verify the target FK belongs to this tenant.
     if (action === 'assign') {
@@ -48,12 +52,18 @@ export async function POST(req: NextRequest) {
     }
 
     const data =
-      action === 'archive' ? { archivedAt: new Date() } : action === 'assign' ? { assignedToId } : { stageId }
+      action === 'archive'
+        ? { archivedAt: new Date() }
+        : action === 'restore'
+          ? { archivedAt: null }
+          : action === 'assign'
+            ? { assignedToId }
+            : { stageId }
 
     const result = await prisma.lead.updateMany({ where, data })
 
-    const auditAction: 'ARCHIVE' | 'ASSIGN' | 'UPDATE' =
-      action === 'archive' ? 'ARCHIVE' : action === 'assign' ? 'ASSIGN' : 'UPDATE'
+    const auditAction: 'ARCHIVE' | 'ASSIGN' | 'UPDATE' | 'RESTORE' =
+      action === 'archive' ? 'ARCHIVE' : action === 'restore' ? 'RESTORE' : action === 'assign' ? 'ASSIGN' : 'UPDATE'
 
     await prisma.auditLog.create({
       data: {

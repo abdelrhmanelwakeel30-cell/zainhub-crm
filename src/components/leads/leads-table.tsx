@@ -10,7 +10,7 @@ import { StatusBadge } from '@/components/shared/status-badge'
 import { ScoreIndicator } from '@/components/shared/score-indicator'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { AlertCircle, Archive, Download } from 'lucide-react'
+import { AlertCircle, Archive, Download, RotateCcw } from 'lucide-react'
 import { getInitials, formatRelativeDate } from '@/lib/utils'
 
 type Lead = {
@@ -27,17 +27,19 @@ type Lead = {
   createdAt: string
 }
 
-export function LeadsTable({ filters }: { filters?: { urgency?: string } }) {
+export function LeadsTable({ filters }: { filters?: { urgency?: string; archived?: boolean } }) {
   const router = useRouter()
   const t = useTranslations('leads')
   const queryClient = useQueryClient()
 
   const urgency = filters?.urgency ?? ''
+  const archived = filters?.archived ?? false
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['leads', 'list', urgency],
+    queryKey: ['leads', 'list', urgency, archived],
     queryFn: async () => {
       const params = new URLSearchParams({ pageSize: '100' })
       if (urgency) params.set('urgency', urgency)
+      if (archived) params.set('archived', 'true')
       const res = await fetch(`/api/leads?${params.toString()}`)
       if (!res.ok) throw new Error('Failed to load leads')
       return res.json()
@@ -46,22 +48,22 @@ export function LeadsTable({ filters }: { filters?: { urgency?: string } }) {
 
   const leads: Lead[] = data?.data ?? []
 
-  // C-3: bulk archive
-  const archiveMutation = useMutation({
-    mutationFn: async (ids: string[]) => {
+  // C-3/C-6: bulk archive + restore
+  const bulkMutation = useMutation({
+    mutationFn: async ({ action, ids }: { action: 'archive' | 'restore'; ids: string[] }) => {
       const res = await fetch('/api/leads/bulk', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ action: 'archive', ids }),
+        body: JSON.stringify({ action, ids }),
       })
-      if (!res.ok) throw new Error('Bulk archive failed')
+      if (!res.ok) throw new Error('Bulk action failed')
       return res.json()
     },
-    onSuccess: (r) => {
+    onSuccess: (r, vars) => {
       queryClient.invalidateQueries({ queryKey: ['leads'] })
-      toast.success(`Archived ${r.count ?? 0} lead(s)`)
+      toast.success(`${vars.action === 'restore' ? 'Restored' : 'Archived'} ${r.count ?? 0} lead(s)`)
     },
-    onError: () => toast.error('Could not archive the selected leads'),
+    onError: () => toast.error('Bulk action failed'),
   })
 
   function exportSelected(ids: string[]) {
@@ -180,14 +182,25 @@ export function LeadsTable({ filters }: { filters?: { urgency?: string } }) {
           <Button variant="outline" size="sm" onClick={() => exportSelected(ids)}>
             <Download className="h-4 w-4 me-2" /> Export
           </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            disabled={archiveMutation.isPending}
-            onClick={() => archiveMutation.mutate(ids, { onSuccess: clear })}
-          >
-            <Archive className="h-4 w-4 me-2" /> Archive
-          </Button>
+          {archived ? (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={bulkMutation.isPending}
+              onClick={() => bulkMutation.mutate({ action: 'restore', ids }, { onSuccess: clear })}
+            >
+              <RotateCcw className="h-4 w-4 me-2" /> Restore
+            </Button>
+          ) : (
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={bulkMutation.isPending}
+              onClick={() => bulkMutation.mutate({ action: 'archive', ids }, { onSuccess: clear })}
+            >
+              <Archive className="h-4 w-4 me-2" /> Archive
+            </Button>
+          )}
         </>
       )}
     />

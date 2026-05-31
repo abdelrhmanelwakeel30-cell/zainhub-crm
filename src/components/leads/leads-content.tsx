@@ -11,10 +11,10 @@ import { SavedViews } from '@/components/shared/saved-views'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Plus, List, LayoutGrid, Download } from 'lucide-react'
+import { Plus, List, LayoutGrid, Download, Archive } from 'lucide-react'
 import { toast } from 'sonner'
 
-type LeadFilters = { urgency?: string }
+type LeadFilters = { urgency?: string; archived?: boolean }
 
 export function LeadsContent() {
   const t = useTranslations('leads')
@@ -118,6 +118,14 @@ export function LeadsContent() {
                 </SelectContent>
               </Select>
               <SavedViews module="leads" current={filters} onApply={(f) => setFilters(f as LeadFilters)} />
+              <Button
+                variant={filters.archived ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilters((f) => ({ ...f, archived: !f.archived }))}
+              >
+                <Archive className="h-4 w-4 me-2" />
+                {filters.archived ? 'Viewing archived' : 'Recycle bin'}
+              </Button>
             </div>
           )}
         </div>

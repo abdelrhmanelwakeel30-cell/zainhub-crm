@@ -14,6 +14,8 @@ const listLeadsQuery = z.object({
   stageId: z.string().optional().default(''),
   assignedToId: z.string().optional().default(''),
   urgency: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
+  // C-6: when 'true', list archived (recycle-bin) leads instead of live ones.
+  archived: z.enum(['true', 'false']).optional(),
 })
 
 const createLeadSchema = z.object({
@@ -43,9 +45,12 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const q = parseQuery(searchParams, listLeadsQuery)
   if (q instanceof NextResponse) return q
-  const { page, pageSize, search, stageId, assignedToId, urgency } = q.data
+  const { page, pageSize, search, stageId, assignedToId, urgency, archived } = q.data
 
-  const where: Record<string, unknown> = { tenantId: session.user.tenantId, archivedAt: null }
+  const where: Record<string, unknown> = {
+    tenantId: session.user.tenantId,
+    archivedAt: archived === 'true' ? { not: null } : null,
+  }
   if (search) where.OR = [{ fullName: { contains: search, mode: 'insensitive' as const } }, { email: { contains: search, mode: 'insensitive' as const } }, { companyName: { contains: search, mode: 'insensitive' as const } }]
   if (stageId) where.stageId = stageId
   if (assignedToId) where.assignedToId = assignedToId
