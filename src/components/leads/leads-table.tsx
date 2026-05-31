@@ -2,13 +2,15 @@
 
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ColumnDef } from '@tanstack/react-table'
+import { toast } from 'sonner'
 import { DataTable } from '@/components/shared/data-table'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { ScoreIndicator } from '@/components/shared/score-indicator'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { AlertCircle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { AlertCircle, Archive, Download } from 'lucide-react'
 import { getInitials, formatRelativeDate } from '@/lib/utils'
 
 type Lead = {
@@ -28,6 +30,7 @@ type Lead = {
 export function LeadsTable() {
   const router = useRouter()
   const t = useTranslations('leads')
+  const queryClient = useQueryClient()
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['leads', 'list'],
@@ -39,6 +42,41 @@ export function LeadsTable() {
   })
 
   const leads: Lead[] = data?.data ?? []
+
+  // C-3: bulk archive
+  const archiveMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const res = await fetch('/api/leads/bulk', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ action: 'archive', ids }),
+      })
+      if (!res.ok) throw new Error('Bulk archive failed')
+      return res.json()
+    },
+    onSuccess: (r) => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] })
+      toast.success(`Archived ${r.count ?? 0} lead(s)`)
+    },
+    onError: () => toast.error('Could not archive the selected leads'),
+  })
+
+  function exportSelected(ids: string[]) {
+    const set = new Set(ids)
+    const selected = leads.filter((l) => set.has(l.id))
+    const headers = ['Lead #', 'Full Name', 'Company', 'Stage', 'Urgency', 'Score', 'Created At']
+    const rows = selected.map((l) => [
+      l.leadNumber, l.fullName, l.companyName ?? '', l.stage?.name ?? '', l.urgency, l.score,
+      new Date(l.createdAt).toLocaleDateString(),
+    ])
+    const csv = [headers, ...rows].map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `leads-selected-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   const columns: ColumnDef<Lead, unknown>[] = [
     {
@@ -132,6 +170,23 @@ export function LeadsTable() {
       isLoading={isLoading}
       searchPlaceholder={`${t('title')}...`}
       onRowClick={(lead) => router.push(`/leads/${lead.id}`)}
+      enableSelection
+      getRowId={(lead) => lead.id}
+      renderBulkActions={(ids, clear) => (
+        <>
+          <Button variant="outline" size="sm" onClick={() => exportSelected(ids)}>
+            <Download className="h-4 w-4 me-2" /> Export
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            disabled={archiveMutation.isPending}
+            onClick={() => archiveMutation.mutate(ids, { onSuccess: clear })}
+          >
+            <Archive className="h-4 w-4 me-2" /> Archive
+          </Button>
+        </>
+      )}
     />
   )
 }

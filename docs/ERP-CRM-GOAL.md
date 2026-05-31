@@ -22,7 +22,7 @@
 ## Phase B — CRM power features
 - [x] **C-1** Global command palette (⌘K) — already wired in app-shell (`CommandPalette` + Cmd/Ctrl+K handler) with page nav + entity search. Verified functional.
 - [x] **C-2** Global cross-entity search — new unified `GET /api/search` (tenant-scoped, ranked, capped) across leads/companies/contacts/opportunities/invoices/tickets/projects; palette now calls it once instead of 3 separate fetches. Verified end-to-end (agent key) + 422 on short query.
-- [ ] **C-3** Bulk actions on tables (select → assign/status/delete/export)
+- [x] **C-3** Bulk actions — generic opt-in row selection + bulk action bar added to the shared `DataTable` (reusable across all tables); `POST /api/leads/bulk` (archive/assign/stage, RBAC + tenant-scoped + audited); leads table wired with bulk Archive + Export. Verified E2E (403 without leads:delete, 200 assign). Other tables opt-in via the same `DataTable` props.
 - [ ] **C-4** Saved views / persisted filters + column prefs per user
 - [ ] **C-5** Optimistic UI for mutations (TanStack Query)
 - [ ] **C-6** Soft deletes + recycle bin (add `deletedAt` across core models, restore, purge)
@@ -71,3 +71,4 @@
 - 2026-05-31 — F-3 done: eliminated all `no-explicit-any` lint errors (25+→0) via typed CSV rows, chart data types, optimistic payload types, Prisma inference in auth/pdf. tsc + 44 tests + build all green. Logged F-6 (8 pre-existing React-hygiene errors). Next: F-4 (route factory) or F-6.
 - 2026-05-31 — F-6 done: 0 lint errors (was 8). react-hooks/purity via lazy Date.now() state; set-state-in-effect via derived state + justified disables. tsc + 44 tests + build green. Note: src/components/shared/command-palette.tsx already exists — verify/finish C-1 next. Then F-4/F-5 or Phase B.
 - 2026-05-31 — C-1 verified done (palette wired in app-shell). C-2 done: built unified GET /api/search (7 entities, ranked, tenant-scoped) + refactored palette to one call. tsc + 44 tests + build (115 routes) green; /api/search verified via agent key. Next: C-3 bulk actions or F-4 route factory.
+- 2026-05-31 — C-3 done: generic row-selection + bulk-action bar in shared DataTable; POST /api/leads/bulk (archive/assign/stage, RBAC+audit); leads table wired (Archive/Export). Verified E2E: 403 archive (no leads:delete), 200 assign (count:2), 422 on bad input. tsc + 44 tests + build (116 routes) green. Next: C-4 saved views or F-4 route factory.
