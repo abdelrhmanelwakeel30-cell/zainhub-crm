@@ -107,10 +107,10 @@ export function TicketsContent() {
       const res = await fetch('/api/tickets?pageSize=1000')
       if (!res.ok) throw new Error('Export failed')
       const json = await res.json()
-      const rows: any[] = json.data ?? []
+      const rows: Array<{ ticketNumber?: string; subject?: string; type?: string; priority?: string; status?: string; createdAt?: string; client?: { displayName?: string }; contact?: { firstName?: string; lastName?: string }; assignedTo?: { firstName?: string; lastName?: string } }> = json.data ?? []
       if (rows.length === 0) { toast.info('No tickets to export'); return }
       const headers = ['Ticket #', 'Subject', 'Type', 'Priority', 'Status', 'Company', 'Contact', 'Assigned To', 'Created At']
-      const csvRows = rows.map((tk: any) => [
+      const csvRows = rows.map((tk) => [
         tk.ticketNumber ?? '',
         tk.subject ?? '',
         tk.type ?? '',

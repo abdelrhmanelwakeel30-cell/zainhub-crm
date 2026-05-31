@@ -37,7 +37,7 @@ export function LeadsContent() {
       }
 
       const headers = ['Lead #', 'Full Name', 'Company', 'Email', 'Phone', 'Stage', 'Source', 'Urgency', 'Score', 'Assigned To', 'Created At']
-      const rows = leads.map((l: any) => [
+      const rows = leads.map((l: { leadNumber?: string; fullName?: string; companyName?: string; email?: string; phone?: string; urgency?: string; score?: number; createdAt?: string; stage?: { name?: string }; source?: { name?: string }; assignedTo?: { firstName?: string; lastName?: string } }) => [
         l.leadNumber ?? '',
         l.fullName ?? '',
         l.companyName ?? '',

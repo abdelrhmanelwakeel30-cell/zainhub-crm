@@ -336,7 +336,7 @@ function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string;
 
 type TimelineEvent = { action: string; detail: string; time: string; type?: string }
 
-function buildTimeline(lead: Record<string, any>): TimelineEvent[] {
+function buildTimeline(lead: { source?: { name?: string }; createdAt: string; lastContactedAt?: string | null; convertedAt?: string | null; lostAt?: string | null; lostReason?: { name?: string } }): TimelineEvent[] {
   const events: TimelineEvent[] = [
     { action: 'Lead created', detail: `Source: ${lead.source?.name ?? 'Unknown'}`, time: lead.createdAt, type: 'create' },
   ]

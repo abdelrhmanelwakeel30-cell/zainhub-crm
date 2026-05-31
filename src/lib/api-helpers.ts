@@ -219,7 +219,7 @@ export function serializeDecimals(obj: any): any {
  * Skips entries with null/undefined ids — caller controls "required" vs "optional"
  * via Zod up the chain.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 export async function assertTenantOwnsAll(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   prismaClient: any,

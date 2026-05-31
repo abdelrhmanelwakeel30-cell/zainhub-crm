@@ -131,7 +131,7 @@ interface SidebarProps {
 
 interface NotificationsResponse {
   total: number
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProps) {

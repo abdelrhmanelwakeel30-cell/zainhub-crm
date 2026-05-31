@@ -52,10 +52,10 @@ export function ChangeRequestsContent() {
       const res = await fetch('/api/change-requests?pageSize=1000')
       if (!res.ok) throw new Error('Export failed')
       const json = await res.json()
-      const rows: any[] = json.data ?? []
+      const rows: Array<{ crNumber?: string; title?: string; status?: string; priority?: string; completedAt?: string; createdAt?: string; project?: { name?: string }; requestedBy?: { firstName?: string; lastName?: string }; approvedBy?: { firstName?: string; lastName?: string } }> = json.data ?? []
       if (rows.length === 0) { toast.info('No change requests to export'); return }
       const headers = ['CR #', 'Title', 'Status', 'Priority', 'Project', 'Requested By', 'Approved By', 'Completed At', 'Created At']
-      const csvRows = rows.map((cr: any) => [
+      const csvRows = rows.map((cr) => [
         cr.crNumber ?? '',
         cr.title ?? '',
         cr.status ?? '',

@@ -95,15 +95,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           data: { lastLoginAt: new Date() },
         })
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const roles = user.userRoles.map((ur: any) => ur.role.name)
+        const roles = user.userRoles.map((ur) => ur.role.name)
         const permissions: string[] = [
           ...new Set<string>(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            user.userRoles.flatMap((ur: any) =>
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            user.userRoles.flatMap((ur) =>
               ur.role.rolePermissions.map(
-                (rp: any) => `${rp.permission.module}:${rp.permission.action}`
+                (rp) => `${rp.permission.module}:${rp.permission.action}`
               )
             )
           ),

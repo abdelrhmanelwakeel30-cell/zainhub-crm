@@ -23,7 +23,7 @@ export function OpportunitiesContent() {
     queryFn: () => fetch('/api/opportunities').then(r => r.json()),
   })
 
-  const opportunities: any[] = data?.data ?? []
+  const opportunities: Array<{ oppNumber?: string; title?: string; expectedValue?: number; weightedValue?: number; closeDate?: string; createdAt?: string; stage?: { name?: string }; company?: { displayName?: string }; contact?: { firstName?: string; lastName?: string }; owner?: { firstName?: string; lastName?: string } }> = data?.data ?? []
 
   const activeOpps = opportunities.filter(o => !['Closed Won', 'Closed Lost'].includes(o.stage?.name ?? ''))
   const totalValue = activeOpps.reduce((sum, o) => sum + (o.expectedValue ?? 0), 0)
@@ -38,10 +38,10 @@ export function OpportunitiesContent() {
       const res = await fetch('/api/opportunities?pageSize=1000')
       if (!res.ok) throw new Error('Export failed')
       const json = await res.json()
-      const rows: any[] = json.data ?? []
+      const rows: Array<{ oppNumber?: string; title?: string; expectedValue?: number; weightedValue?: number; closeDate?: string; createdAt?: string; stage?: { name?: string }; company?: { displayName?: string }; contact?: { firstName?: string; lastName?: string }; owner?: { firstName?: string; lastName?: string } }> = json.data ?? []
       if (rows.length === 0) { toast.info('No opportunities to export'); return }
       const headers = ['Opp #', 'Title', 'Company', 'Contact', 'Stage', 'Expected Value (AED)', 'Weighted Value (AED)', 'Close Date', 'Owner', 'Created At']
-      const csvRows = rows.map((o: any) => [
+      const csvRows = rows.map((o) => [
         o.oppNumber ?? '',
         o.title ?? '',
         o.company?.displayName ?? '',

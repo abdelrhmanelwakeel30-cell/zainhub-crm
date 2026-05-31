@@ -59,7 +59,7 @@ export async function GET(req: NextRequest, { params }: Props) {
             clientName: invoice.client.displayName,
             clientEmail: invoice.client.email ?? undefined,
             clientPhone: invoice.client.phone ?? undefined,
-            items: invoice.items.map((item: any) => ({
+            items: invoice.items.map((item) => ({
               description: item.description,
               quantity: item.quantity,
               unitPrice: Number(item.unitPrice),
@@ -108,7 +108,7 @@ export async function GET(req: NextRequest, { params }: Props) {
             clientName: quotation.company?.displayName ?? 'N/A',
             clientContact: quotation.contact ? `${quotation.contact.firstName} ${quotation.contact.lastName}` : undefined,
             clientEmail: quotation.contact?.email ?? quotation.company?.email ?? undefined,
-            items: quotation.items.map((item: any) => ({
+            items: quotation.items.map((item) => ({
               description: item.description,
               quantity: item.quantity,
               unitPrice: Number(item.unitPrice),
@@ -160,7 +160,7 @@ export async function GET(req: NextRequest, { params }: Props) {
             scopeOfWork: proposal.scopeOfWork ?? undefined,
             deliverables: proposal.deliverables ?? undefined,
             timeline: proposal.timeline ?? undefined,
-            items: proposal.items.map((item: any) => ({
+            items: proposal.items.map((item) => ({
               description: item.description,
               quantity: item.quantity,
               unitPrice: Number(item.unitPrice),
