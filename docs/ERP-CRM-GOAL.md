@@ -26,7 +26,7 @@
 - [x] **C-4** Saved views / persisted filters — `SavedFilter`-backed API (`/api/saved-views` GET/POST + `[id]` PATCH/DELETE, tenant+user+module scoped, own+shared, single-default), reusable `<SavedViews>` dropdown (apply/save/delete), wired into the leads view with an urgency quick-filter. Verified E2E (create-default/list/delete/422). Keyboard ⌘K already via C-1; per-column show/hide prefs is a minor follow-up.
 - [x] **C-5** Optimistic UI for mutations — notifications mark-read / mark-all-read now flip instantly with onMutate snapshot + onError rollback + onSettled re-sync (joins the existing optimistic opportunities-kanban DnD). Reusable cache-patch pattern established.
 - [ ] **C-6** Soft deletes + recycle bin (add `deletedAt` across core models, restore, purge)
-- [ ] **C-7** Audit-trail viewer UI (per-record who/what/when timeline)
+- [x] **C-7** Audit-trail viewer — global admin log already existed; added per-record `GET /api/audit-trail` (tenant-scoped, entityType+entityId) + reusable `<AuditTimeline>` component, wired into the lead detail sidebar. Verified E2E (2 entries CREATE/ASSIGN, 422 on missing param).
 - [ ] **C-8** Branded PDF generation surfaced for invoices/quotations/proposals
 - [ ] **C-9** Realtime notifications (SSE) + notification center + email digests
 
@@ -74,3 +74,4 @@
 - 2026-05-31 — C-3 done: generic row-selection + bulk-action bar in shared DataTable; POST /api/leads/bulk (archive/assign/stage, RBAC+audit); leads table wired (Archive/Export). Verified E2E: 403 archive (no leads:delete), 200 assign (count:2), 422 on bad input. tsc + 44 tests + build (116 routes) green. Next: C-4 saved views or F-4 route factory.
 - 2026-05-31 — C-4 done: SavedFilter-backed /api/saved-views (GET/POST + [id] PATCH/DELETE), reusable <SavedViews> dropdown, leads urgency quick-filter wired. Verified E2E (create-default/list/delete/422-missing-module). tsc + 44 tests + build (117 routes) green. Next: C-5 optimistic UI or F-4 route factory.
 - 2026-05-31 — C-5 done: optimistic notifications mark-read/mark-all (onMutate snapshot + rollback + onSettled invalidate); joins existing optimistic opportunities-kanban. tsc + 44 tests + build green. Next: C-6 soft deletes + recycle bin, or F-4 route factory.
+- 2026-05-31 — C-7 done: per-record GET /api/audit-trail + reusable <AuditTimeline> wired into lead detail (global admin audit viewer already existed). Verified E2E (2 entries, 422 on missing param). tsc + 44 tests + build (118 routes) green. Next: C-6 soft deletes, C-8 PDF, or F-4 route factory.

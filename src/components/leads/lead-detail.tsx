@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { ScoreIndicator } from '@/components/shared/score-indicator'
+import { AuditTimeline } from '@/components/shared/audit-timeline'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { DialogClose } from '@/components/ui/dialog'
@@ -218,6 +219,9 @@ export function LeadDetail({ leadId }: LeadDetailProps) {
 
         {/* Right Column - Sidebar */}
         <div className="space-y-6">
+          {/* C-7: per-record audit trail */}
+          <AuditTimeline entityType="lead" entityId={lead.id} />
+
           {/* Score */}
           <Card>
             <CardHeader className="pb-3">
