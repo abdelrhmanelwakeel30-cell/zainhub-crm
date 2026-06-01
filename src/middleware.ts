@@ -56,9 +56,9 @@ function hasSessionCookie(request: NextRequest): boolean {
  */
 function hasAgentKey(request: NextRequest): boolean {
   const auth = request.headers.get('authorization')
-  if (auth?.startsWith('Bearer zhk_')) return true
-  const x = request.headers.get('x-agent-key')
-  return !!x && x.startsWith('zhk_')
+  if (auth?.startsWith('Bearer zhk_') || auth?.startsWith('Bearer zpk_')) return true
+  const x = request.headers.get('x-agent-key') ?? request.headers.get('x-api-key')
+  return !!x && (x.startsWith('zhk_') || x.startsWith('zpk_'))
 }
 
 function isPublicApiPath(pathname: string): boolean {

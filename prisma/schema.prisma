@@ -365,6 +365,8 @@ model Tenant {
   // Relations
   users                  User[]
   agentApiKeys           AgentApiKey[]
+  apiKeys                ApiKey[]
+  webhookEndpoints       WebhookEndpoint[]
   employees              Employee[]
   leaveRequests          LeaveRequest[]
   payrollRuns            PayrollRun[]
@@ -517,6 +519,7 @@ model User {
   isServiceAccount Boolean      @default(false)
   agentId          String?      @unique // paperclip org-chart agent id, set for agent users
   agentApiKey      AgentApiKey?
+  apiKeys          ApiKey[]
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -3064,5 +3067,43 @@ model Budget {
   updatedAt    DateTime   @updatedAt
 
   @@unique([tenantId, costCenterId, periodLabel])
+  @@index([tenantId])
+}
+
+// ============================================================================
+// SAAS — PUBLIC API KEYS (S-5) + OUTBOUND WEBHOOKS (S-6)
+// ============================================================================
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  tenantId   String
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId     String // acts AS this user's RBAC permissions
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  keyHash    String    @unique // sha256 hex of the full key (prefix zpk_)
+  keyPrefix  String
+  scopes     String[]
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([tenantId])
+  @@index([keyHash])
+}
+
+model WebhookEndpoint {
+  id         String   @id @default(cuid())
+  tenantId   String
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  url        String
+  events     String[] // e.g. ["lead.created","invoice.paid"]
+  secret     String // HMAC signing secret
+  isActive   Boolean  @default(true)
+  lastStatus Int? // last delivery HTTP status
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
   @@index([tenantId])
 }

@@ -53,7 +53,7 @@
 - [ ] **S-2** Self-serve tenant onboarding/provisioning
 - [ ] **S-3** Tenant settings & admin UI (branding, users, plan limits, feature flags)
 - [ ] **S-4** Staff 2FA/MFA + SSO (Google/Microsoft); session management UI
-- [ ] **S-5** Public API + tenant API keys (generalize AgentApiKey) + docs
+- [x] **S-5** Public API + tenant API keys — `ApiKey` model (zpk_ keys, sha256-stored, owner-scoped) + `/api/api-keys` GET/POST + `[id]` DELETE (RBAC settings:view/edit); `agent-auth.ts` generalized to accept both agent (zhk_) and public (zpk_) keys via the same Bearer path (middleware updated); `/admin/api-keys` UI (mint shows key once + copy, revoke) + sidebar nav (EN/AR). Verified E2E (sales 403; it-ops mints zpk_ → key authenticates as owner with its RBAC). Agent keys still work.
 - [ ] **S-6** Outbound webhooks (lead.created, invoice.paid → Make/n8n/Zapier)
 - [ ] **S-7** Full Arabic i18n + WCAG AA + RTL polish
 
@@ -94,3 +94,4 @@
 - 2026-05-31 — AI-2 DONE: heuristic lead scoring — computeLeadScore() pure helper (+5 unit tests, 49 total) + POST /api/leads/[id]/score (RBAC+audit, returns factors) + Recalculate-score button on lead detail. Verified E2E (score 25). tsc + 49 tests + build (140 routes) green. Next: AI-3 drafting.
 - 2026-05-31 — AI-3 DONE: lib/ai.ts key-gated generateText (Anthropic SDK + prompt caching, template fallback; +3 tests, 52 total) + POST /api/ai/draft (followup/proposal/quotation, RBAC) + Draft-follow-up button/dialog on lead detail. Verified E2E (template source). Installed @anthropic-ai/sdk. tsc + 52 tests + build (141 routes) green. Next: AI-4 summarization.
 - 2026-05-31 — AI-4 + AI-1 + AI-6 DONE → PHASE D (AI) COMPLETE. /api/ai/summarize (audit timeline), /api/ai/ask (RAG keyword+cited), /api/public/whatsapp (verify + inbound→lead). UI: summarize button on lead detail, "Ask your data" box on ERP dashboard. Verified E2E (summarize 3 events, ask 1 citation, whatsapp lead created). tsc + 52 tests + build (144 routes) green. Next: Phase E SaaS (S-1 Stripe...).
+- 2026-05-31 — Phase E started. S-5 DONE: tenant public API keys (ApiKey model, zpk_ keys) — /api/api-keys CRUD + agent-auth generalized (zhk_+zpk_) + middleware + /admin/api-keys UI + nav (EN/AR). Verified E2E (sales 403; zpk_ key auth as owner). tsc + 52 tests + build (146 routes) green. Next: S-6 outbound webhooks.

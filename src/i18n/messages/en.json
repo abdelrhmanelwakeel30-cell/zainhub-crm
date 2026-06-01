@@ -132,6 +132,7 @@
     "inventory": "Inventory",
     "budgeting": "Budgeting",
     "erpDashboard": "ERP Dashboard",
+    "apiKeys": "API Keys",
     "users": "Users",
     "roles": "Roles & Permissions",
     "settings": "Settings",
