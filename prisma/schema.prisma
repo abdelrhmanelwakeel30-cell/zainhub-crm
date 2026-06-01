@@ -2963,6 +2963,7 @@ model Vendor {
   purchaseOrders PurchaseOrder[]
 
   @@index([tenantId])
+  @@index([tenantId, isActive])
 }
 
 model PurchaseOrder {
@@ -3114,4 +3115,6 @@ model WebhookEndpoint {
   updatedAt  DateTime @updatedAt
 
   @@index([tenantId])
+  // Hot path: dispatchWebhook() filters active endpoints per tenant on every event.
+  @@index([tenantId, isActive])
 }
