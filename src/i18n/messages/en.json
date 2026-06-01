@@ -129,6 +129,7 @@
     "payroll": "Payroll",
     "accounting": "Accounting",
     "procurement": "Procurement",
+    "inventory": "Inventory",
     "users": "Users",
     "roles": "Roles & Permissions",
     "settings": "Settings",

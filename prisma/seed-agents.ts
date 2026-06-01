@@ -38,7 +38,7 @@ const MODULES = [
   'users', 'roles', 'settings', 'audit_log', 'change_requests', 'approvals',
   'deliverables', 'preview_links', 'comms', 'client_services', 'subscriptions',
   'bundles', 'forms', 'account_health', 'onboarding', 'website_analysis',
-  'employees', 'leave', 'payroll', 'accounting', 'procurement',
+  'employees', 'leave', 'payroll', 'accounting', 'procurement', 'inventory',
 ]
 const ACTIONS = ['view', 'create', 'edit', 'delete', 'export', 'approve']
 
@@ -117,7 +117,7 @@ const ROLE_MATRIX: Record<string, { name: string; nameAr: string; permissions: s
   'dept-12-it-operations': {
     name: 'ZH IT Operations Agents',
     nameAr: 'وكلاء عمليات تقنية المعلومات',
-    permissions: g(['settings', 'users', 'website_analysis', 'reports'], CRU).concat(g(['audit_log'], VIEW)).concat(g(['dashboard'], VIEW)),
+    permissions: g(['settings', 'users', 'website_analysis', 'reports'], CRU).concat(g(['inventory'], ['view', 'create', 'edit'])).concat(g(['audit_log'], VIEW)).concat(g(['dashboard'], VIEW)),
   },
   'dept-13-data-knowledge': {
     name: 'ZH Data & Knowledge Agents',

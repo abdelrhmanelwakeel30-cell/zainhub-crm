@@ -373,6 +373,8 @@ model Tenant {
   journalEntries         JournalEntry[]
   vendors                Vendor[]
   purchaseOrders         PurchaseOrder[]
+  items                  Item[]
+  stockMovements         StockMovement[]
   companies              Company[]
   contacts               Contact[]
   leads                  Lead[]
@@ -2987,4 +2989,41 @@ model POLine {
 
   @@index([tenantId])
   @@index([purchaseOrderId])
+}
+
+// ============================================================================
+// ERP — INVENTORY (E-5)
+// ============================================================================
+
+model Item {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  sku       String
+  name      String
+  quantity  Decimal  @default(0) @db.Decimal(14, 2)
+  unitCost  Decimal  @default(0) @db.Decimal(12, 2)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  movements StockMovement[]
+
+  @@unique([tenantId, sku])
+  @@index([tenantId])
+}
+
+model StockMovement {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  type      String // IN, OUT, ADJUST
+  quantity  Decimal  @db.Decimal(14, 2)
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([tenantId, itemId])
 }
