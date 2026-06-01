@@ -17,7 +17,7 @@
 - [x] **F-2** Zod validation on GET routes — reusable `parseQuery` + `paginationQuery` helpers (tested) + applied to core list routes (leads, companies, contacts). Long-tail routes get swept systematically under F-4 (route factory).
 - [x] **F-3** Replace remaining `any` types with typed DTOs — **0 `no-explicit-any` errors** (was 25+). Typed CSV-export rows, dashboard chart data, optimistic-update payloads, and let Prisma infer in auth/pdf routes.
 - [x] **F-6** Clear React-hygiene lint errors — **0 lint errors now** (was 8). Fixed `react-hooks/purity` (lazy `useState(()=>Date.now())` in contracts/payments) + `set-state-in-effect` (derived no-token state in verify-email; justified disables for genuine effects: settings seed, route-change drawer close, localStorage hydrate, palette reset).
-- [ ] **F-4** Shared API route factory (auth→validate→tenant-scope→paginate) to cut boilerplate across 122 routes
+- [x] **F-4** Shared API route factory (auth→validate→tenant-scope→paginate) to cut boilerplate across 122 routes
 - [ ] **F-5** Performance pass: DB index audit, response caching, N+1 elimination
 
 ## Phase B — CRM power features

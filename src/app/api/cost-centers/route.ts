@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getApiSession, requireApiPermission } from '@/lib/auth-utils'
+import { getApiSession } from '@/lib/auth-utils'
+import { withApi } from '@/lib/api-route'
 import { parseQuery, paginationQuery } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
 import { log } from '@/lib/logger'
@@ -7,6 +8,7 @@ import { z } from 'zod'
 
 const listQuery = z.object({ ...paginationQuery, search: z.string().optional().default('') })
 const createSchema = z.object({ code: z.string().min(1).max(30), name: z.string().min(1).max(120), isActive: z.boolean().default(true) })
+type CreateBody = z.infer<typeof createSchema>
 
 export async function GET(req: NextRequest) {
   const session = await getApiSession()
@@ -27,21 +29,14 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function POST(req: NextRequest) {
-  const guard = await requireApiPermission('budgeting:create')
-  if (!guard.ok) return guard.response
-  const { tenantId, id: userId } = guard.session.user
-  try {
-    const body = await req.json()
-    const parsed = createSchema.safeParse(body)
-    if (!parsed.success) return NextResponse.json({ success: false, error: parsed.error.flatten() }, { status: 422 })
-    const dup = await prisma.costCenter.findFirst({ where: { tenantId, code: parsed.data.code }, select: { id: true } })
-    if (dup) return NextResponse.json({ success: false, error: `Cost center ${parsed.data.code} already exists` }, { status: 409 })
-    const cc = await prisma.costCenter.create({ data: { tenantId, ...parsed.data } })
+// F-4: refactored to the shared route factory (auth+perm+validate+tenant+errors).
+export const POST = withApi<CreateBody>(
+  async ({ tenantId, userId, body }) => {
+    const dup = await prisma.costCenter.findFirst({ where: { tenantId, code: body.code }, select: { id: true } })
+    if (dup) return NextResponse.json({ success: false, error: `Cost center ${body.code} already exists` }, { status: 409 })
+    const cc = await prisma.costCenter.create({ data: { tenantId, ...body } })
     await prisma.auditLog.create({ data: { tenantId, userId, action: 'CREATE', entityType: 'cost_center', entityId: cc.id, entityName: `${cc.code} ${cc.name}` } })
     return NextResponse.json({ success: true, data: cc }, { status: 201 })
-  } catch (err) {
-    log.error('POST /api/cost-centers', { err })
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
-  }
-}
+  },
+  { permission: 'budgeting:create', schema: createSchema, label: 'POST /api/cost-centers' },
+)

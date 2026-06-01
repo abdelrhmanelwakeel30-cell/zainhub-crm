@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { requireApiPermission } from '@/lib/auth-utils'
-import { parseJson } from '@/lib/api-helpers'
+import { withApi } from '@/lib/api-route'
 import { newWebhookSecret, WEBHOOK_EVENTS } from '@/lib/webhooks'
 import { prisma } from '@/lib/prisma'
 import { log } from '@/lib/logger'
@@ -10,6 +10,7 @@ const createSchema = z.object({
   url: z.string().url(),
   events: z.array(z.enum(WEBHOOK_EVENTS)).min(1),
 })
+type CreateBody = z.infer<typeof createSchema>
 
 export async function GET() {
   const guard = await requireApiPermission('settings:view')
@@ -27,27 +28,19 @@ export async function GET() {
   }
 }
 
-export async function POST(req: NextRequest) {
-  const guard = await requireApiPermission('settings:edit')
-  if (!guard.ok) return guard.response
-  const { tenantId, id: userId } = guard.session.user
-
-  const parsed = await parseJson(req, createSchema)
-  if (parsed instanceof NextResponse) return parsed
-
-  try {
+// F-4: refactored to the shared route factory.
+export const POST = withApi<CreateBody>(
+  async ({ tenantId, userId, body }) => {
     const secret = newWebhookSecret()
     const created = await prisma.webhookEndpoint.create({
-      data: { tenantId, url: parsed.data.url, events: parsed.data.events, secret },
+      data: { tenantId, url: body.url, events: body.events, secret },
       select: { id: true, url: true, events: true, isActive: true, createdAt: true },
     })
     await prisma.auditLog.create({
-      data: { tenantId, userId, action: 'CREATE', entityType: 'webhook', entityId: created.id, entityName: parsed.data.url },
+      data: { tenantId, userId, action: 'CREATE', entityType: 'webhook', entityId: created.id, entityName: body.url },
     })
     // secret shown once so the receiver can verify signatures
     return NextResponse.json({ success: true, data: { ...created, secret } }, { status: 201 })
-  } catch (err) {
-    log.error('POST /api/webhooks', { err })
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
-  }
-}
+  },
+  { permission: 'settings:edit', schema: createSchema, label: 'POST /api/webhooks' },
+)
