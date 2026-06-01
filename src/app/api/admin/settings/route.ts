@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getSession, unauthorized, serverError, ok } from '@/lib/api-helpers'
+import { requireApiPermission } from '@/lib/auth-utils'
+import { serverError, ok } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
 
 const UpsertSettingSchema = z.object({
@@ -13,10 +14,10 @@ const BulkUpsertSchema = z.object({
 })
 
 export async function GET(req: NextRequest) {
+  const guard = await requireApiPermission('settings:view')
+  if (!guard.ok) return guard.response
+  const session = guard.session
   try {
-    const session = await getSession()
-    if (!session?.user) return unauthorized()
-
     const { searchParams } = new URL(req.url)
     const key = searchParams.get('key')
 
@@ -45,12 +46,11 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  // Upsert key/value entries into the tenant-scoped Setting store (JSON values).
+  const guard = await requireApiPermission('settings:edit')
+  if (!guard.ok) return guard.response
+  const session = guard.session
   try {
-    const session = await getSession()
-    if (!session?.user) return unauthorized()
-    const isAdmin = session.user.roles?.includes('Super Admin') || session.user.roles?.includes('Admin')
-    if (!isAdmin) return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
-
     const body = await req.json()
 
     // Support both single setting and bulk update
@@ -89,31 +89,32 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  // Allow PATCH to update tenant-level fields (name, logo, colors, etc.)
+  // Update tenant-level branding/locale fields (name, colors, currency, etc.).
+  const guard = await requireApiPermission('settings:edit')
+  if (!guard.ok) return guard.response
+  const session = guard.session
   try {
-    const session = await getSession()
-    if (!session?.user) return unauthorized()
-    const isAdmin = session.user.roles?.includes('Super Admin') || session.user.roles?.includes('Admin')
-    if (!isAdmin) return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
-
     const TenantSchema = z.object({
-      name: z.string().optional(),
-      primaryColor: z.string().optional(),
-      secondaryColor: z.string().optional(),
+      name: z.string().min(1).optional(),
+      primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+      secondaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
       defaultCurrency: z.enum(['AED','SAR','USD','EUR','GBP','EGP','KWD','QAR','BHD','OMR']).optional(),
-      defaultLanguage: z.string().optional(),
+      defaultLanguage: z.enum(['en','ar']).optional(),
       timezone: z.string().optional(),
       taxRegistrationNumber: z.string().optional(),
       address: z.string().optional(),
       phone: z.string().optional(),
       email: z.string().email().optional(),
       website: z.string().optional(),
-    }).passthrough()
+    }).strict()
 
     const body = await req.json()
     const parsed = TenantSchema.safeParse(body)
     if (!parsed.success) {
       return NextResponse.json({ success: false, error: parsed.error.flatten() }, { status: 400 })
+    }
+    if (Object.keys(parsed.data).length === 0) {
+      return NextResponse.json({ success: false, error: 'No fields to update' }, { status: 400 })
     }
 
     const tenant = await prisma.tenant.update({
