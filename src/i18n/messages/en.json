@@ -131,6 +131,7 @@
     "procurement": "Procurement",
     "inventory": "Inventory",
     "budgeting": "Budgeting",
+    "erpDashboard": "ERP Dashboard",
     "users": "Users",
     "roles": "Roles & Permissions",
     "settings": "Settings",

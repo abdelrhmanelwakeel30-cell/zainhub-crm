@@ -115,6 +115,7 @@ const navigation: NavGroup[] = [
   {
     titleKey: 'nav.admin',
     items: [
+      { titleKey: 'nav.erpDashboard', href: '/admin/erp-dashboard', icon: BarChart3, permission: 'reports:view' },
       { titleKey: 'nav.agents', href: '/admin/agents', icon: Bot, permission: 'users:view' },
       { titleKey: 'nav.hr', href: '/admin/hr', icon: UserCog, permission: 'employees:view' },
       { titleKey: 'nav.payroll', href: '/admin/payroll', icon: Wallet, permission: 'payroll:view' },
