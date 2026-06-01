@@ -58,6 +58,22 @@ export function LeadDetail({ leadId }: LeadDetailProps) {
     onError: (err: Error) => toast.error(err.message),
   })
 
+  // AI-3: draft a follow-up message
+  const [draft, setDraft] = useState<string | null>(null)
+  const draftMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch('/api/ai/draft', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ type: 'followup', entityId: leadId }),
+      })
+      if (!res.ok) throw new Error('Failed to draft')
+      return res.json()
+    },
+    onSuccess: (r) => setDraft(r.data?.draft ?? ''),
+    onError: () => toast.error('Could not generate a draft'),
+  })
+
   // AI-2: recalculate heuristic lead score
   const scoreMutation = useMutation({
     mutationFn: async () => {
@@ -255,6 +271,16 @@ export function LeadDetail({ leadId }: LeadDetailProps) {
                 <Sparkles className="h-4 w-4 me-2" />
                 {scoreMutation.isPending ? 'Scoring…' : 'Recalculate score'}
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2 w-full"
+                disabled={draftMutation.isPending}
+                onClick={() => draftMutation.mutate()}
+              >
+                <Sparkles className="h-4 w-4 me-2" />
+                {draftMutation.isPending ? 'Drafting…' : 'Draft follow-up (AI)'}
+              </Button>
             </CardContent>
           </Card>
 
@@ -343,6 +369,22 @@ export function LeadDetail({ leadId }: LeadDetailProps) {
               {convertMutation.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
               Convert Lead
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* AI-3: drafted follow-up */}
+      <Dialog open={draft !== null} onOpenChange={(o) => !o && setDraft(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>AI follow-up draft</DialogTitle></DialogHeader>
+          <textarea
+            className="min-h-[220px] w-full rounded-md border bg-background p-3 text-sm"
+            value={draft ?? ''}
+            onChange={(e) => setDraft(e.target.value)}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { navigator.clipboard?.writeText(draft ?? ''); toast.success('Copied') }}>Copy</Button>
+            <DialogClose render={<Button type="button" />}>Done</DialogClose>
           </DialogFooter>
         </DialogContent>
       </Dialog>
