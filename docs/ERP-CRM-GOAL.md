@@ -42,7 +42,7 @@
 
 ## Phase D — AI differentiators (Zain Hub edge)
 - [ ] **AI-1** RAG "ask your CRM/ERP" (tenant-scoped retrieval + cited answers)
-- [ ] **AI-2** AI lead scoring & routing
+- [x] **AI-2** AI lead scoring — pure `computeLeadScore()` helper (0–100 from completeness + intent + recency signals, **5 unit tests**) + `POST /api/leads/[id]/score` (RBAC leads:edit, writes lead.score, audit, returns factors) + "Recalculate score" button on the lead detail. Verified E2E (sales agent scored a lead → 25, 2 factors). 49 tests pass.
 - [ ] **AI-3** AI drafting (proposals, quotations, follow-ups) with prompt caching
 - [ ] **AI-4** Activity / thread summarization
 - [x] **AI-5** Expand CRM MCP to the full ERP suite — `mcp-server/index.mjs` now exposes **23 tools** (was 12): added crm_list/create_employees, create_leave, list_accounts, create_journal_entry, list/create_purchase_orders, list_items, stock_movement, list_budgets, erp_dashboard. `wire-agents.mjs` TOOL_PERMS updated + re-run (166 agents re-wired, registry + secrets regenerated). Verified the MCP server lists all 23 tools via a stdio client with a finance agent key. RBAC still enforced server-side per agent.
@@ -91,3 +91,4 @@
 - 2026-05-31 — E-6 DONE: Budgeting — CostCenter + Budget models + migration (138 routes, 246 perms); budgeting perm in both seeds + Finance role; cost-centers + budgets APIs (record-spend PATCH) + UI /admin/budgeting (animated utilization bars) + sidebar nav (EN/AR). Verified E2E (budget 50000 → spend 12000 → remaining 38000). tsc + 44 tests + build green. Next: E-7 exec dashboard (Phase C finale).
 - 2026-05-31 — E-7 DONE → PHASE C COMPLETE. ERP exec dashboard: GET /api/erp-dashboard (cross-module aggregates) + /admin/erp-dashboard (framer-motion KPIs + recharts) + sidebar nav (EN/AR). Verified E2E (leadership 200, correct metrics). tsc + 44 tests + build (140 routes) green. Next: Phase D AI — AI-5 expand CRM MCP to full ERP suite.
 - 2026-05-31 — Phase D started. AI-5 DONE: CRM MCP server extended 12→23 tools (HR/accounting/procurement/inventory/budgeting/erp-dashboard); wire-agents TOOL_PERMS updated + re-run (166 agents); verified MCP lists all 23 tools (stdio client, finance key). tsc + 44 tests + build green. Next: AI-2 lead scoring.
+- 2026-05-31 — AI-2 DONE: heuristic lead scoring — computeLeadScore() pure helper (+5 unit tests, 49 total) + POST /api/leads/[id]/score (RBAC+audit, returns factors) + Recalculate-score button on lead detail. Verified E2E (score 25). tsc + 49 tests + build (140 routes) green. Next: AI-3 drafting.

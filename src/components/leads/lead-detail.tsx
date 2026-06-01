@@ -17,7 +17,7 @@ import { DialogClose } from '@/components/ui/dialog'
 import { getInitials, formatDate, formatRelativeDate } from '@/lib/utils'
 import { toast } from 'sonner'
 import Link from 'next/link'
-import { Loader2, ArrowLeft, Phone, Mail, Globe, Building2, CalendarClock, User, Target, DollarSign, ArrowRight, AlertTriangle, Megaphone } from 'lucide-react'
+import { Loader2, ArrowLeft, Phone, Mail, Globe, Building2, CalendarClock, User, Target, DollarSign, ArrowRight, AlertTriangle, Megaphone, Sparkles } from 'lucide-react'
 
 interface LeadDetailProps {
   leadId: string
@@ -56,6 +56,20 @@ export function LeadDetail({ leadId }: LeadDetailProps) {
       router.push('/opportunities')
     },
     onError: (err: Error) => toast.error(err.message),
+  })
+
+  // AI-2: recalculate heuristic lead score
+  const scoreMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/leads/${leadId}/score`, { method: 'POST' })
+      if (!res.ok) throw new Error('Failed to score lead')
+      return res.json()
+    },
+    onSuccess: (r) => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] })
+      toast.success(`Score updated: ${r.data?.score ?? ''}`)
+    },
+    onError: () => toast.error('Could not recalculate score'),
   })
 
   if (isLoading) {
@@ -231,6 +245,16 @@ export function LeadDetail({ leadId }: LeadDetailProps) {
               <div className="flex items-center justify-center py-4">
                 <ScoreIndicator score={lead.score ?? 0} size="lg" />
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                disabled={scoreMutation.isPending}
+                onClick={() => scoreMutation.mutate()}
+              >
+                <Sparkles className="h-4 w-4 me-2" />
+                {scoreMutation.isPending ? 'Scoring…' : 'Recalculate score'}
+              </Button>
             </CardContent>
           </Card>
 
