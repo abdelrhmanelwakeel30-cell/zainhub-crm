@@ -5,6 +5,7 @@ import { useQuery, useMutation } from '@tanstack/react-query'
 import Link from 'next/link'
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip as RTooltip } from 'recharts'
+import { useTranslations } from 'next-intl'
 import { PageHeader } from '@/components/shared/page-header'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -43,6 +44,7 @@ function Kpi({ icon: Icon, label, value, prefix, tone, delay }: { icon: React.El
 }
 
 export function ErpDashboardContent() {
+  const t = useTranslations('erp')
   const { data } = useQuery<{ data: ErpData }>({
     queryKey: ['erp-dashboard'],
     queryFn: () => fetch('/api/erp-dashboard').then((r) => r.json()),
@@ -59,7 +61,7 @@ export function ErpDashboardContent() {
 
   return (
     <div className="space-y-6 animate-slide-in">
-      <PageHeader title="ERP Dashboard" description="Cross-module CRM + ERP overview" />
+      <PageHeader title={t('erpDashTitle')} description={t('erpDashSubtitle')} />
 
       <AskBox />
 

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { useTranslations } from 'next-intl'
 import { PageHeader } from '@/components/shared/page-header'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -22,6 +23,7 @@ type Entry = { id: string; entryNumber: string; date: string; memo?: string | nu
 const money = (n: number) => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 export function AccountingContent() {
+  const t = useTranslations('erp')
   const queryClient = useQueryClient()
   const [tab, setTab] = useState<'accounts' | 'journal'>('accounts')
   const [showAccount, setShowAccount] = useState(false)
@@ -58,7 +60,7 @@ export function AccountingContent() {
 
   return (
     <div className="space-y-6 animate-slide-in">
-      <PageHeader title="Accounting" description={`${accData?.total ?? 0} accounts · ${jeData?.total ?? 0} journal entries`}>
+      <PageHeader title={t('accountingTitle')} description={t('accountingSubtitle', { accounts: accData?.total ?? 0, entries: jeData?.total ?? 0 })}>
         {tab === 'accounts' ? (
           <Button size="sm" onClick={() => setShowAccount(true)}><Plus className="h-4 w-4 me-2" /> New account</Button>
         ) : (
@@ -177,6 +179,7 @@ type DraftLine = { accountId: string; debit: string; credit: string; description
 const emptyLine = (): DraftLine => ({ accountId: '', debit: '', credit: '', description: '' })
 
 function NewEntryDialog({ open, onOpenChange, accounts }: { open: boolean; onOpenChange: (o: boolean) => void; accounts: Account[] }) {
+  const t = useTranslations('erp')
   const queryClient = useQueryClient()
   const [date, setDate] = useState('')
   const [memo, setMemo] = useState('')
@@ -237,7 +240,7 @@ function NewEntryDialog({ open, onOpenChange, accounts }: { open: boolean; onOpe
                 </Select>
                 <Input type="number" min="0" step="0.01" placeholder="Debit" value={l.debit} onChange={(e) => setLine(i, { debit: e.target.value, credit: e.target.value ? '' : l.credit })} />
                 <Input type="number" min="0" step="0.01" placeholder="Credit" value={l.credit} onChange={(e) => setLine(i, { credit: e.target.value, debit: e.target.value ? '' : l.debit })} />
-                <Button type="button" variant="ghost" size="icon" className="h-8 w-8" disabled={lines.length <= 2} onClick={() => setLines((ls) => ls.filter((_, idx) => idx !== i))}>
+                <Button type="button" variant="ghost" size="icon" aria-label={t('removeLine')} className="h-8 w-8" disabled={lines.length <= 2} onClick={() => setLines((ls) => ls.filter((_, idx) => idx !== i))}>
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>

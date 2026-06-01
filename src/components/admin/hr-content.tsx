@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ColumnDef } from '@tanstack/react-table'
 import { toast } from 'sonner'
+import { useTranslations } from 'next-intl'
 import { PageHeader } from '@/components/shared/page-header'
 import { DataTable } from '@/components/shared/data-table'
 import { StatusBadge } from '@/components/shared/status-badge'
@@ -39,6 +40,7 @@ type LeaveRequest = {
 }
 
 export function HRContent() {
+  const t = useTranslations('erp')
   const queryClient = useQueryClient()
   const [tab, setTab] = useState<'employees' | 'leave'>('employees')
   const [showCreate, setShowCreate] = useState(false)
@@ -92,7 +94,7 @@ export function HRContent() {
 
   return (
     <div className="space-y-6 animate-slide-in">
-      <PageHeader title="HR & Workforce" description={`${empData?.total ?? 0} employees`}>
+      <PageHeader title={t('hrTitle')} description={t('hrSubtitle', { count: empData?.total ?? 0 })}>
         <Button size="sm" onClick={() => setShowCreate(true)}>
           <Plus className="h-4 w-4 me-2" /> New employee
         </Button>

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { useTranslations } from 'next-intl'
 import { PageHeader } from '@/components/shared/page-header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,6 +17,7 @@ type Item = { id: string; sku: string; name: string; quantity: number | string; 
 const num = (v: number | string) => Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 })
 
 export function InventoryContent() {
+  const t = useTranslations('erp')
   const [showItem, setShowItem] = useState(false)
   const [moveItem, setMoveItem] = useState<Item | null>(null)
 
@@ -24,7 +26,7 @@ export function InventoryContent() {
 
   return (
     <div className="space-y-6 animate-slide-in">
-      <PageHeader title="Inventory" description={`${data?.total ?? 0} items`}>
+      <PageHeader title={t('inventoryTitle')} description={t('inventorySubtitle', { count: data?.total ?? 0 })}>
         <Button size="sm" onClick={() => setShowItem(true)}><Plus className="h-4 w-4 me-2" /> New item</Button>
       </PageHeader>
 

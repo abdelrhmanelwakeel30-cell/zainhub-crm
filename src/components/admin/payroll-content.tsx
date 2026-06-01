@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { useTranslations } from 'next-intl'
 import { PageHeader } from '@/components/shared/page-header'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { Button } from '@/components/ui/button'
@@ -35,6 +36,7 @@ type Payslip = {
 const money = (v: number | string, c = 'AED') => `${c} ${Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
 export function PayrollContent() {
+  const t = useTranslations('erp')
   const queryClient = useQueryClient()
   const [showCreate, setShowCreate] = useState(false)
   const [payslipRun, setPayslipRun] = useState<Run | null>(null)
@@ -64,7 +66,7 @@ export function PayrollContent() {
 
   return (
     <div className="space-y-6 animate-slide-in">
-      <PageHeader title="Payroll" description={`${data?.total ?? 0} payroll runs`}>
+      <PageHeader title={t('payrollTitle')} description={t('payrollSubtitle', { count: data?.total ?? 0 })}>
         <Button size="sm" onClick={() => setShowCreate(true)}>
           <Plus className="h-4 w-4 me-2" /> New run
         </Button>

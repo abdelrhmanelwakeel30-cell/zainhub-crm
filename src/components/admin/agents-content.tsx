@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { PageHeader } from '@/components/shared/page-header'
 import { formatRelativeDate } from '@/lib/utils'
 import { Bot, Users, Activity, Building2, Zap, PauseCircle, CircleSlash } from 'lucide-react'
@@ -63,6 +64,7 @@ function KpiCard({ icon: Icon, label, value, tone, delay }: {
 }
 
 export function AgentsContent() {
+  const t = useTranslations('erp')
   const { data, isLoading } = useQuery<AgentsResponse>({
     queryKey: ['agents', 'fleet'],
     queryFn: () => fetch('/api/agents').then((r) => r.json()),
@@ -77,8 +79,8 @@ export function AgentsContent() {
   return (
     <div className="space-y-6 animate-slide-in">
       <PageHeader
-        title="AI Agents"
-        description={summary ? `${summary.total} agents across ${summary.departments} departments` : 'Loading agent fleet…'}
+        title={t('agentsTitle')}
+        description={summary ? t('agentsSubtitle', { count: summary.total, depts: summary.departments }) : t('agentsLoading')}
       />
 
       {/* KPI row */}

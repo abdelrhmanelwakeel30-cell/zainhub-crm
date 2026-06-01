@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { useTranslations } from 'next-intl'
 import { PageHeader } from '@/components/shared/page-header'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -24,6 +25,7 @@ const NEXT_ACTION: Record<string, { action: 'submit' | 'approve' | 'receive'; la
 }
 
 export function ProcurementContent() {
+  const t = useTranslations('erp')
   const queryClient = useQueryClient()
   const [tab, setTab] = useState<'vendors' | 'pos'>('pos')
   const [showVendor, setShowVendor] = useState(false)
@@ -47,7 +49,7 @@ export function ProcurementContent() {
 
   return (
     <div className="space-y-6 animate-slide-in">
-      <PageHeader title="Procurement" description={`${vData?.total ?? 0} vendors · ${poData?.total ?? 0} purchase orders`}>
+      <PageHeader title={t('procurementTitle')} description={t('procurementSubtitle', { vendors: vData?.total ?? 0, orders: poData?.total ?? 0 })}>
         {tab === 'vendors' ? (
           <Button size="sm" onClick={() => setShowVendor(true)}><Plus className="h-4 w-4 me-2" /> New vendor</Button>
         ) : (
@@ -140,6 +142,7 @@ type POLine = { description: string; quantity: string; unitPrice: string }
 const emptyPOLine = (): POLine => ({ description: '', quantity: '', unitPrice: '' })
 
 function NewPODialog({ open, onOpenChange, vendors }: { open: boolean; onOpenChange: (o: boolean) => void; vendors: Vendor[] }) {
+  const t = useTranslations('erp')
   const queryClient = useQueryClient()
   const [vendorId, setVendorId] = useState('')
   const [notes, setNotes] = useState('')
@@ -179,7 +182,7 @@ function NewPODialog({ open, onOpenChange, vendors }: { open: boolean; onOpenCha
                 <Input placeholder="Description" value={l.description} onChange={(e) => setLine(i, { description: e.target.value })} />
                 <Input type="number" min="0" step="1" placeholder="Qty" value={l.quantity} onChange={(e) => setLine(i, { quantity: e.target.value })} />
                 <Input type="number" min="0" step="0.01" placeholder="Unit price" value={l.unitPrice} onChange={(e) => setLine(i, { unitPrice: e.target.value })} />
-                <Button type="button" variant="ghost" size="icon" className="h-8 w-8" disabled={lines.length <= 1} onClick={() => setLines((ls) => ls.filter((_, idx) => idx !== i))}><Trash2 className="h-4 w-4" /></Button>
+                <Button type="button" variant="ghost" size="icon" aria-label={t('removeLine')} className="h-8 w-8" disabled={lines.length <= 1} onClick={() => setLines((ls) => ls.filter((_, idx) => idx !== i))}><Trash2 className="h-4 w-4" /></Button>
               </div>
             ))}
             <Button type="button" variant="outline" size="sm" onClick={() => setLines((ls) => [...ls, emptyPOLine()])}><Plus className="h-4 w-4 me-2" /> Add line</Button>

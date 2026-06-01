@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
+import { useTranslations } from 'next-intl'
 import { PageHeader } from '@/components/shared/page-header'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -19,6 +20,7 @@ type Budget = { id: string; periodLabel: string; amount: number | string; spent:
 const money = (v: number | string, c = 'AED') => `${c} ${Number(v).toLocaleString(undefined, { maximumFractionDigits: 0 })}`
 
 export function BudgetingContent() {
+  const t = useTranslations('erp')
   const queryClient = useQueryClient()
   const [tab, setTab] = useState<'budgets' | 'centers'>('budgets')
   const [showCenter, setShowCenter] = useState(false)
@@ -38,7 +40,7 @@ export function BudgetingContent() {
 
   return (
     <div className="space-y-6 animate-slide-in">
-      <PageHeader title="Budgeting" description={`${ccData?.total ?? 0} cost centers · ${bData?.total ?? 0} budgets`}>
+      <PageHeader title={t('budgetingTitle')} description={t('budgetingSubtitle', { centers: ccData?.total ?? 0, budgets: bData?.total ?? 0 })}>
         {tab === 'centers'
           ? <Button size="sm" onClick={() => setShowCenter(true)}><Plus className="h-4 w-4 me-2" /> New cost center</Button>
           : <Button size="sm" onClick={() => setShowBudget(true)} disabled={centers.length === 0}><Plus className="h-4 w-4 me-2" /> New budget</Button>}
