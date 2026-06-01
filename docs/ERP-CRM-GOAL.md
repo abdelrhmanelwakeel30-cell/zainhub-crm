@@ -13,7 +13,7 @@
 - [x] **AGENT-DASH** In-CRM Agents dashboard at `/admin/agents` (+ sidebar nav, EN/AR) — `GET /api/agents` fleet API (status active/idle/never/revoked from API-key lastUsedAt, per-department breakdown, summary). Animated UI via framer-motion: count-up KPIs, staggered agent cards, pulsing "active" status dots, animated department bars. Verified E2E (RBAC 403 for sales, 200 fleet of 166/19-depts for leadership) + build.
 
 ## Phase A — Foundation (reliability before scale)
-- [ ] **F-1** Test coverage for critical paths: auth, agent-auth, leads, invoicing, multi-tenant isolation, RBAC (target: integration tests on top 15 routes)
+- [x] **F-1** Test coverage for critical paths: auth, agent-auth, leads, invoicing, multi-tenant isolation, RBAC (target: integration tests on top 15 routes)
 - [x] **F-2** Zod validation on GET routes — reusable `parseQuery` + `paginationQuery` helpers (tested) + applied to core list routes (leads, companies, contacts). Long-tail routes get swept systematically under F-4 (route factory).
 - [x] **F-3** Replace remaining `any` types with typed DTOs — **0 `no-explicit-any` errors** (was 25+). Typed CSV-export rows, dashboard chart data, optimistic-update payloads, and let Prisma infer in auth/pdf routes.
 - [x] **F-6** Clear React-hygiene lint errors — **0 lint errors now** (was 8). Fixed `react-hooks/purity` (lazy `useState(()=>Date.now())` in contracts/payments) + `set-state-in-effect` (derived no-token state in verify-email; justified disables for genuine effects: settings seed, route-change drawer close, localStorage hydrate, palette reset).
