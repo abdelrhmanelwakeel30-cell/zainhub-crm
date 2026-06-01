@@ -70,3 +70,8 @@ next-env.d.ts
 # Local SQLite dev database — production uses Postgres on Neon
 prisma/dev.db
 prisma/dev.db-journal
+
+# playwright MCP screenshots / artifacts
+.playwright-mcp/
+agents-dashboard.png
+*.playwright-mcp.png
