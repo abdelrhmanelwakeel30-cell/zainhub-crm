@@ -13,7 +13,7 @@ import {
   BarChart3, ChevronLeft, ChevronRight, ChevronDown, Bell,
   Handshake, Package, GitBranch, GitMerge, CheckSquare, X,
   Eye, PackageOpen, MessageSquare, HeartPulse, ClipboardList,
-  RefreshCw, Layers, FormInput, Crown, Globe, Bot, UserCog,
+  RefreshCw, Layers, FormInput, Crown, Globe, Bot, UserCog, BookOpen,
 } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
 import { useSession } from 'next-auth/react'
@@ -116,6 +116,7 @@ const navigation: NavGroup[] = [
       { titleKey: 'nav.agents', href: '/admin/agents', icon: Bot, permission: 'users:view' },
       { titleKey: 'nav.hr', href: '/admin/hr', icon: UserCog, permission: 'employees:view' },
       { titleKey: 'nav.payroll', href: '/admin/payroll', icon: Wallet, permission: 'payroll:view' },
+      { titleKey: 'nav.accounting', href: '/admin/accounting', icon: BookOpen, permission: 'accounting:view' },
       { titleKey: 'nav.users', href: '/admin/users', icon: Users, permission: 'users:view' },
       { titleKey: 'nav.roles', href: '/admin/roles', icon: Shield, permission: 'roles:view' },
       { titleKey: 'nav.settings', href: '/admin/settings', icon: Settings, permission: 'settings:view' },
