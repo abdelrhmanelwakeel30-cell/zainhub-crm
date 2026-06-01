@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Settings, Palette, Bell, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { SecuritySection } from '@/components/admin/security-section'
+import { BillingSection } from '@/components/admin/billing-section'
 
 interface TenantSettings {
   name?: string
@@ -282,6 +283,9 @@ export function SettingsContent() {
 
           {/* Security — TOTP two-factor auth */}
           <SecuritySection />
+
+          {/* Billing — Stripe subscription (gated) */}
+          <BillingSection />
         </div>
       </div>
     </div>

@@ -19,6 +19,7 @@ const PUBLIC_API_PATHS = [
   '/api/auth',              // NextAuth handler
   '/api/public',            // Public forms
   '/api/client-portal',     // Portal (separate JWT)
+  '/api/billing/webhook',   // Stripe webhook (signature-verified, machine-to-machine)
   '/api/health',            // Health check
 ]
 

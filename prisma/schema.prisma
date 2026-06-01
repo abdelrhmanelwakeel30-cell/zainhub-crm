@@ -358,6 +358,10 @@ model Tenant {
   website               String?
   settings              Json? // Tenant-wide config (invoice prefix, etc.)
   plan                  String   @default("PROFESSIONAL")
+  // Stripe billing (S-1) — all optional; billing is gated behind STRIPE_SECRET_KEY.
+  stripeCustomerId      String?  @unique
+  stripeSubscriptionId  String?  @unique
+  subscriptionStatus    String? // Stripe sub status: active, trialing, past_due, canceled, etc.
   isActive              Boolean  @default(true)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt

@@ -485,7 +485,13 @@
     "twoFAScanSecret": "Add this secret to your authenticator app",
     "twoFAUriHint": "Copy provisions the full otpauth:// URI for QR-based apps.",
     "twoFAEnterCode": "Enter the 6-digit code",
-    "twoFAConfirm": "Confirm"
+    "twoFAConfirm": "Confirm",
+    "billing": "Billing & Subscription",
+    "billingDesc": "Manage your plan and payment",
+    "currentPlan": "Current Plan",
+    "upgradePlan": "Upgrade",
+    "billingNotConfigured": "Billing is not configured on this server.",
+    "billingCheckoutFailed": "Could not start checkout"
   },
   "reports": {
     "title": "Reports",

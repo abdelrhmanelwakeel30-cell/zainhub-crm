@@ -485,7 +485,13 @@
     "twoFAScanSecret": "أضف هذا المفتاح إلى تطبيق المصادقة",
     "twoFAUriHint": "النسخ يوفّر رابط otpauth:// الكامل لتطبيقات رمز الاستجابة السريعة.",
     "twoFAEnterCode": "أدخل الرمز المكوّن من 6 أرقام",
-    "twoFAConfirm": "تأكيد"
+    "twoFAConfirm": "تأكيد",
+    "billing": "الفوترة والاشتراك",
+    "billingDesc": "إدارة باقتك والدفع",
+    "currentPlan": "الباقة الحالية",
+    "upgradePlan": "ترقية",
+    "billingNotConfigured": "الفوترة غير مُهيّأة على هذا الخادم.",
+    "billingCheckoutFailed": "تعذّر بدء عملية الدفع"
   },
   "reports": {
     "title": "التقارير",
