@@ -369,6 +369,8 @@ model Tenant {
   leaveRequests          LeaveRequest[]
   payrollRuns            PayrollRun[]
   payslips               Payslip[]
+  accounts               Account[]
+  journalEntries         JournalEntry[]
   companies              Company[]
   contacts               Contact[]
   leads                  Lead[]
@@ -2859,4 +2861,69 @@ model Payslip {
   @@unique([payrollRunId, employeeId])
   @@index([tenantId])
   @@index([tenantId, employeeId])
+}
+
+// ============================================================================
+// ERP — ACCOUNTING (E-3)
+// ============================================================================
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+model Account {
+  id        String      @id @default(cuid())
+  tenantId  String
+  tenant    Tenant      @relation(fields: [tenantId], references: [id])
+  code      String
+  name      String
+  type      AccountType
+  isActive  Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  journalLines JournalLine[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@index([tenantId, type])
+}
+
+model JournalEntry {
+  id          String    @id @default(cuid())
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id])
+  entryNumber String // Auto: JE-0001
+  date        DateTime
+  memo        String?   @db.Text
+  status      String    @default("DRAFT") // DRAFT, POSTED
+  postedAt    DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  lines JournalLine[]
+
+  @@unique([tenantId, entryNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+}
+
+model JournalLine {
+  id             String       @id @default(cuid())
+  tenantId       String
+  journalEntryId String
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  accountId      String
+  account        Account      @relation(fields: [accountId], references: [id])
+  debit          Decimal      @default(0) @db.Decimal(14, 2)
+  credit         Decimal      @default(0) @db.Decimal(14, 2)
+  description    String?
+
+  @@index([tenantId])
+  @@index([journalEntryId])
+  @@index([accountId])
 }
