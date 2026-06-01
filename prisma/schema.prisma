@@ -375,6 +375,8 @@ model Tenant {
   purchaseOrders         PurchaseOrder[]
   items                  Item[]
   stockMovements         StockMovement[]
+  costCenters            CostCenter[]
+  budgets                Budget[]
   companies              Company[]
   contacts               Contact[]
   leads                  Lead[]
@@ -3026,4 +3028,41 @@ model StockMovement {
 
   @@index([tenantId])
   @@index([tenantId, itemId])
+}
+
+// ============================================================================
+// ERP — BUDGETING & COST CENTERS (E-6)
+// ============================================================================
+
+model CostCenter {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  code      String
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  budgets Budget[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+}
+
+model Budget {
+  id           String     @id @default(cuid())
+  tenantId     String
+  tenant       Tenant     @relation(fields: [tenantId], references: [id])
+  costCenterId String
+  costCenter   CostCenter @relation(fields: [costCenterId], references: [id], onDelete: Cascade)
+  periodLabel  String // e.g. "2026-Q2"
+  amount       Decimal    @db.Decimal(14, 2)
+  spent        Decimal    @default(0) @db.Decimal(14, 2)
+  currency     Currency   @default(AED)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([tenantId, costCenterId, periodLabel])
+  @@index([tenantId])
 }

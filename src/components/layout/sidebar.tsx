@@ -15,6 +15,7 @@ import {
   Eye, PackageOpen, MessageSquare, HeartPulse, ClipboardList,
   RefreshCw, Layers, FormInput, Crown, Globe, Bot, UserCog, BookOpen,
   ShoppingCart,
+  PieChart,
 } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
 import { useSession } from 'next-auth/react'
@@ -120,6 +121,7 @@ const navigation: NavGroup[] = [
       { titleKey: 'nav.accounting', href: '/admin/accounting', icon: BookOpen, permission: 'accounting:view' },
       { titleKey: 'nav.procurement', href: '/admin/procurement', icon: ShoppingCart, permission: 'procurement:view' },
       { titleKey: 'nav.inventory', href: '/admin/inventory', icon: Package, permission: 'inventory:view' },
+      { titleKey: 'nav.budgeting', href: '/admin/budgeting', icon: PieChart, permission: 'budgeting:view' },
       { titleKey: 'nav.users', href: '/admin/users', icon: Users, permission: 'users:view' },
       { titleKey: 'nav.roles', href: '/admin/roles', icon: Shield, permission: 'roles:view' },
       { titleKey: 'nav.settings', href: '/admin/settings', icon: Settings, permission: 'settings:view' },

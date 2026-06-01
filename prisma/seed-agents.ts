@@ -38,7 +38,7 @@ const MODULES = [
   'users', 'roles', 'settings', 'audit_log', 'change_requests', 'approvals',
   'deliverables', 'preview_links', 'comms', 'client_services', 'subscriptions',
   'bundles', 'forms', 'account_health', 'onboarding', 'website_analysis',
-  'employees', 'leave', 'payroll', 'accounting', 'procurement', 'inventory',
+  'employees', 'leave', 'payroll', 'accounting', 'procurement', 'inventory', 'budgeting',
 ]
 const ACTIONS = ['view', 'create', 'edit', 'delete', 'export', 'approve']
 
@@ -97,7 +97,7 @@ const ROLE_MATRIX: Record<string, { name: string; nameAr: string; permissions: s
   'dept-08-finance': {
     name: 'ZH Finance Agents',
     nameAr: 'وكلاء المالية',
-    permissions: g(['invoices', 'payments', 'expenses', 'quotations', 'subscriptions', 'bundles', 'payroll', 'accounting'], ['view', 'create', 'edit', 'export', 'approve']).concat(g(['reports'], ['view', 'export'])).concat(g(['dashboard'], VIEW)),
+    permissions: g(['invoices', 'payments', 'expenses', 'quotations', 'subscriptions', 'bundles', 'payroll', 'accounting', 'budgeting'], ['view', 'create', 'edit', 'export', 'approve']).concat(g(['reports'], ['view', 'export'])).concat(g(['dashboard'], VIEW)),
   },
   'dept-09-legal': {
     name: 'ZH Legal Agents',
