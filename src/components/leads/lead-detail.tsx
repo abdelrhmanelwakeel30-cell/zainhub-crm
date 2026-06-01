@@ -74,6 +74,21 @@ export function LeadDetail({ leadId }: LeadDetailProps) {
     onError: () => toast.error('Could not generate a draft'),
   })
 
+  // AI-4: summarize the lead's activity timeline
+  const summarizeMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch('/api/ai/summarize', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ entityType: 'lead', entityId: leadId }),
+      })
+      if (!res.ok) throw new Error('Failed to summarize')
+      return res.json()
+    },
+    onSuccess: (r) => setDraft(r.data?.summary ?? ''),
+    onError: () => toast.error('Could not summarize'),
+  })
+
   // AI-2: recalculate heuristic lead score
   const scoreMutation = useMutation({
     mutationFn: async () => {
@@ -281,6 +296,16 @@ export function LeadDetail({ leadId }: LeadDetailProps) {
                 <Sparkles className="h-4 w-4 me-2" />
                 {draftMutation.isPending ? 'Drafting…' : 'Draft follow-up (AI)'}
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2 w-full"
+                disabled={summarizeMutation.isPending}
+                onClick={() => summarizeMutation.mutate()}
+              >
+                <Sparkles className="h-4 w-4 me-2" />
+                {summarizeMutation.isPending ? 'Summarizing…' : 'Summarize activity (AI)'}
+              </Button>
             </CardContent>
           </Card>
 
@@ -376,7 +401,7 @@ export function LeadDetail({ leadId }: LeadDetailProps) {
       {/* AI-3: drafted follow-up */}
       <Dialog open={draft !== null} onOpenChange={(o) => !o && setDraft(null)}>
         <DialogContent>
-          <DialogHeader><DialogTitle>AI follow-up draft</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>AI assistant</DialogTitle></DialogHeader>
           <textarea
             className="min-h-[220px] w-full rounded-md border bg-background p-3 text-sm"
             value={draft ?? ''}

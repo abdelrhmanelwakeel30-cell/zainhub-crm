@@ -1,11 +1,14 @@
 'use client'
 
-import { useEffect } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
+import { useQuery, useMutation } from '@tanstack/react-query'
+import Link from 'next/link'
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip as RTooltip } from 'recharts'
 import { PageHeader } from '@/components/shared/page-header'
-import { Users, Wallet, ArrowDownLeft, ArrowUpRight, Boxes, Target, Handshake, BookOpen } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Users, Wallet, ArrowDownLeft, ArrowUpRight, Boxes, Target, Handshake, BookOpen, Sparkles, Loader2 } from 'lucide-react'
 
 interface ErpData {
   headcount: number
@@ -58,6 +61,9 @@ export function ErpDashboardContent() {
     <div className="space-y-6 animate-slide-in">
       <PageHeader title="ERP Dashboard" description="Cross-module CRM + ERP overview" />
 
+      <AskBox />
+
+
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Kpi icon={Users} label="Headcount" value={d?.headcount ?? 0} tone="bg-blue-50 text-blue-600 dark:bg-blue-500/10" delay={0} />
         <Kpi icon={ArrowDownLeft} label="Receivable" prefix="AED " value={d?.accountsReceivable ?? 0} tone="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10" delay={0.05} />
@@ -95,6 +101,50 @@ export function ErpDashboardContent() {
           </div>
         </motion.div>
       </div>
+    </div>
+  )
+}
+
+interface AskResult { answer: string; citations: { type: string; id: string; label: string; href: string }[] }
+
+function AskBox() {
+  const [q, setQ] = useState('')
+  const [result, setResult] = useState<AskResult | null>(null)
+  const ask = useMutation({
+    mutationFn: async () => {
+      const res = await fetch('/api/ai/ask', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question: q }) })
+      if (!res.ok) throw new Error('ask failed')
+      return res.json()
+    },
+    onSuccess: (r) => setResult(r.data ?? null),
+  })
+  return (
+    <div className="lux-card p-4">
+      <div className="flex items-center gap-2">
+        <Sparkles className="h-4 w-4 text-muted-foreground" />
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter' && q.trim().length >= 2) ask.mutate() }}
+          placeholder="Ask your data… e.g. a company or lead name"
+          className="flex-1"
+        />
+        <Button size="sm" disabled={q.trim().length < 2 || ask.isPending} onClick={() => ask.mutate()}>
+          {ask.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Ask'}
+        </Button>
+      </div>
+      {result && (
+        <div className="mt-3 space-y-2">
+          <p className="whitespace-pre-wrap text-sm text-foreground/90">{result.answer}</p>
+          {result.citations.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {result.citations.map((c) => (
+                <Link key={c.id} href={c.href} className="rounded-full border px-2 py-0.5 text-[11px] text-blue-600 hover:bg-accent">{c.label}</Link>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
