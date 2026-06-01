@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { nextNumber } from '@/lib/number-sequence'
 import { logCreate } from '@/lib/activity'
 import { invalidate } from '@/lib/cache'
+import { dispatchWebhook } from '@/lib/webhooks'
 import { log } from '@/lib/logger'
 import { z } from 'zod'
 
@@ -145,6 +146,7 @@ export async function POST(req: NextRequest) {
     })
 
     logCreate(tenantId, 'lead', lead.id, lead.fullName, userId)
+    void dispatchWebhook(tenantId, 'lead.created', { id: lead.id, leadNumber: lead.leadNumber, fullName: lead.fullName, companyName: lead.companyName })
 
     return NextResponse.json({ success: true, data: lead }, { status: 201 })
   } catch (err) {

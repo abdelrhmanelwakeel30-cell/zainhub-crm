@@ -133,6 +133,7 @@
     "budgeting": "Budgeting",
     "erpDashboard": "ERP Dashboard",
     "apiKeys": "API Keys",
+    "webhooks": "Webhooks",
     "users": "Users",
     "roles": "Roles & Permissions",
     "settings": "Settings",

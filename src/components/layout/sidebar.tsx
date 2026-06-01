@@ -17,6 +17,7 @@ import {
   ShoppingCart,
   PieChart,
   KeyRound,
+  Webhook,
 } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
 import { useSession } from 'next-auth/react'
@@ -126,6 +127,7 @@ const navigation: NavGroup[] = [
       { titleKey: 'nav.budgeting', href: '/admin/budgeting', icon: PieChart, permission: 'budgeting:view' },
       { titleKey: 'nav.users', href: '/admin/users', icon: Users, permission: 'users:view' },
       { titleKey: 'nav.apiKeys', href: '/admin/api-keys', icon: KeyRound, permission: 'settings:view' },
+      { titleKey: 'nav.webhooks', href: '/admin/webhooks', icon: Webhook, permission: 'settings:view' },
       { titleKey: 'nav.roles', href: '/admin/roles', icon: Shield, permission: 'roles:view' },
       { titleKey: 'nav.settings', href: '/admin/settings', icon: Settings, permission: 'settings:view' },
       { titleKey: 'nav.auditLog', href: '/admin/audit-log', icon: Activity, permission: 'audit_log:view' },
