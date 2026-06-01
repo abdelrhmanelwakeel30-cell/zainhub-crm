@@ -521,6 +521,10 @@ model User {
   agentApiKey      AgentApiKey?
   apiKeys          ApiKey[]
 
+  // Staff TOTP two-factor auth (S-4). Optional, never hard-required for login.
+  twoFactorEnabled Boolean @default(false)
+  twoFactorSecret  String? // base32 TOTP secret; null until enrolled
+
   @@unique([tenantId, email])
   @@index([tenantId])
   @@index([email])

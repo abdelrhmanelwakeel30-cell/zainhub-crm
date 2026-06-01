@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Settings, Palette, Bell, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { SecuritySection } from '@/components/admin/security-section'
 
 interface TenantSettings {
   name?: string
@@ -278,6 +279,9 @@ export function SettingsContent() {
               </Button>
             </CardContent>
           </Card>
+
+          {/* Security — TOTP two-factor auth */}
+          <SecuritySection />
         </div>
       </div>
     </div>
