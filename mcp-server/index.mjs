@@ -147,6 +147,49 @@ server.tool('crm_list_opportunities', 'List/search opportunities (paginated).',
   { search: z.string().optional(), page: z.number().int().optional(), pageSize: z.number().int().max(100).optional() },
   async (q) => { try { return ok(await api('GET', '/api/opportunities', { query: q })) } catch (e) { return fail(e) } })
 
+// ── ERP: HR ────────────────────────────────────────────────────────────────
+server.tool('crm_list_employees', 'List/search employees (HR). Requires employees:view.',
+  { search: z.string().optional(), department: z.string().optional(), page: z.number().int().optional(), pageSize: z.number().int().max(100).optional() },
+  async (q) => { try { return ok(await api('GET', '/api/employees', { query: q })) } catch (e) { return fail(e) } })
+server.tool('crm_create_employee', 'Create an employee. Requires employees:create. Pass employee fields as an object.',
+  { fields: z.record(z.any()) },
+  async ({ fields }) => { try { return ok(await api('POST', '/api/employees', { body: fields })) } catch (e) { return fail(e) } })
+server.tool('crm_create_leave', 'File a leave request. Requires leave:create. Pass {employeeId,type,startDate,endDate,days}.',
+  { fields: z.record(z.any()) },
+  async ({ fields }) => { try { return ok(await api('POST', '/api/leave-requests', { body: fields })) } catch (e) { return fail(e) } })
+
+// ── ERP: Accounting ──────────────────────────────────────────────────────
+server.tool('crm_list_accounts', 'List the chart of accounts. Requires accounting:view.',
+  { search: z.string().optional(), type: z.enum(['ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE']).optional() },
+  async (q) => { try { return ok(await api('GET', '/api/accounts', { query: q })) } catch (e) { return fail(e) } })
+server.tool('crm_create_journal_entry', 'Create a balanced journal entry. Requires accounting:create. Pass {date,memo?,lines:[{accountId,debit,credit}]} (debits must equal credits).',
+  { fields: z.record(z.any()) },
+  async ({ fields }) => { try { return ok(await api('POST', '/api/journal-entries', { body: fields })) } catch (e) { return fail(e) } })
+
+// ── ERP: Procurement ─────────────────────────────────────────────────────
+server.tool('crm_list_purchase_orders', 'List purchase orders. Requires procurement:view.',
+  { status: z.enum(['DRAFT', 'SUBMITTED', 'APPROVED', 'RECEIVED']).optional() },
+  async (q) => { try { return ok(await api('GET', '/api/purchase-orders', { query: q })) } catch (e) { return fail(e) } })
+server.tool('crm_create_purchase_order', 'Create a purchase order. Requires procurement:create. Pass {vendorId,lines:[{description,quantity,unitPrice}]}.',
+  { fields: z.record(z.any()) },
+  async ({ fields }) => { try { return ok(await api('POST', '/api/purchase-orders', { body: fields })) } catch (e) { return fail(e) } })
+
+// ── ERP: Inventory ───────────────────────────────────────────────────────
+server.tool('crm_list_items', 'List inventory items. Requires inventory:view.',
+  { search: z.string().optional() },
+  async (q) => { try { return ok(await api('GET', '/api/items', { query: q })) } catch (e) { return fail(e) } })
+server.tool('crm_stock_movement', 'Record a stock movement (adjusts quantity). Requires inventory:edit. Pass {itemId,type:IN|OUT|ADJUST,quantity,note?}.',
+  { fields: z.record(z.any()) },
+  async ({ fields }) => { try { return ok(await api('POST', '/api/stock-movements', { body: fields })) } catch (e) { return fail(e) } })
+
+// ── ERP: Budgeting + Exec dashboard ──────────────────────────────────────
+server.tool('crm_list_budgets', 'List budgets with utilization. Requires budgeting:view.',
+  { costCenterId: z.string().optional() },
+  async (q) => { try { return ok(await api('GET', '/api/budgets', { query: q })) } catch (e) { return fail(e) } })
+server.tool('crm_erp_dashboard', 'Get the cross-module ERP dashboard metrics (headcount, AR, AP, inventory, payroll, budget). Requires reports:view.',
+  {},
+  async () => { try { return ok(await api('GET', '/api/erp-dashboard')) } catch (e) { return fail(e) } })
+
 const transport = new StdioServerTransport()
 await server.connect(transport)
 console.error(`[crm-mcp] ready — base=${BASE_URL}, key=${AGENT_KEY.slice(0, 12)}…`)

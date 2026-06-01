@@ -45,7 +45,7 @@
 - [ ] **AI-2** AI lead scoring & routing
 - [ ] **AI-3** AI drafting (proposals, quotations, follow-ups) with prompt caching
 - [ ] **AI-4** Activity / thread summarization
-- [ ] **AI-5** Expand the CRM MCP tool surface to all ERP modules so the 166 agents operate the full suite
+- [x] **AI-5** Expand CRM MCP to the full ERP suite — `mcp-server/index.mjs` now exposes **23 tools** (was 12): added crm_list/create_employees, create_leave, list_accounts, create_journal_entry, list/create_purchase_orders, list_items, stock_movement, list_budgets, erp_dashboard. `wire-agents.mjs` TOOL_PERMS updated + re-run (166 agents re-wired, registry + secrets regenerated). Verified the MCP server lists all 23 tools via a stdio client with a finance agent key. RBAC still enforced server-side per agent.
 - [ ] **AI-6** WhatsApp inbound → CRM (lead capture + booking)
 
 ## Phase E — SaaS readiness
@@ -90,3 +90,4 @@
 - 2026-05-31 — E-5 DONE: Inventory — Item + StockMovement models + migration (135 routes); inventory perm in both seeds + IT-Ops role; items + stock-movements APIs (transactional qty adjust, negative-stock guard) + UI /admin/inventory (items list + new-item + movement dialogs) + sidebar nav (EN/AR). Verified E2E (sales 403; IN/OUT/ADJUST, OUT-below-zero 409). tsc + 44 tests + build green. Next: E-6 Budgeting/cost centers.
 - 2026-05-31 — E-6 DONE: Budgeting — CostCenter + Budget models + migration (138 routes, 246 perms); budgeting perm in both seeds + Finance role; cost-centers + budgets APIs (record-spend PATCH) + UI /admin/budgeting (animated utilization bars) + sidebar nav (EN/AR). Verified E2E (budget 50000 → spend 12000 → remaining 38000). tsc + 44 tests + build green. Next: E-7 exec dashboard (Phase C finale).
 - 2026-05-31 — E-7 DONE → PHASE C COMPLETE. ERP exec dashboard: GET /api/erp-dashboard (cross-module aggregates) + /admin/erp-dashboard (framer-motion KPIs + recharts) + sidebar nav (EN/AR). Verified E2E (leadership 200, correct metrics). tsc + 44 tests + build (140 routes) green. Next: Phase D AI — AI-5 expand CRM MCP to full ERP suite.
+- 2026-05-31 — Phase D started. AI-5 DONE: CRM MCP server extended 12→23 tools (HR/accounting/procurement/inventory/budgeting/erp-dashboard); wire-agents TOOL_PERMS updated + re-run (166 agents); verified MCP lists all 23 tools (stdio client, finance key). tsc + 44 tests + build green. Next: AI-2 lead scoring.

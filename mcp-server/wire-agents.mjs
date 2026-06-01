@@ -46,6 +46,18 @@ const TOOL_PERMS = {
   crm_list_tickets: 'tickets:view',
   crm_create_ticket: 'tickets:create',
   crm_list_opportunities: 'opportunities:view',
+  // ERP (AI-5)
+  crm_list_employees: 'employees:view',
+  crm_create_employee: 'employees:create',
+  crm_create_leave: 'leave:create',
+  crm_list_accounts: 'accounting:view',
+  crm_create_journal_entry: 'accounting:create',
+  crm_list_purchase_orders: 'procurement:view',
+  crm_create_purchase_order: 'procurement:create',
+  crm_list_items: 'inventory:view',
+  crm_stock_movement: 'inventory:edit',
+  crm_list_budgets: 'budgeting:view',
+  crm_erp_dashboard: 'reports:view',
 }
 const ALWAYS = ['crm_whoami', 'crm_request']
 
