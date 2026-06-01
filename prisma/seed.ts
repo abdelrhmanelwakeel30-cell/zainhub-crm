@@ -104,7 +104,7 @@ async function main() {
     // Website Analysis (Phase 1)
     'website_analysis',
     // ERP (Phase C)
-    'employees', 'leave', 'payroll', 'accounting',
+    'employees', 'leave', 'payroll', 'accounting', 'procurement',
   ]
   const actions = ['view', 'create', 'edit', 'delete', 'export', 'approve']
 

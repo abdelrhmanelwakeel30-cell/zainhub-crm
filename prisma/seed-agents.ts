@@ -38,7 +38,7 @@ const MODULES = [
   'users', 'roles', 'settings', 'audit_log', 'change_requests', 'approvals',
   'deliverables', 'preview_links', 'comms', 'client_services', 'subscriptions',
   'bundles', 'forms', 'account_health', 'onboarding', 'website_analysis',
-  'employees', 'leave', 'payroll', 'accounting',
+  'employees', 'leave', 'payroll', 'accounting', 'procurement',
 ]
 const ACTIONS = ['view', 'create', 'edit', 'delete', 'export', 'approve']
 
@@ -135,7 +135,7 @@ const ROLE_MATRIX: Record<string, { name: string; nameAr: string; permissions: s
   'dept-15-partners': {
     name: 'ZH Partners Agents',
     nameAr: 'وكلاء الشركاء',
-    permissions: g(['companies', 'contacts', 'contracts', 'client_services'], CRU).concat(g(['dashboard', 'reports'], VIEW)),
+    permissions: g(['companies', 'contacts', 'contracts', 'client_services'], CRU).concat(g(['procurement'], ['view', 'create', 'edit', 'approve'])).concat(g(['dashboard', 'reports'], VIEW)),
   },
   'dept-16-agent-factory': {
     name: 'ZH Agent Factory Agents',
