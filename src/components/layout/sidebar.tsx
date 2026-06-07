@@ -13,7 +13,11 @@ import {
   BarChart3, ChevronLeft, ChevronRight, ChevronDown, Bell,
   Handshake, Package, GitBranch, GitMerge, CheckSquare, X,
   Eye, PackageOpen, MessageSquare, HeartPulse, ClipboardList,
-  RefreshCw, Layers, FormInput, Crown, Globe,
+  RefreshCw, Layers, FormInput, Crown, Globe, Bot, UserCog, BookOpen,
+  ShoppingCart,
+  PieChart,
+  KeyRound,
+  Webhook,
 } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
 import { useSession } from 'next-auth/react'
@@ -113,7 +117,17 @@ const navigation: NavGroup[] = [
   {
     titleKey: 'nav.admin',
     items: [
+      { titleKey: 'nav.erpDashboard', href: '/admin/erp-dashboard', icon: BarChart3, permission: 'reports:view' },
+      { titleKey: 'nav.agents', href: '/admin/agents', icon: Bot, permission: 'users:view' },
+      { titleKey: 'nav.hr', href: '/admin/hr', icon: UserCog, permission: 'employees:view' },
+      { titleKey: 'nav.payroll', href: '/admin/payroll', icon: Wallet, permission: 'payroll:view' },
+      { titleKey: 'nav.accounting', href: '/admin/accounting', icon: BookOpen, permission: 'accounting:view' },
+      { titleKey: 'nav.procurement', href: '/admin/procurement', icon: ShoppingCart, permission: 'procurement:view' },
+      { titleKey: 'nav.inventory', href: '/admin/inventory', icon: Package, permission: 'inventory:view' },
+      { titleKey: 'nav.budgeting', href: '/admin/budgeting', icon: PieChart, permission: 'budgeting:view' },
       { titleKey: 'nav.users', href: '/admin/users', icon: Users, permission: 'users:view' },
+      { titleKey: 'nav.apiKeys', href: '/admin/api-keys', icon: KeyRound, permission: 'settings:view' },
+      { titleKey: 'nav.webhooks', href: '/admin/webhooks', icon: Webhook, permission: 'settings:view' },
       { titleKey: 'nav.roles', href: '/admin/roles', icon: Shield, permission: 'roles:view' },
       { titleKey: 'nav.settings', href: '/admin/settings', icon: Settings, permission: 'settings:view' },
       { titleKey: 'nav.auditLog', href: '/admin/audit-log', icon: Activity, permission: 'audit_log:view' },
@@ -131,7 +145,7 @@ interface SidebarProps {
 
 interface NotificationsResponse {
   total: number
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProps) {

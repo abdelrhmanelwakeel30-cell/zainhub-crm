@@ -1,0 +1,1668 @@
+{
+  "meta": {
+    "total": 166,
+    "source": "AI-native digital agency org-chart.json v3"
+  },
+  "agents": [
+    {
+      "agentId": "ceo-orchestrator",
+      "name": "CEO Orchestrator Agent",
+      "tier": "ceo",
+      "department": "dept-01-leadership",
+      "departmentName": "Executive & Strategic Leadership",
+      "subDepartment": "",
+      "reportsTo": null,
+      "model": ""
+    },
+    {
+      "agentId": "coo-operations",
+      "name": "COO Operations Agent",
+      "tier": "executive",
+      "department": "dept-01-leadership",
+      "departmentName": "Executive & Strategic Leadership",
+      "subDepartment": "",
+      "reportsTo": "ceo-orchestrator",
+      "model": ""
+    },
+    {
+      "agentId": "pmo-project-manager",
+      "name": "PMO / Project Manager Agent",
+      "tier": "executive",
+      "department": "dept-01-leadership",
+      "departmentName": "Executive & Strategic Leadership",
+      "subDepartment": "",
+      "reportsTo": "coo-operations",
+      "model": ""
+    },
+    {
+      "agentId": "pmo-agent",
+      "name": "PMO Agent",
+      "tier": "standard",
+      "department": "dept-01-leadership",
+      "departmentName": "Executive & Strategic Leadership",
+      "subDepartment": "Executive Leadership",
+      "reportsTo": "pmo-project-manager",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "company-strategy-growth",
+      "name": "Company Strategy & Growth Agent",
+      "tier": "executive",
+      "department": "dept-01-leadership",
+      "departmentName": "Executive & Strategic Leadership",
+      "subDepartment": "Strategy Office",
+      "reportsTo": "ceo-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "founder-office",
+      "name": "Founder Office Agent",
+      "tier": "executive",
+      "department": "dept-01-leadership",
+      "departmentName": "Executive & Strategic Leadership",
+      "subDepartment": "Founder Office",
+      "reportsTo": "ceo-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "founder-advisory",
+      "name": "Founder Advisory Agent",
+      "tier": "executive",
+      "department": "dept-01-leadership",
+      "departmentName": "Executive & Strategic Leadership",
+      "subDepartment": "Founder Office",
+      "reportsTo": "ceo-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "founder-guardrail",
+      "name": "Founder Guardrail Agent",
+      "tier": "executive",
+      "department": "dept-01-leadership",
+      "departmentName": "Executive & Strategic Leadership",
+      "subDepartment": "Founder Office",
+      "reportsTo": "ceo-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "decision-review",
+      "name": "Decision Review Agent",
+      "tier": "executive",
+      "department": "dept-01-leadership",
+      "departmentName": "Executive & Strategic Leadership",
+      "subDepartment": "Strategy Office",
+      "reportsTo": "ceo-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "strategic-risk",
+      "name": "Strategic Risk Agent",
+      "tier": "executive",
+      "department": "dept-01-leadership",
+      "departmentName": "Executive & Strategic Leadership",
+      "subDepartment": "Risk Strategy",
+      "reportsTo": "ceo-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "governance-orchestrator",
+      "name": "Governance Orchestrator Agent",
+      "tier": "executive",
+      "department": "dept-01-leadership",
+      "departmentName": "Executive & Strategic Leadership",
+      "subDepartment": "Governance Office",
+      "reportsTo": "ceo-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "portfolio-management",
+      "name": "Portfolio Management Agent",
+      "tier": "executive",
+      "department": "dept-01-leadership",
+      "departmentName": "Executive & Strategic Leadership",
+      "subDepartment": "Portfolio Office",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "resource-allocation",
+      "name": "Resource Allocation Agent",
+      "tier": "executive",
+      "department": "dept-01-leadership",
+      "departmentName": "Executive & Strategic Leadership",
+      "subDepartment": "Portfolio Office",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "simulation-scenario-planning",
+      "name": "Simulation & Scenario Planning Agent",
+      "tier": "executive",
+      "department": "dept-01-leadership",
+      "departmentName": "Executive & Strategic Leadership",
+      "subDepartment": "Strategy Office",
+      "reportsTo": "ceo-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "lead-generation",
+      "name": "Lead Generation Agent",
+      "tier": "department_head",
+      "department": "dept-02-sales",
+      "departmentName": "Sales & Commercial",
+      "subDepartment": "Lead Management",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "outreach",
+      "name": "Outreach Agent",
+      "tier": "standard",
+      "department": "dept-02-sales",
+      "departmentName": "Sales & Commercial",
+      "subDepartment": "Outreach",
+      "reportsTo": "lead-generation",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "sales-consultant",
+      "name": "Sales Consultant Agent",
+      "tier": "standard",
+      "department": "dept-02-sales",
+      "departmentName": "Sales & Commercial",
+      "subDepartment": "Sales Consulting",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "proposal-quotation",
+      "name": "Proposal & Quotation Agent",
+      "tier": "standard",
+      "department": "dept-02-sales",
+      "departmentName": "Sales & Commercial",
+      "subDepartment": "Proposals",
+      "reportsTo": "sales-consultant",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "proposal",
+      "name": "Proposal Agent",
+      "tier": "standard",
+      "department": "dept-02-sales",
+      "departmentName": "Sales & Commercial",
+      "subDepartment": "Proposals",
+      "reportsTo": "sales-consultant",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "closing",
+      "name": "Closing Agent",
+      "tier": "standard",
+      "department": "dept-02-sales",
+      "departmentName": "Sales & Commercial",
+      "subDepartment": "Closings",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "pricing-commercial-intelligence",
+      "name": "Pricing & Commercial Intelligence Agent",
+      "tier": "standard",
+      "department": "dept-02-sales",
+      "departmentName": "Sales & Commercial",
+      "subDepartment": "Commercial Strategy",
+      "reportsTo": "ceo-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "revenue-intelligence",
+      "name": "Revenue Intelligence Agent",
+      "tier": "standard",
+      "department": "dept-02-sales",
+      "departmentName": "Sales & Commercial",
+      "subDepartment": "Revenue Analytics",
+      "reportsTo": "finance-billing",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "opportunity-discovery",
+      "name": "Opportunity Discovery Agent",
+      "tier": "standard",
+      "department": "dept-02-sales",
+      "departmentName": "Sales & Commercial",
+      "subDepartment": "Opportunity Management",
+      "reportsTo": "company-strategy-growth",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "commercial-approval",
+      "name": "Commercial Approval Agent",
+      "tier": "standard",
+      "department": "dept-02-sales",
+      "departmentName": "Sales & Commercial",
+      "subDepartment": "Commercial Governance",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "proposal-quality",
+      "name": "Proposal Quality Agent",
+      "tier": "standard",
+      "department": "dept-02-sales",
+      "departmentName": "Sales & Commercial",
+      "subDepartment": "Proposal Governance",
+      "reportsTo": "proposal-quotation",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "recovery-revenue",
+      "name": "Recovery Revenue Agent",
+      "tier": "standard",
+      "department": "dept-02-sales",
+      "departmentName": "Sales & Commercial",
+      "subDepartment": "Revenue Recovery",
+      "reportsTo": "finance-billing",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "collections",
+      "name": "Collections Agent",
+      "tier": "routing",
+      "department": "dept-02-sales",
+      "departmentName": "Sales & Commercial",
+      "subDepartment": "Collections",
+      "reportsTo": "finance-billing",
+      "model": "claude-haiku-4-5"
+    },
+    {
+      "agentId": "renewal-subscription",
+      "name": "Renewal & Subscription Agent",
+      "tier": "standard",
+      "department": "dept-02-sales",
+      "departmentName": "Sales & Commercial",
+      "subDepartment": "Renewals",
+      "reportsTo": "account-manager",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "offer-conversion-optimization",
+      "name": "Offer & Conversion Optimization Agent",
+      "tier": "standard",
+      "department": "dept-02-sales",
+      "departmentName": "Sales & Commercial",
+      "subDepartment": "Conversion Optimization",
+      "reportsTo": "sales-consultant",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "service-packaging",
+      "name": "Service Packaging Agent",
+      "tier": "standard",
+      "department": "dept-02-sales",
+      "departmentName": "Sales & Commercial",
+      "subDepartment": "Packaging",
+      "reportsTo": "pricing-commercial-intelligence",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "productization",
+      "name": "Productization Agent",
+      "tier": "standard",
+      "department": "dept-02-sales",
+      "departmentName": "Sales & Commercial",
+      "subDepartment": "Productization",
+      "reportsTo": "company-strategy-growth",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "dynamic-pricing",
+      "name": "Dynamic Pricing Agent",
+      "tier": "routing",
+      "department": "dept-02-sales",
+      "departmentName": "Sales & Commercial",
+      "subDepartment": "Pricing Operations",
+      "reportsTo": "pricing-commercial-intelligence",
+      "model": "claude-haiku-4-5"
+    },
+    {
+      "agentId": "marketing-brand",
+      "name": "Marketing & Brand Agent",
+      "tier": "department_head",
+      "department": "dept-03-marketing",
+      "departmentName": "Marketing & Brand",
+      "subDepartment": "Brand Management",
+      "reportsTo": "company-strategy-growth",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "reputation-brand-protection",
+      "name": "Reputation & Brand Protection Agent",
+      "tier": "standard",
+      "department": "dept-03-marketing",
+      "departmentName": "Marketing & Brand",
+      "subDepartment": "Reputation",
+      "reportsTo": "marketing-brand",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "trust-reputation-protection",
+      "name": "Trust & Reputation Protection Agent",
+      "tier": "standard",
+      "department": "dept-03-marketing",
+      "departmentName": "Marketing & Brand",
+      "subDepartment": "Reputation",
+      "reportsTo": "governance-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "trust-reputation-risk",
+      "name": "Trust & Reputation Risk Agent",
+      "tier": "standard",
+      "department": "dept-03-marketing",
+      "departmentName": "Marketing & Brand",
+      "subDepartment": "Reputation Risk",
+      "reportsTo": "governance-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "competitive-intelligence",
+      "name": "Competitive Intelligence Agent",
+      "tier": "standard",
+      "department": "dept-03-marketing",
+      "departmentName": "Marketing & Brand",
+      "subDepartment": "Market Intelligence",
+      "reportsTo": "marketing-brand",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "customer-experience",
+      "name": "Customer Experience Agent",
+      "tier": "standard",
+      "department": "dept-03-marketing",
+      "departmentName": "Marketing & Brand",
+      "subDepartment": "CX Strategy",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "internal-communications",
+      "name": "Internal Communications Agent",
+      "tier": "routing",
+      "department": "dept-03-marketing",
+      "departmentName": "Marketing & Brand",
+      "subDepartment": "Corporate Communications",
+      "reportsTo": "coo-operations",
+      "model": "claude-haiku-4-5"
+    },
+    {
+      "agentId": "social-media",
+      "name": "Social Media Agent",
+      "tier": "standard",
+      "department": "dept-03-marketing",
+      "departmentName": "Marketing & Brand",
+      "subDepartment": "Digital Marketing",
+      "reportsTo": "marketing-brand",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "seo-content-strategy",
+      "name": "SEO & Content Strategy Agent",
+      "tier": "standard",
+      "department": "dept-03-marketing",
+      "departmentName": "Marketing & Brand",
+      "subDepartment": "Digital Marketing",
+      "reportsTo": "marketing-brand",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "paid-ads-campaign",
+      "name": "Paid Ads & Campaign Agent",
+      "tier": "standard",
+      "department": "dept-03-marketing",
+      "departmentName": "Marketing & Brand",
+      "subDepartment": "Digital Marketing",
+      "reportsTo": "marketing-brand",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "video-visual-content",
+      "name": "Video & Visual Content Agent",
+      "tier": "standard",
+      "department": "dept-03-marketing",
+      "departmentName": "Marketing & Brand",
+      "subDepartment": "Digital Marketing",
+      "reportsTo": "marketing-brand",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "email-marketing",
+      "name": "Email Marketing Agent",
+      "tier": "standard",
+      "department": "dept-03-marketing",
+      "departmentName": "Marketing & Brand",
+      "subDepartment": "Digital Marketing",
+      "reportsTo": "marketing-brand",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "business-analyst",
+      "name": "Business Analyst Agent",
+      "tier": "department_head",
+      "department": "dept-04-delivery",
+      "departmentName": "Delivery, Product & Engineering",
+      "subDepartment": "Business Analysis",
+      "reportsTo": "pmo-project-manager",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "solution-architect",
+      "name": "Solution Architect Agent",
+      "tier": "standard",
+      "department": "dept-04-delivery",
+      "departmentName": "Delivery, Product & Engineering",
+      "subDepartment": "Solution Design",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "ui-ux",
+      "name": "UI/UX Agent",
+      "tier": "standard",
+      "department": "dept-04-delivery",
+      "departmentName": "Delivery, Product & Engineering",
+      "subDepartment": "Design",
+      "reportsTo": "solution-architect",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "content-copywriter",
+      "name": "Content / Copywriter Agent",
+      "tier": "standard",
+      "department": "dept-04-delivery",
+      "departmentName": "Delivery, Product & Engineering",
+      "subDepartment": "Content",
+      "reportsTo": "ui-ux",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "content",
+      "name": "Content Agent",
+      "tier": "routing",
+      "department": "dept-04-delivery",
+      "departmentName": "Delivery, Product & Engineering",
+      "subDepartment": "Content",
+      "reportsTo": "content-copywriter",
+      "model": "claude-haiku-4-5"
+    },
+    {
+      "agentId": "frontend-developer",
+      "name": "Frontend Developer Agent",
+      "tier": "standard",
+      "department": "dept-04-delivery",
+      "departmentName": "Delivery, Product & Engineering",
+      "subDepartment": "Frontend Engineering",
+      "reportsTo": "solution-architect",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "frontend",
+      "name": "Frontend Agent",
+      "tier": "routing",
+      "department": "dept-04-delivery",
+      "departmentName": "Delivery, Product & Engineering",
+      "subDepartment": "Frontend Engineering",
+      "reportsTo": "frontend-developer",
+      "model": "claude-haiku-4-5"
+    },
+    {
+      "agentId": "backend-developer",
+      "name": "Backend Developer Agent",
+      "tier": "standard",
+      "department": "dept-04-delivery",
+      "departmentName": "Delivery, Product & Engineering",
+      "subDepartment": "Backend Engineering",
+      "reportsTo": "solution-architect",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "backend",
+      "name": "Backend Agent",
+      "tier": "routing",
+      "department": "dept-04-delivery",
+      "departmentName": "Delivery, Product & Engineering",
+      "subDepartment": "Backend Engineering",
+      "reportsTo": "backend-developer",
+      "model": "claude-haiku-4-5"
+    },
+    {
+      "agentId": "automation-engineer",
+      "name": "Automation Engineer Agent",
+      "tier": "standard",
+      "department": "dept-04-delivery",
+      "departmentName": "Delivery, Product & Engineering",
+      "subDepartment": "Automation",
+      "reportsTo": "solution-architect",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "ai-engineer-agent-builder",
+      "name": "AI Engineer / Agent Builder",
+      "tier": "standard",
+      "department": "dept-04-delivery",
+      "departmentName": "Delivery, Product & Engineering",
+      "subDepartment": "AI Engineering",
+      "reportsTo": "ceo-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "ai-engineer",
+      "name": "AI Engineer Agent",
+      "tier": "standard",
+      "department": "dept-04-delivery",
+      "departmentName": "Delivery, Product & Engineering",
+      "subDepartment": "AI Engineering",
+      "reportsTo": "ai-engineer-agent-builder",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "devops-deployment",
+      "name": "DevOps / Deployment Agent",
+      "tier": "standard",
+      "department": "dept-04-delivery",
+      "departmentName": "Delivery, Product & Engineering",
+      "subDepartment": "Infrastructure",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "devops",
+      "name": "DevOps Agent",
+      "tier": "routing",
+      "department": "dept-04-delivery",
+      "departmentName": "Delivery, Product & Engineering",
+      "subDepartment": "Infrastructure",
+      "reportsTo": "devops-deployment",
+      "model": "claude-haiku-4-5"
+    },
+    {
+      "agentId": "delivery-readiness",
+      "name": "Delivery Readiness Agent",
+      "tier": "standard",
+      "department": "dept-04-delivery",
+      "departmentName": "Delivery, Product & Engineering",
+      "subDepartment": "Delivery Governance",
+      "reportsTo": "pmo-project-manager",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "standards-templates",
+      "name": "Standards & Templates Agent",
+      "tier": "standard",
+      "department": "dept-04-delivery",
+      "departmentName": "Delivery, Product & Engineering",
+      "subDepartment": "Standards",
+      "reportsTo": "governance-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "change-management",
+      "name": "Change Management Agent",
+      "tier": "standard",
+      "department": "dept-04-delivery",
+      "departmentName": "Delivery, Product & Engineering",
+      "subDepartment": "Change Control",
+      "reportsTo": "pmo-project-manager",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "release-management",
+      "name": "Release Management Agent",
+      "tier": "standard",
+      "department": "dept-04-delivery",
+      "departmentName": "Delivery, Product & Engineering",
+      "subDepartment": "Release Control",
+      "reportsTo": "devops-deployment",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "service-catalog",
+      "name": "Service Catalog Agent",
+      "tier": "standard",
+      "department": "dept-04-delivery",
+      "departmentName": "Delivery, Product & Engineering",
+      "subDepartment": "Service Design",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "digital-twin",
+      "name": "Digital Twin Agent",
+      "tier": "standard",
+      "department": "dept-04-delivery",
+      "departmentName": "Delivery, Product & Engineering",
+      "subDepartment": "Digital Modeling",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "qa-testing",
+      "name": "QA / Testing Agent",
+      "tier": "department_head",
+      "department": "dept-05-quality",
+      "departmentName": "Quality & Testing",
+      "subDepartment": "QA",
+      "reportsTo": "pmo-project-manager",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "qa",
+      "name": "QA Agent",
+      "tier": "routing",
+      "department": "dept-05-quality",
+      "departmentName": "Quality & Testing",
+      "subDepartment": "QA",
+      "reportsTo": "qa-testing",
+      "model": "claude-haiku-4-5"
+    },
+    {
+      "agentId": "quality-governance",
+      "name": "Quality Governance Agent",
+      "tier": "standard",
+      "department": "dept-05-quality",
+      "departmentName": "Quality & Testing",
+      "subDepartment": "Quality Governance",
+      "reportsTo": "governance-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "service-quality-assurance",
+      "name": "Service Quality Assurance Agent",
+      "tier": "standard",
+      "department": "dept-05-quality",
+      "departmentName": "Quality & Testing",
+      "subDepartment": "Service Quality",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "case-review-quality-board",
+      "name": "Case Review / Quality Board Agent",
+      "tier": "standard",
+      "department": "dept-05-quality",
+      "departmentName": "Quality & Testing",
+      "subDepartment": "Review Board",
+      "reportsTo": "quality-governance",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "process-improvement",
+      "name": "Process Improvement Agent",
+      "tier": "standard",
+      "department": "dept-05-quality",
+      "departmentName": "Quality & Testing",
+      "subDepartment": "Continuous Improvement",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "experimentation",
+      "name": "Experimentation Agent",
+      "tier": "standard",
+      "department": "dept-05-quality",
+      "departmentName": "Quality & Testing",
+      "subDepartment": "Continuous Improvement",
+      "reportsTo": "company-strategy-growth",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "workflow-governance",
+      "name": "Workflow Governance Agent",
+      "tier": "standard",
+      "department": "dept-05-quality",
+      "departmentName": "Quality & Testing",
+      "subDepartment": "Workflow Governance",
+      "reportsTo": "governance-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "incident-postmortem",
+      "name": "Incident Postmortem Agent",
+      "tier": "standard",
+      "department": "dept-05-quality",
+      "departmentName": "Quality & Testing",
+      "subDepartment": "Incident Learning",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "external-audit",
+      "name": "External Audit Agent",
+      "tier": "department_head",
+      "department": "dept-06-audit",
+      "departmentName": "Audit & Control",
+      "subDepartment": "External Assurance",
+      "reportsTo": "ceo-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "red-team-adversarial",
+      "name": "Red Team / Adversarial Agent",
+      "tier": "standard",
+      "department": "dept-06-audit",
+      "departmentName": "Audit & Control",
+      "subDepartment": "Adversarial Testing",
+      "reportsTo": "governance-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "agent-performance-audit",
+      "name": "Agent Performance Audit Agent",
+      "tier": "standard",
+      "department": "dept-06-audit",
+      "departmentName": "Audit & Control",
+      "subDepartment": "Audit Office",
+      "reportsTo": "external-audit",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "workflow-audit",
+      "name": "Workflow Audit Agent",
+      "tier": "standard",
+      "department": "dept-06-audit",
+      "departmentName": "Audit & Control",
+      "subDepartment": "Audit Office",
+      "reportsTo": "external-audit",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "security-audit",
+      "name": "Security Audit Agent",
+      "tier": "standard",
+      "department": "dept-06-audit",
+      "departmentName": "Audit & Control",
+      "subDepartment": "Audit Office",
+      "reportsTo": "external-audit",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "compliance-audit",
+      "name": "Compliance Audit Agent",
+      "tier": "standard",
+      "department": "dept-06-audit",
+      "departmentName": "Audit & Control",
+      "subDepartment": "Audit Office",
+      "reportsTo": "external-audit",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "dashboard-truth-audit",
+      "name": "Dashboard Truth Audit Agent",
+      "tier": "standard",
+      "department": "dept-06-audit",
+      "departmentName": "Audit & Control",
+      "subDepartment": "Audit Office",
+      "reportsTo": "external-audit",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "quality-audit",
+      "name": "Quality Audit Agent",
+      "tier": "standard",
+      "department": "dept-06-audit",
+      "departmentName": "Audit & Control",
+      "subDepartment": "Audit Office",
+      "reportsTo": "external-audit",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "customer-support",
+      "name": "Customer Support Agent",
+      "tier": "department_head",
+      "department": "dept-07-customer-success",
+      "departmentName": "Customer Success & Client Operations",
+      "subDepartment": "Support",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "support",
+      "name": "Support Agent",
+      "tier": "routing",
+      "department": "dept-07-customer-success",
+      "departmentName": "Customer Success & Client Operations",
+      "subDepartment": "Support",
+      "reportsTo": "customer-support",
+      "model": "claude-haiku-4-5"
+    },
+    {
+      "agentId": "account-manager",
+      "name": "Account Manager Agent",
+      "tier": "standard",
+      "department": "dept-07-customer-success",
+      "departmentName": "Customer Success & Client Operations",
+      "subDepartment": "Account Management",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "onboarding",
+      "name": "Onboarding Agent",
+      "tier": "standard",
+      "department": "dept-07-customer-success",
+      "departmentName": "Customer Success & Client Operations",
+      "subDepartment": "Onboarding",
+      "reportsTo": "account-manager",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "client-success-voc",
+      "name": "Client Success / Voice of Customer Agent",
+      "tier": "standard",
+      "department": "dept-07-customer-success",
+      "departmentName": "Customer Success & Client Operations",
+      "subDepartment": "Customer Insight",
+      "reportsTo": "account-manager",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "customer-retention",
+      "name": "Customer Retention Agent",
+      "tier": "standard",
+      "department": "dept-07-customer-success",
+      "departmentName": "Customer Success & Client Operations",
+      "subDepartment": "Retention",
+      "reportsTo": "account-manager",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "client-expectation-management",
+      "name": "Client Expectation Management Agent",
+      "tier": "standard",
+      "department": "dept-07-customer-success",
+      "departmentName": "Customer Success & Client Operations",
+      "subDepartment": "Client Governance",
+      "reportsTo": "account-manager",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "client-on-time-delivery",
+      "name": "Client On-Time Delivery Agent",
+      "tier": "routing",
+      "department": "dept-07-customer-success",
+      "departmentName": "Customer Success & Client Operations",
+      "subDepartment": "Delivery Assurance",
+      "reportsTo": "pmo-project-manager",
+      "model": "claude-haiku-4-5"
+    },
+    {
+      "agentId": "client-risk",
+      "name": "Client Risk Agent",
+      "tier": "standard",
+      "department": "dept-07-customer-success",
+      "departmentName": "Customer Success & Client Operations",
+      "subDepartment": "Risk Management",
+      "reportsTo": "account-manager",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "finance-billing",
+      "name": "Finance / Billing Agent",
+      "tier": "department_head",
+      "department": "dept-08-finance",
+      "departmentName": "Finance, Billing & Performance",
+      "subDepartment": "Finance",
+      "reportsTo": "ceo-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "finance",
+      "name": "Finance Agent",
+      "tier": "standard",
+      "department": "dept-08-finance",
+      "departmentName": "Finance, Billing & Performance",
+      "subDepartment": "Finance",
+      "reportsTo": "finance-billing",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "forecasting",
+      "name": "Forecasting Agent",
+      "tier": "standard",
+      "department": "dept-08-finance",
+      "departmentName": "Finance, Billing & Performance",
+      "subDepartment": "Planning",
+      "reportsTo": "finance-billing",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "capacity-planning",
+      "name": "Capacity Planning Agent",
+      "tier": "standard",
+      "department": "dept-08-finance",
+      "departmentName": "Finance, Billing & Performance",
+      "subDepartment": "Capacity Planning",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "cost-optimization",
+      "name": "Cost Optimization Agent",
+      "tier": "standard",
+      "department": "dept-08-finance",
+      "departmentName": "Finance, Billing & Performance",
+      "subDepartment": "Cost Control",
+      "reportsTo": "finance-billing",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "contract-legal",
+      "name": "Contract / Legal Agent",
+      "tier": "standard",
+      "department": "dept-09-legal",
+      "departmentName": "Legal, Contracts & Corporate Governance",
+      "subDepartment": "Legal",
+      "reportsTo": "ceo-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "legal-orchestrator",
+      "name": "Legal Orchestrator Agent",
+      "tier": "department_head",
+      "department": "dept-09-legal",
+      "departmentName": "Legal, Contracts & Corporate Governance",
+      "subDepartment": "Legal",
+      "reportsTo": "contract-legal",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "contract-drafting-review",
+      "name": "Contract Drafting & Review Agent",
+      "tier": "standard",
+      "department": "dept-09-legal",
+      "departmentName": "Legal, Contracts & Corporate Governance",
+      "subDepartment": "Contracting",
+      "reportsTo": "contract-legal",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "privacy-data-protection",
+      "name": "Privacy & Data Protection Agent",
+      "tier": "standard",
+      "department": "dept-09-legal",
+      "departmentName": "Legal, Contracts & Corporate Governance",
+      "subDepartment": "Privacy",
+      "reportsTo": "contract-legal",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "ip-ownership",
+      "name": "IP & Ownership Agent",
+      "tier": "standard",
+      "department": "dept-09-legal",
+      "departmentName": "Legal, Contracts & Corporate Governance",
+      "subDepartment": "IP",
+      "reportsTo": "contract-legal",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "legal-compliance-interpretation",
+      "name": "Legal Compliance Interpretation Agent",
+      "tier": "standard",
+      "department": "dept-09-legal",
+      "departmentName": "Legal, Contracts & Corporate Governance",
+      "subDepartment": "Legal Compliance",
+      "reportsTo": "contract-legal",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "terms-policies-corporate-docs",
+      "name": "Terms, Policies & Corporate Documents Agent",
+      "tier": "standard",
+      "department": "dept-09-legal",
+      "departmentName": "Legal, Contracts & Corporate Governance",
+      "subDepartment": "Corporate Docs",
+      "reportsTo": "contract-legal",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "legal-risk-exposure",
+      "name": "Legal Risk & Exposure Agent",
+      "tier": "standard",
+      "department": "dept-09-legal",
+      "departmentName": "Legal, Contracts & Corporate Governance",
+      "subDepartment": "Legal Risk",
+      "reportsTo": "contract-legal",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "dispute-claims",
+      "name": "Dispute & Claims Agent",
+      "tier": "standard",
+      "department": "dept-09-legal",
+      "departmentName": "Legal, Contracts & Corporate Governance",
+      "subDepartment": "Legal Claims",
+      "reportsTo": "contract-legal",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "regulatory-licensing",
+      "name": "Regulatory & Licensing Agent",
+      "tier": "standard",
+      "department": "dept-09-legal",
+      "departmentName": "Legal, Contracts & Corporate Governance",
+      "subDepartment": "Licensing",
+      "reportsTo": "contract-legal",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "legal-operations-recordkeeping",
+      "name": "Legal Operations & Recordkeeping Agent",
+      "tier": "routing",
+      "department": "dept-09-legal",
+      "departmentName": "Legal, Contracts & Corporate Governance",
+      "subDepartment": "Legal Operations",
+      "reportsTo": "contract-legal",
+      "model": "claude-haiku-4-5"
+    },
+    {
+      "agentId": "employment-workforce-policy",
+      "name": "Employment / Workforce Policy Agent",
+      "tier": "standard",
+      "department": "dept-09-legal",
+      "departmentName": "Legal, Contracts & Corporate Governance",
+      "subDepartment": "Workforce Policy",
+      "reportsTo": "contract-legal",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "multi-language-legal-consistency",
+      "name": "Multi-language Legal Consistency Agent",
+      "tier": "standard",
+      "department": "dept-09-legal",
+      "departmentName": "Legal, Contracts & Corporate Governance",
+      "subDepartment": "Legal Localization",
+      "reportsTo": "contract-legal",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "compliance-risk",
+      "name": "Compliance / Risk Agent",
+      "tier": "department_head",
+      "department": "dept-10-compliance",
+      "departmentName": "Compliance, Risk, Trust & Governance",
+      "subDepartment": "Compliance",
+      "reportsTo": "ceo-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "compliance",
+      "name": "Compliance Agent",
+      "tier": "standard",
+      "department": "dept-10-compliance",
+      "departmentName": "Compliance, Risk, Trust & Governance",
+      "subDepartment": "Compliance",
+      "reportsTo": "compliance-risk",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "data-governance",
+      "name": "Data Governance Agent",
+      "tier": "standard",
+      "department": "dept-10-compliance",
+      "departmentName": "Compliance, Risk, Trust & Governance",
+      "subDepartment": "Data Governance",
+      "reportsTo": "compliance-risk",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "policy-management",
+      "name": "Policy Management Agent",
+      "tier": "standard",
+      "department": "dept-10-compliance",
+      "departmentName": "Compliance, Risk, Trust & Governance",
+      "subDepartment": "Policy Office",
+      "reportsTo": "governance-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "access-governance",
+      "name": "Access Governance Agent",
+      "tier": "routing",
+      "department": "dept-10-compliance",
+      "departmentName": "Compliance, Risk, Trust & Governance",
+      "subDepartment": "Access Control",
+      "reportsTo": "compliance-risk",
+      "model": "claude-haiku-4-5"
+    },
+    {
+      "agentId": "exception-approval",
+      "name": "Exception Approval Agent",
+      "tier": "standard",
+      "department": "dept-10-compliance",
+      "departmentName": "Compliance, Risk, Trust & Governance",
+      "subDepartment": "Governance Control",
+      "reportsTo": "governance-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "sla-governance",
+      "name": "SLA Governance Agent",
+      "tier": "standard",
+      "department": "dept-10-compliance",
+      "departmentName": "Compliance, Risk, Trust & Governance",
+      "subDepartment": "SLA Governance",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "ethical-use",
+      "name": "Ethical Use Agent",
+      "tier": "standard",
+      "department": "dept-10-compliance",
+      "departmentName": "Compliance, Risk, Trust & Governance",
+      "subDepartment": "Ethics",
+      "reportsTo": "governance-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "trust-ai-safety",
+      "name": "Trust & AI Safety Agent",
+      "tier": "standard",
+      "department": "dept-10-compliance",
+      "departmentName": "Compliance, Risk, Trust & Governance",
+      "subDepartment": "Trust Office",
+      "reportsTo": "governance-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "ai-safety-alignment",
+      "name": "AI Safety & Alignment Agent",
+      "tier": "standard",
+      "department": "dept-10-compliance",
+      "departmentName": "Compliance, Risk, Trust & Governance",
+      "subDepartment": "AI Safety",
+      "reportsTo": "trust-ai-safety",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "security",
+      "name": "Security Agent",
+      "tier": "department_head",
+      "department": "dept-11-security",
+      "departmentName": "Security & Cyber Defense",
+      "subDepartment": "Security",
+      "reportsTo": "compliance-risk",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "cyber-security",
+      "name": "Cyber Security Agent",
+      "tier": "standard",
+      "department": "dept-11-security",
+      "departmentName": "Security & Cyber Defense",
+      "subDepartment": "Cyber Security",
+      "reportsTo": "security",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "it-self-healing",
+      "name": "IT Agent / Self-Healing Agent",
+      "tier": "department_head",
+      "department": "dept-12-it-operations",
+      "departmentName": "IT Operations & System Reliability",
+      "subDepartment": "IT Operations",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "it-operations-self-healing",
+      "name": "IT Operations & Self-Healing Agent",
+      "tier": "standard",
+      "department": "dept-12-it-operations",
+      "departmentName": "IT Operations & System Reliability",
+      "subDepartment": "IT Operations",
+      "reportsTo": "it-self-healing",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "it-incident",
+      "name": "IT Incident Agent",
+      "tier": "standard",
+      "department": "dept-12-it-operations",
+      "departmentName": "IT Operations & System Reliability",
+      "subDepartment": "IT Operations",
+      "reportsTo": "it-self-healing",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "tool-reliability",
+      "name": "Tool Reliability Agent",
+      "tier": "routing",
+      "department": "dept-12-it-operations",
+      "departmentName": "IT Operations & System Reliability",
+      "subDepartment": "Reliability",
+      "reportsTo": "it-self-healing",
+      "model": "claude-haiku-4-5"
+    },
+    {
+      "agentId": "data-retention-archival",
+      "name": "Data Retention & Archival Agent",
+      "tier": "routing",
+      "department": "dept-12-it-operations",
+      "departmentName": "IT Operations & System Reliability",
+      "subDepartment": "Records Management",
+      "reportsTo": "compliance-risk",
+      "model": "claude-haiku-4-5"
+    },
+    {
+      "agentId": "meeting-coordination",
+      "name": "Meeting / Coordination Agent",
+      "tier": "routing",
+      "department": "dept-12-it-operations",
+      "departmentName": "IT Operations & System Reliability",
+      "subDepartment": "Coordination",
+      "reportsTo": "pmo-project-manager",
+      "model": "claude-haiku-4-5"
+    },
+    {
+      "agentId": "knowledge-manager",
+      "name": "Knowledge Manager Agent",
+      "tier": "department_head",
+      "department": "dept-13-data-knowledge",
+      "departmentName": "Data, Knowledge & Institutional Memory",
+      "subDepartment": "Knowledge",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "knowledge-quality",
+      "name": "Knowledge Quality Agent",
+      "tier": "standard",
+      "department": "dept-13-data-knowledge",
+      "departmentName": "Data, Knowledge & Institutional Memory",
+      "subDepartment": "Knowledge Quality",
+      "reportsTo": "knowledge-manager",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "documentation-sop",
+      "name": "Documentation & SOP Agent",
+      "tier": "standard",
+      "department": "dept-13-data-knowledge",
+      "departmentName": "Data, Knowledge & Institutional Memory",
+      "subDepartment": "Documentation",
+      "reportsTo": "knowledge-manager",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "institutional-memory",
+      "name": "Institutional Memory Agent",
+      "tier": "standard",
+      "department": "dept-13-data-knowledge",
+      "departmentName": "Data, Knowledge & Institutional Memory",
+      "subDepartment": "Institutional Memory",
+      "reportsTo": "knowledge-manager",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "data-analytics",
+      "name": "Data & Analytics Agent",
+      "tier": "standard",
+      "department": "dept-13-data-knowledge",
+      "departmentName": "Data, Knowledge & Institutional Memory",
+      "subDepartment": "Analytics",
+      "reportsTo": "ceo-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "data-quality",
+      "name": "Data Quality Agent",
+      "tier": "standard",
+      "department": "dept-13-data-knowledge",
+      "departmentName": "Data, Knowledge & Institutional Memory",
+      "subDepartment": "Data Quality",
+      "reportsTo": "data-analytics",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "data-quality-integrity",
+      "name": "Data Quality & Integrity Agent",
+      "tier": "standard",
+      "department": "dept-13-data-knowledge",
+      "departmentName": "Data, Knowledge & Institutional Memory",
+      "subDepartment": "Data Integrity",
+      "reportsTo": "data-analytics",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "meta-observability",
+      "name": "Meta-Observability Agent",
+      "tier": "standard",
+      "department": "dept-13-data-knowledge",
+      "departmentName": "Data, Knowledge & Institutional Memory",
+      "subDepartment": "Observability",
+      "reportsTo": "data-analytics",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "prompt-governance",
+      "name": "Prompt Governance Agent",
+      "tier": "standard",
+      "department": "dept-13-data-knowledge",
+      "departmentName": "Data, Knowledge & Institutional Memory",
+      "subDepartment": "Prompt Governance",
+      "reportsTo": "ai-engineer-agent-builder",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "hr-talent-workforce",
+      "name": "HR / Talent / Workforce Agent",
+      "tier": "department_head",
+      "department": "dept-14-hr-workforce",
+      "departmentName": "Workforce, HR & Capability",
+      "subDepartment": "Workforce",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "ai-workforce-management",
+      "name": "AI Workforce Management Agent",
+      "tier": "standard",
+      "department": "dept-14-hr-workforce",
+      "departmentName": "Workforce, HR & Capability",
+      "subDepartment": "Digital Workforce",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "partner-vendor-management",
+      "name": "Partner / Vendor Management Agent",
+      "tier": "department_head",
+      "department": "dept-15-partners",
+      "departmentName": "Partnerships, Localization & Ecosystem",
+      "subDepartment": "Partnerships",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "partnerships-alliances",
+      "name": "Partnerships & Alliances Agent",
+      "tier": "standard",
+      "department": "dept-15-partners",
+      "departmentName": "Partnerships, Localization & Ecosystem",
+      "subDepartment": "Alliances",
+      "reportsTo": "company-strategy-growth",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "procurement-tooling",
+      "name": "Procurement / Tooling Agent",
+      "tier": "standard",
+      "department": "dept-15-partners",
+      "departmentName": "Partnerships, Localization & Ecosystem",
+      "subDepartment": "Tooling",
+      "reportsTo": "finance-billing",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "localization-multilingual-quality",
+      "name": "Localization & Multilingual Quality Agent",
+      "tier": "standard",
+      "department": "dept-15-partners",
+      "departmentName": "Partnerships, Localization & Ecosystem",
+      "subDepartment": "Localization",
+      "reportsTo": "marketing-brand",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "agent-improvement-training",
+      "name": "Agent Improvement / Training Agent",
+      "tier": "standard",
+      "department": "dept-16-agent-factory",
+      "departmentName": "Agent Platform, Factory & Meta-Operations",
+      "subDepartment": "Agent Training",
+      "reportsTo": "ai-engineer-agent-builder",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "agent-optimization-training",
+      "name": "Agent Optimization & Training Agent",
+      "tier": "standard",
+      "department": "dept-16-agent-factory",
+      "departmentName": "Agent Platform, Factory & Meta-Operations",
+      "subDepartment": "Agent Training",
+      "reportsTo": "ai-engineer-agent-builder",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "agent-design-provisioning",
+      "name": "Agent Design & Provisioning Agent",
+      "tier": "standard",
+      "department": "dept-16-agent-factory",
+      "departmentName": "Agent Platform, Factory & Meta-Operations",
+      "subDepartment": "Agent Design",
+      "reportsTo": "ai-engineer-agent-builder",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "agent-factory",
+      "name": "Agent Factory Agent",
+      "tier": "department_head",
+      "department": "dept-16-agent-factory",
+      "departmentName": "Agent Platform, Factory & Meta-Operations",
+      "subDepartment": "Agent Factory",
+      "reportsTo": "ceo-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "agent-registry-identity",
+      "name": "Agent Registry & Identity Agent",
+      "tier": "routing",
+      "department": "dept-16-agent-factory",
+      "departmentName": "Agent Platform, Factory & Meta-Operations",
+      "subDepartment": "Agent Registry",
+      "reportsTo": "governance-orchestrator",
+      "model": "claude-haiku-4-5"
+    },
+    {
+      "agentId": "agent-routing-load-balancing",
+      "name": "Agent Routing & Load Balancing Agent",
+      "tier": "routing",
+      "department": "dept-16-agent-factory",
+      "departmentName": "Agent Platform, Factory & Meta-Operations",
+      "subDepartment": "Routing",
+      "reportsTo": "coo-operations",
+      "model": "claude-haiku-4-5"
+    },
+    {
+      "agentId": "agent-conflict-resolution",
+      "name": "Agent Conflict Resolution Agent",
+      "tier": "standard",
+      "department": "dept-16-agent-factory",
+      "departmentName": "Agent Platform, Factory & Meta-Operations",
+      "subDepartment": "Conflict Control",
+      "reportsTo": "ceo-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "agent-dependency-manager",
+      "name": "Agent Dependency Manager",
+      "tier": "standard",
+      "department": "dept-16-agent-factory",
+      "departmentName": "Agent Platform, Factory & Meta-Operations",
+      "subDepartment": "Dependency Control",
+      "reportsTo": "pmo-project-manager",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "agent-lifecycle-manager",
+      "name": "Agent Lifecycle Manager",
+      "tier": "standard",
+      "department": "dept-16-agent-factory",
+      "departmentName": "Agent Platform, Factory & Meta-Operations",
+      "subDepartment": "Lifecycle",
+      "reportsTo": "ai-engineer-agent-builder",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "agent-capacity-saturation",
+      "name": "Agent Capacity & Saturation Monitor",
+      "tier": "routing",
+      "department": "dept-16-agent-factory",
+      "departmentName": "Agent Platform, Factory & Meta-Operations",
+      "subDepartment": "Capacity Monitoring",
+      "reportsTo": "coo-operations",
+      "model": "claude-haiku-4-5"
+    },
+    {
+      "agentId": "cross-agent-communication",
+      "name": "Cross-Agent Communication Agent",
+      "tier": "routing",
+      "department": "dept-16-agent-factory",
+      "departmentName": "Agent Platform, Factory & Meta-Operations",
+      "subDepartment": "Communication",
+      "reportsTo": "ceo-orchestrator",
+      "model": "claude-haiku-4-5"
+    },
+    {
+      "agentId": "priority-arbitration",
+      "name": "Priority Arbitration Agent",
+      "tier": "routing",
+      "department": "dept-16-agent-factory",
+      "departmentName": "Agent Platform, Factory & Meta-Operations",
+      "subDepartment": "Prioritization",
+      "reportsTo": "coo-operations",
+      "model": "claude-haiku-4-5"
+    },
+    {
+      "agentId": "agent-sprawl-control",
+      "name": "Agent Sprawl Control Agent",
+      "tier": "standard",
+      "department": "dept-16-agent-factory",
+      "departmentName": "Agent Platform, Factory & Meta-Operations",
+      "subDepartment": "Sprawl Control",
+      "reportsTo": "governance-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "business-continuity-disaster",
+      "name": "Business Continuity & Disaster Recovery Agent",
+      "tier": "standard",
+      "department": "dept-16-agent-factory",
+      "departmentName": "Agent Platform, Factory & Meta-Operations",
+      "subDepartment": "Resilience",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "case-study-testimonial",
+      "name": "Case Study & Testimonial Agent",
+      "tier": "department_head",
+      "department": "dept-17-trust-proof",
+      "departmentName": "Trust & Proof",
+      "subDepartment": "Trust & Proof",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "sales-demo-builder",
+      "name": "Sales Demo Builder Agent",
+      "tier": "standard",
+      "department": "dept-17-trust-proof",
+      "departmentName": "Trust & Proof",
+      "subDepartment": "Trust & Proof",
+      "reportsTo": "sales-consultant",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "roi-calculator",
+      "name": "ROI Calculator Agent",
+      "tier": "standard",
+      "department": "dept-17-trust-proof",
+      "departmentName": "Trust & Proof",
+      "subDepartment": "Trust & Proof",
+      "reportsTo": "sales-consultant",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "portfolio-showcase",
+      "name": "Portfolio Showcase Agent",
+      "tier": "standard",
+      "department": "dept-17-trust-proof",
+      "departmentName": "Trust & Proof",
+      "subDepartment": "Trust & Proof",
+      "reportsTo": "marketing-brand",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "uae-market-intelligence",
+      "name": "UAE Market Intelligence Agent",
+      "tier": "department_head",
+      "department": "dept-18-uae-gcc-market",
+      "departmentName": "UAE & GCC Market",
+      "subDepartment": "UAE Market",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "arabic-content-translation",
+      "name": "Arabic Content & Translation Agent",
+      "tier": "standard",
+      "department": "dept-18-uae-gcc-market",
+      "departmentName": "UAE & GCC Market",
+      "subDepartment": "Arabic Content",
+      "reportsTo": "marketing-brand",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "gcc-regulatory-compliance",
+      "name": "GCC Regulatory Compliance Agent",
+      "tier": "standard",
+      "department": "dept-18-uae-gcc-market",
+      "departmentName": "UAE & GCC Market",
+      "subDepartment": "GCC Regulation",
+      "reportsTo": "legal-orchestrator",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "local-networking-events",
+      "name": "Local Networking & Events Agent",
+      "tier": "standard",
+      "department": "dept-18-uae-gcc-market",
+      "departmentName": "UAE & GCC Market",
+      "subDepartment": "Local Networking",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "referral-affiliate",
+      "name": "Referral & Affiliate Agent",
+      "tier": "department_head",
+      "department": "dept-19-growth-referral",
+      "departmentName": "Growth & Referral",
+      "subDepartment": "Referral",
+      "reportsTo": "coo-operations",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "community-manager",
+      "name": "Community Manager Agent",
+      "tier": "standard",
+      "department": "dept-19-growth-referral",
+      "departmentName": "Growth & Referral",
+      "subDepartment": "Community",
+      "reportsTo": "marketing-brand",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "agentId": "upsell-cross-sell",
+      "name": "Upsell & Cross-sell Agent",
+      "tier": "standard",
+      "department": "dept-19-growth-referral",
+      "departmentName": "Growth & Referral",
+      "subDepartment": "Upsell",
+      "reportsTo": "account-manager",
+      "model": "claude-sonnet-4-6"
+    }
+  ]
+}

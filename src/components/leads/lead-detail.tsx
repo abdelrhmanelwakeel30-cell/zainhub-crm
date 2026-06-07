@@ -10,13 +10,14 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { ScoreIndicator } from '@/components/shared/score-indicator'
+import { AuditTimeline } from '@/components/shared/audit-timeline'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { DialogClose } from '@/components/ui/dialog'
 import { getInitials, formatDate, formatRelativeDate } from '@/lib/utils'
 import { toast } from 'sonner'
 import Link from 'next/link'
-import { Loader2, ArrowLeft, Phone, Mail, Globe, Building2, CalendarClock, User, Target, DollarSign, ArrowRight, AlertTriangle, Megaphone } from 'lucide-react'
+import { Loader2, ArrowLeft, Phone, Mail, Globe, Building2, CalendarClock, User, Target, DollarSign, ArrowRight, AlertTriangle, Megaphone, Sparkles } from 'lucide-react'
 
 interface LeadDetailProps {
   leadId: string
@@ -55,6 +56,51 @@ export function LeadDetail({ leadId }: LeadDetailProps) {
       router.push('/opportunities')
     },
     onError: (err: Error) => toast.error(err.message),
+  })
+
+  // AI-3: draft a follow-up message
+  const [draft, setDraft] = useState<string | null>(null)
+  const draftMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch('/api/ai/draft', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ type: 'followup', entityId: leadId }),
+      })
+      if (!res.ok) throw new Error('Failed to draft')
+      return res.json()
+    },
+    onSuccess: (r) => setDraft(r.data?.draft ?? ''),
+    onError: () => toast.error('Could not generate a draft'),
+  })
+
+  // AI-4: summarize the lead's activity timeline
+  const summarizeMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch('/api/ai/summarize', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ entityType: 'lead', entityId: leadId }),
+      })
+      if (!res.ok) throw new Error('Failed to summarize')
+      return res.json()
+    },
+    onSuccess: (r) => setDraft(r.data?.summary ?? ''),
+    onError: () => toast.error('Could not summarize'),
+  })
+
+  // AI-2: recalculate heuristic lead score
+  const scoreMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/leads/${leadId}/score`, { method: 'POST' })
+      if (!res.ok) throw new Error('Failed to score lead')
+      return res.json()
+    },
+    onSuccess: (r) => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] })
+      toast.success(`Score updated: ${r.data?.score ?? ''}`)
+    },
+    onError: () => toast.error('Could not recalculate score'),
   })
 
   if (isLoading) {
@@ -218,6 +264,9 @@ export function LeadDetail({ leadId }: LeadDetailProps) {
 
         {/* Right Column - Sidebar */}
         <div className="space-y-6">
+          {/* C-7: per-record audit trail */}
+          <AuditTimeline entityType="lead" entityId={lead.id} />
+
           {/* Score */}
           <Card>
             <CardHeader className="pb-3">
@@ -227,6 +276,36 @@ export function LeadDetail({ leadId }: LeadDetailProps) {
               <div className="flex items-center justify-center py-4">
                 <ScoreIndicator score={lead.score ?? 0} size="lg" />
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                disabled={scoreMutation.isPending}
+                onClick={() => scoreMutation.mutate()}
+              >
+                <Sparkles className="h-4 w-4 me-2" />
+                {scoreMutation.isPending ? 'Scoring…' : 'Recalculate score'}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2 w-full"
+                disabled={draftMutation.isPending}
+                onClick={() => draftMutation.mutate()}
+              >
+                <Sparkles className="h-4 w-4 me-2" />
+                {draftMutation.isPending ? 'Drafting…' : 'Draft follow-up (AI)'}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2 w-full"
+                disabled={summarizeMutation.isPending}
+                onClick={() => summarizeMutation.mutate()}
+              >
+                <Sparkles className="h-4 w-4 me-2" />
+                {summarizeMutation.isPending ? 'Summarizing…' : 'Summarize activity (AI)'}
+              </Button>
             </CardContent>
           </Card>
 
@@ -318,6 +397,22 @@ export function LeadDetail({ leadId }: LeadDetailProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* AI-3: drafted follow-up */}
+      <Dialog open={draft !== null} onOpenChange={(o) => !o && setDraft(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>AI assistant</DialogTitle></DialogHeader>
+          <textarea
+            className="min-h-[220px] w-full rounded-md border bg-background p-3 text-sm"
+            value={draft ?? ''}
+            onChange={(e) => setDraft(e.target.value)}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { navigator.clipboard?.writeText(draft ?? ''); toast.success('Copied') }}>Copy</Button>
+            <DialogClose render={<Button type="button" />}>Done</DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
@@ -336,7 +431,7 @@ function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string;
 
 type TimelineEvent = { action: string; detail: string; time: string; type?: string }
 
-function buildTimeline(lead: Record<string, any>): TimelineEvent[] {
+function buildTimeline(lead: { source?: { name?: string }; createdAt: string; lastContactedAt?: string | null; convertedAt?: string | null; lostAt?: string | null; lostReason?: { name?: string } }): TimelineEvent[] {
   const events: TimelineEvent[] = [
     { action: 'Lead created', detail: `Source: ${lead.source?.name ?? 'Unknown'}`, time: lead.createdAt, type: 'create' },
   ]

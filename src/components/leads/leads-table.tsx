@@ -2,13 +2,15 @@
 
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ColumnDef } from '@tanstack/react-table'
+import { toast } from 'sonner'
 import { DataTable } from '@/components/shared/data-table'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { ScoreIndicator } from '@/components/shared/score-indicator'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { AlertCircle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { AlertCircle, Archive, Download, RotateCcw } from 'lucide-react'
 import { getInitials, formatRelativeDate } from '@/lib/utils'
 
 type Lead = {
@@ -25,20 +27,61 @@ type Lead = {
   createdAt: string
 }
 
-export function LeadsTable() {
+export function LeadsTable({ filters }: { filters?: { urgency?: string; archived?: boolean } }) {
   const router = useRouter()
   const t = useTranslations('leads')
+  const queryClient = useQueryClient()
 
+  const urgency = filters?.urgency ?? ''
+  const archived = filters?.archived ?? false
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['leads', 'list'],
+    queryKey: ['leads', 'list', urgency, archived],
     queryFn: async () => {
-      const res = await fetch('/api/leads')
+      const params = new URLSearchParams({ pageSize: '100' })
+      if (urgency) params.set('urgency', urgency)
+      if (archived) params.set('archived', 'true')
+      const res = await fetch(`/api/leads?${params.toString()}`)
       if (!res.ok) throw new Error('Failed to load leads')
       return res.json()
     },
   })
 
   const leads: Lead[] = data?.data ?? []
+
+  // C-3/C-6: bulk archive + restore
+  const bulkMutation = useMutation({
+    mutationFn: async ({ action, ids }: { action: 'archive' | 'restore'; ids: string[] }) => {
+      const res = await fetch('/api/leads/bulk', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ action, ids }),
+      })
+      if (!res.ok) throw new Error('Bulk action failed')
+      return res.json()
+    },
+    onSuccess: (r, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] })
+      toast.success(`${vars.action === 'restore' ? 'Restored' : 'Archived'} ${r.count ?? 0} lead(s)`)
+    },
+    onError: () => toast.error('Bulk action failed'),
+  })
+
+  function exportSelected(ids: string[]) {
+    const set = new Set(ids)
+    const selected = leads.filter((l) => set.has(l.id))
+    const headers = ['Lead #', 'Full Name', 'Company', 'Stage', 'Urgency', 'Score', 'Created At']
+    const rows = selected.map((l) => [
+      l.leadNumber, l.fullName, l.companyName ?? '', l.stage?.name ?? '', l.urgency, l.score,
+      new Date(l.createdAt).toLocaleDateString(),
+    ])
+    const csv = [headers, ...rows].map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `leads-selected-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   const columns: ColumnDef<Lead, unknown>[] = [
     {
@@ -132,6 +175,34 @@ export function LeadsTable() {
       isLoading={isLoading}
       searchPlaceholder={`${t('title')}...`}
       onRowClick={(lead) => router.push(`/leads/${lead.id}`)}
+      enableSelection
+      getRowId={(lead) => lead.id}
+      renderBulkActions={(ids, clear) => (
+        <>
+          <Button variant="outline" size="sm" onClick={() => exportSelected(ids)}>
+            <Download className="h-4 w-4 me-2" /> Export
+          </Button>
+          {archived ? (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={bulkMutation.isPending}
+              onClick={() => bulkMutation.mutate({ action: 'restore', ids }, { onSuccess: clear })}
+            >
+              <RotateCcw className="h-4 w-4 me-2" /> Restore
+            </Button>
+          ) : (
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={bulkMutation.isPending}
+              onClick={() => bulkMutation.mutate({ action: 'archive', ids }, { onSuccess: clear })}
+            >
+              <Archive className="h-4 w-4 me-2" /> Archive
+            </Button>
+          )}
+        </>
+      )}
     />
   )
 }

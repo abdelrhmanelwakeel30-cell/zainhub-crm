@@ -1,6 +1,7 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { hasPermission } from '@/lib/permissions'
+import { getAgentSession } from '@/lib/agent-auth'
 export { hasPermission, hasAnyPermission, hasRole } from '@/lib/permissions'
 
 export async function getSession() {
@@ -14,8 +15,11 @@ export async function getSession() {
  */
 export async function getApiSession() {
   const session = await auth()
-  if (!session?.user?.tenantId) return null
-  return session
+  if (session?.user?.tenantId) return session
+  // Fall back to AI-agent API-key auth (paperclip platform / CRM MCP server).
+  const agent = await getAgentSession()
+  if (agent?.user?.tenantId) return agent
+  return null
 }
 
 export async function requireAuth() {
@@ -47,7 +51,8 @@ export async function requirePermission(permission: string) {
  *   const { session } = guard
  */
 export async function requireApiPermission(permission: string) {
-  const session = await auth()
+  // Accept either a browser session OR an AI-agent API key (paperclip / MCP).
+  const session = (await auth()) ?? (await getAgentSession())
   if (!session?.user?.tenantId) {
     return {
       ok: false as const,

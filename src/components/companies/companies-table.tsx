@@ -36,7 +36,7 @@ export function CompaniesTable() {
 
   const companies: Company[] = data?.data ?? []
 
-  const columns: ColumnDef<Company, any>[] = [
+  const columns: ColumnDef<Company, unknown>[] = [
     {
       accessorKey: 'companyNumber',
       header: '#',

@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       'unknown'
     const rl = await loginRateLimit.limit(`portal-login:${email.toLowerCase()}:${ip}`)
     if (!rl.success) {
-      console.warn('[client-portal/login] rate limit hit', { email, ip })
+      log.warn('[client-portal/login] rate limit hit', { email, ip })
       return NextResponse.json(
         { success: false, error: 'Too many attempts. Try again later.' },
         { status: 429, headers: { 'Retry-After': '900' } },
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
               : null
 
     if (denyReason || !clientUser) {
-      console.warn(`[client-portal/login] denied ${email}: ${denyReason ?? 'no-user'}`)
+      log.warn('[client-portal/login] denied', { email, reason: denyReason ?? 'no-user' })
       return NextResponse.json({ success: false, error: 'Invalid credentials' }, { status: 401 })
     }
 

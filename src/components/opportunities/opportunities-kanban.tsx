@@ -181,7 +181,7 @@ export function OpportunitiesKanban() {
       await queryClient.cancelQueries({ queryKey: ['opportunities', 'kanban'] })
       const previous = queryClient.getQueryData(['opportunities', 'kanban'])
 
-      queryClient.setQueryData(['opportunities', 'kanban'], (old: any) => {
+      queryClient.setQueryData(['opportunities', 'kanban'], (old: { data?: Opportunity[] } | undefined) => {
         if (!old?.data) return old
         return {
           ...old,

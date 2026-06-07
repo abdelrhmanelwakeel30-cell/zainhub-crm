@@ -20,7 +20,7 @@ interface DashboardContentProps {
   user: {
     firstName: string
     lastName: string
-    [key: string]: any
+    [key: string]: unknown
   }
 }
 
@@ -45,11 +45,11 @@ interface DashboardKPIs {
 interface DashboardData {
   kpis: DashboardKPIs
   charts: {
-    pipeline: any[]
-    leadsBySource: any[]
-    revenueByMonth: any[]
+    pipeline: Array<{ id: string; name: string; count: number; color?: string }>
+    leadsBySource: Array<{ name: string; count: number }>
+    revenueByMonth: Array<{ month: string; total: number }>
   }
-  recentActivities: any[]
+  recentActivities: Array<Record<string, unknown>>
 }
 
 interface DashboardResponse {
@@ -112,7 +112,7 @@ export function DashboardContent({ user }: DashboardContentProps) {
 
   // Sparkline from revenueByMonth (last 12 months)
   const sparkPoints: number[] = (data?.data?.charts?.revenueByMonth ?? [])
-    .map((m: any) => Number(m.total ?? 0))
+    .map((m) => Number(m.total ?? 0))
     .filter((n: number) => Number.isFinite(n))
 
   // Build the italic serif summary sentence dynamically.

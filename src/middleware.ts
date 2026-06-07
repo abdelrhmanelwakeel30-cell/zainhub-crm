@@ -19,11 +19,13 @@ const PUBLIC_API_PATHS = [
   '/api/auth',              // NextAuth handler
   '/api/public',            // Public forms
   '/api/client-portal',     // Portal (separate JWT)
+  '/api/billing/webhook',   // Stripe webhook (signature-verified, machine-to-machine)
   '/api/health',            // Health check
 ]
 
 const PUBLIC_PAGE_PATHS = [
   '/login',
+  '/signup',
   '/forgot-password',
   '/reset-password',
   '/unauthorized',
@@ -48,6 +50,19 @@ function hasSessionCookie(request: NextRequest): boolean {
   return false
 }
 
+/**
+ * Lightweight presence check for an AI-agent API key (paperclip / CRM MCP).
+ * Edge can't verify it (no Node crypto/Prisma); the route fully verifies via
+ * getApiSession() -> getAgentSession(). Bearer-token auth is not cookie-based,
+ * so it is immune to CSRF and bypasses the Origin/Referer gate by design.
+ */
+function hasAgentKey(request: NextRequest): boolean {
+  const auth = request.headers.get('authorization')
+  if (auth?.startsWith('Bearer zhk_') || auth?.startsWith('Bearer zpk_')) return true
+  const x = request.headers.get('x-agent-key') ?? request.headers.get('x-api-key')
+  return !!x && (x.startsWith('zhk_') || x.startsWith('zpk_'))
+}
+
 function isPublicApiPath(pathname: string): boolean {
   return PUBLIC_API_PATHS.some((p) => pathname.startsWith(p))
 }
@@ -69,7 +84,8 @@ export async function middleware(request: NextRequest) {
 
   if (pathname.startsWith('/api/')) {
     if (isPublicApiPath(pathname)) return NextResponse.next()
-    if (!hasSessionCookie(request)) {
+    const agentRequest = hasAgentKey(request)
+    if (!hasSessionCookie(request) && !agentRequest) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 },
@@ -79,7 +95,8 @@ export async function middleware(request: NextRequest) {
     // S-006 / Fix-013 / S-015 (CSRF): require Origin OR Referer to match Host on mutating requests.
     // Modern browsers always send Origin; older clients/proxies may strip it but include Referer.
     // If neither is present on a mutation, reject (defense-in-depth).
-    if (MUTATING_METHODS.has(request.method)) {
+    // Agent API-key (Bearer) requests are CSRF-immune and skip this gate.
+    if (MUTATING_METHODS.has(request.method) && !agentRequest) {
       const origin = request.headers.get('origin')
       const referer = request.headers.get('referer')
       const host = request.headers.get('host')

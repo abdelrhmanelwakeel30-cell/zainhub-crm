@@ -50,6 +50,19 @@ export function NotificationsContent() {
   const notifications = response?.data ?? []
   const unread = notifications.filter(n => !n.isRead)
 
+  // C-5: optimistic updates with rollback. The list flips instantly; on error
+  // we restore the snapshot; onSettled re-syncs with the server.
+  const patchCache = (fn: (n: Notification) => Notification) => {
+    const prev = queryClient.getQueryData<NotificationsApiResponse>(['notifications'])
+    if (prev) {
+      queryClient.setQueryData<NotificationsApiResponse>(['notifications'], {
+        ...prev,
+        data: prev.data.map(fn),
+      })
+    }
+    return prev
+  }
+
   const markReadMutation = useMutation({
     mutationFn: (id: string) =>
       fetch('/api/notifications', {
@@ -57,7 +70,15 @@ export function NotificationsContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
       }).then(r => r.json()),
-    onSuccess: () => {
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey: ['notifications'] })
+      const prev = patchCache(n => (n.id === id ? { ...n, isRead: true } : n))
+      return { prev }
+    },
+    onError: (_e, _id, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['notifications'], ctx.prev)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] })
     },
   })
@@ -65,7 +86,15 @@ export function NotificationsContent() {
   const markAllReadMutation = useMutation({
     mutationFn: () =>
       fetch('/api/notifications/read-all', { method: 'POST' }).then(r => r.json()),
-    onSuccess: () => {
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ['notifications'] })
+      const prev = patchCache(n => ({ ...n, isRead: true }))
+      return { prev }
+    },
+    onError: (_e, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['notifications'], ctx.prev)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] })
     },
   })

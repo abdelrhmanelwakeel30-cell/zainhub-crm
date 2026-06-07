@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     // The OTP is NEVER returned over the wire (S-003). For local testing,
     // tail the server logs — the line below logs in non-production only.
     if (process.env.NODE_ENV !== 'production') {
-      console.warn(`[client-portal/send-otp] DEV OTP for ${phone}: ${otp}`)
+      log.warn('[client-portal/send-otp] DEV OTP generated', { phone, otp })
     }
     return NextResponse.json({
       success: true,

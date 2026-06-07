@@ -1,6 +1,7 @@
 import { getApiSession } from '@/lib/auth-utils'
+import { log } from '@/lib/logger'
 import { NextResponse } from 'next/server'
-import { ZodError, type ZodType } from 'zod'
+import { z, ZodError, type ZodType } from 'zod'
 
 export async function getSession() {
   return await getApiSession()
@@ -58,7 +59,7 @@ export function badRequest(msg: string) {
 export function serverError(err: unknown) {
   // Always return a generic message — never leak ORM/DB internals to the client.
   // The full error is logged server-side for debugging.
-  console.error('[API Error]', err)
+  log.error('[API Error]', { err })
   return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
 }
 
@@ -87,6 +88,47 @@ export function parsePagination(searchParams: URLSearchParams) {
   const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
   const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get('pageSize') || '20')))
   return { page, pageSize, skip: (page - 1) * pageSize }
+}
+
+/**
+ * Validate request query params against a Zod schema (F-2). Mirrors parseJson:
+ * returns a 422 NextResponse on failure (caller should `return` it) or the
+ * parsed, typed data on success. Use coercing schemas (z.coerce.number) since
+ * all query values arrive as strings.
+ *
+ *   const q = parseQuery(searchParams, ListLeadsQuery)
+ *   if (q instanceof NextResponse) return q
+ *   // q.data is fully typed + validated
+ */
+export function parseQuery<T>(
+  searchParams: URLSearchParams,
+  schema: ZodType<T>,
+): { data: T } | NextResponse {
+  const raw: Record<string, string> = {}
+  for (const [k, v] of searchParams.entries()) raw[k] = v
+  const result = schema.safeParse(raw)
+  if (!result.success) {
+    const err = result.error as ZodError
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Invalid query parameters',
+        issues: err.issues.map((i) => ({ path: i.path.join('.'), message: i.message })),
+      },
+      { status: 422 },
+    )
+  }
+  return { data: result.data }
+}
+
+/**
+ * Reusable pagination query fields for list endpoints. Spread into a route's
+ * query schema: `z.object({ ...paginationQuery, search: z.string().optional() })`.
+ * Clamps pageSize to 100 and defaults page=1, pageSize=20.
+ */
+export const paginationQuery = {
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
 }
 
 /**
@@ -177,7 +219,7 @@ export function serializeDecimals(obj: any): any {
  * Skips entries with null/undefined ids — caller controls "required" vs "optional"
  * via Zod up the chain.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 export async function assertTenantOwnsAll(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   prismaClient: any,

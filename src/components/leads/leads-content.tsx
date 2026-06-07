@@ -7,16 +7,21 @@ import { PageHeader } from '@/components/shared/page-header'
 import { LeadsTable } from './leads-table'
 import { LeadsKanban } from './leads-kanban'
 import { LeadFormDialog } from './lead-form-dialog'
+import { SavedViews } from '@/components/shared/saved-views'
 import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Plus, List, LayoutGrid, Download } from 'lucide-react'
+import { Plus, List, LayoutGrid, Download, Archive } from 'lucide-react'
 import { toast } from 'sonner'
+
+type LeadFilters = { urgency?: string; archived?: boolean }
 
 export function LeadsContent() {
   const t = useTranslations('leads')
   const [view, setView] = useState<'list' | 'kanban'>('list')
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [filters, setFilters] = useState<LeadFilters>({})
 
   const { data } = useQuery({
     queryKey: ['leads', 'count'],
@@ -37,7 +42,7 @@ export function LeadsContent() {
       }
 
       const headers = ['Lead #', 'Full Name', 'Company', 'Email', 'Phone', 'Stage', 'Source', 'Urgency', 'Score', 'Assigned To', 'Created At']
-      const rows = leads.map((l: any) => [
+      const rows = leads.map((l: { leadNumber?: string; fullName?: string; companyName?: string; email?: string; phone?: string; urgency?: string; score?: number; createdAt?: string; stage?: { name?: string }; source?: { name?: string }; assignedTo?: { firstName?: string; lastName?: string } }) => [
         l.leadNumber ?? '',
         l.fullName ?? '',
         l.companyName ?? '',
@@ -84,7 +89,7 @@ export function LeadsContent() {
       </PageHeader>
 
       <Tabs value={view} onValueChange={(v) => setView(v as 'list' | 'kanban')}>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <TabsList>
             <TabsTrigger value="list" className="gap-1.5">
               <List className="h-4 w-4" />
@@ -95,10 +100,38 @@ export function LeadsContent() {
               {t('kanbanView')}
             </TabsTrigger>
           </TabsList>
+          {view === 'list' && (
+            <div className="flex items-center gap-2">
+              <Select
+                value={filters.urgency ?? 'ALL'}
+                onValueChange={(v) => setFilters((f) => ({ ...f, urgency: v && v !== 'ALL' ? v : undefined }))}
+              >
+                <SelectTrigger className="h-9 w-[150px]">
+                  <SelectValue placeholder="Urgency" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All urgency</SelectItem>
+                  <SelectItem value="LOW">Low</SelectItem>
+                  <SelectItem value="MEDIUM">Medium</SelectItem>
+                  <SelectItem value="HIGH">High</SelectItem>
+                  <SelectItem value="URGENT">Urgent</SelectItem>
+                </SelectContent>
+              </Select>
+              <SavedViews module="leads" current={filters} onApply={(f) => setFilters(f as LeadFilters)} />
+              <Button
+                variant={filters.archived ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilters((f) => ({ ...f, archived: !f.archived }))}
+              >
+                <Archive className="h-4 w-4 me-2" />
+                {filters.archived ? 'Viewing archived' : 'Recycle bin'}
+              </Button>
+            </div>
+          )}
         </div>
 
         <TabsContent value="list" className="mt-4">
-          <LeadsTable />
+          <LeadsTable filters={filters} />
         </TabsContent>
         <TabsContent value="kanban" className="mt-4">
           <LeadsKanban />

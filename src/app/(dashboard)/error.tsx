@@ -15,7 +15,7 @@ export default function DashboardError({
   useEffect(() => {
     // Forward to Sentry (no-op when DSN unset). Closes R-002.
     Sentry.captureException(error, { tags: { boundary: 'dashboard' }, extra: { digest: error.digest } })
-    console.error('Dashboard error:', error)
+    if (process.env.NODE_ENV !== 'production') console.error('Dashboard error:', error)
   }, [error])
 
   return (

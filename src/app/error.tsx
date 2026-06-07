@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import * as Sentry from '@sentry/nextjs'
 import { Button } from '@/components/ui/button'
 import { AlertTriangle } from 'lucide-react'
 
@@ -12,7 +13,9 @@ export default function GlobalError({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error('Global error:', error)
+    // Forward to Sentry (no-op when DSN unset). Mirrors the dashboard boundary (R-002).
+    Sentry.captureException(error, { tags: { boundary: 'global' }, extra: { digest: error.digest } })
+    if (process.env.NODE_ENV !== 'production') console.error('Global error:', error)
   }, [error])
 
   return (

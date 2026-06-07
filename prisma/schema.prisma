@@ -358,12 +358,31 @@ model Tenant {
   website               String?
   settings              Json? // Tenant-wide config (invoice prefix, etc.)
   plan                  String   @default("PROFESSIONAL")
+  // Stripe billing (S-1) — all optional; billing is gated behind STRIPE_SECRET_KEY.
+  stripeCustomerId      String?  @unique
+  stripeSubscriptionId  String?  @unique
+  subscriptionStatus    String? // Stripe sub status: active, trialing, past_due, canceled, etc.
   isActive              Boolean  @default(true)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
   // Relations
   users                  User[]
+  agentApiKeys           AgentApiKey[]
+  apiKeys                ApiKey[]
+  webhookEndpoints       WebhookEndpoint[]
+  employees              Employee[]
+  leaveRequests          LeaveRequest[]
+  payrollRuns            PayrollRun[]
+  payslips               Payslip[]
+  accounts               Account[]
+  journalEntries         JournalEntry[]
+  vendors                Vendor[]
+  purchaseOrders         PurchaseOrder[]
+  items                  Item[]
+  stockMovements         StockMovement[]
+  costCenters            CostCenter[]
+  budgets                Budget[]
   companies              Company[]
   contacts               Contact[]
   leads                  Lead[]
@@ -500,9 +519,43 @@ model User {
   createdWebsites              Website[]                 @relation("WebsiteCreatedBy")
   connectedWebsiteIntegrations WebsiteIntegration[]      @relation("WebsiteIntegrationConnectedBy")
 
+  // AI agent service accounts (paperclip 166-agent platform)
+  isServiceAccount Boolean      @default(false)
+  agentId          String?      @unique // paperclip org-chart agent id, set for agent users
+  agentApiKey      AgentApiKey?
+  apiKeys          ApiKey[]
+
+  // Staff TOTP two-factor auth (S-4). Optional, never hard-required for login.
+  twoFactorEnabled Boolean @default(false)
+  twoFactorSecret  String? // base32 TOTP secret; null until enrolled
+
   @@unique([tenantId, email])
   @@index([tenantId])
   @@index([email])
+}
+
+/// Programmatic credential for an AI agent (paperclip platform) to call the CRM.
+/// Each agent gets one CRM User + one AgentApiKey. RBAC (via the user's roles)
+/// is the source of truth for what the agent may do; `scopes` is an optional
+/// extra allow-list consumed by the CRM MCP server tool surface.
+model AgentApiKey {
+  id         String    @id @default(cuid())
+  tenantId   String
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId     String    @unique
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agentId    String    @unique // paperclip agent id
+  name       String
+  keyHash    String    @unique // sha256 hex of the full secret key
+  keyPrefix  String // first chars of the key, for display/audit only
+  scopes     String[] // optional MCP tool allow-list; empty = RBAC governs
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([tenantId])
+  @@index([keyHash])
 }
 
 model Role {
@@ -2719,4 +2772,349 @@ model WebsiteSyncLog {
 
   @@index([tenantId, websiteId, startedAt])
   @@index([integrationId, startedAt])
+}
+
+// ============================================================================
+// ERP — HR & WORKFORCE (E-1)
+// ============================================================================
+
+model Employee {
+  id             String     @id @default(cuid())
+  tenantId       String
+  tenant         Tenant     @relation(fields: [tenantId], references: [id])
+  employeeNumber String // Auto: EMP-0001
+  firstName      String
+  lastName       String
+  email          String?
+  phone          String?
+  jobTitle       String?
+  department     String?
+  employmentType String     @default("FULL_TIME") // FULL_TIME, PART_TIME, CONTRACT, INTERN
+  status         String     @default("ACTIVE") // ACTIVE, ON_LEAVE, TERMINATED
+  hireDate       DateTime?
+  managerId      String?
+  manager        Employee?  @relation("EmployeeManager", fields: [managerId], references: [id])
+  reports        Employee[] @relation("EmployeeManager")
+  userId         String? // optional link to a CRM User
+  salary         Decimal?   @db.Decimal(12, 2)
+  currency       Currency   @default(AED)
+  archivedAt     DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  leaveRequests LeaveRequest[]
+  payslips      Payslip[]
+
+  @@unique([tenantId, employeeNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, department])
+}
+
+model LeaveRequest {
+  id           String   @id @default(cuid())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+  employeeId   String
+  employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type         String   @default("ANNUAL") // ANNUAL, SICK, UNPAID, OTHER
+  startDate    DateTime
+  endDate      DateTime
+  days         Decimal  @db.Decimal(5, 1)
+  reason       String?  @db.Text
+  status       String   @default("PENDING") // PENDING, APPROVED, REJECTED, CANCELLED
+  reviewedById String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, employeeId])
+  @@index([tenantId, status])
+}
+
+// ============================================================================
+// ERP — PAYROLL (E-2)
+// ============================================================================
+
+model PayrollRun {
+  id          String    @id @default(cuid())
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id])
+  runNumber   String // Auto: PRN-0001
+  periodStart DateTime
+  periodEnd   DateTime
+  status      String    @default("DRAFT") // DRAFT, PROCESSED, PAID
+  currency    Currency  @default(AED)
+  totalGross  Decimal   @default(0) @db.Decimal(14, 2)
+  totalNet    Decimal   @default(0) @db.Decimal(14, 2)
+  processedAt DateTime?
+  paidAt      DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  payslips Payslip[]
+
+  @@unique([tenantId, runNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+}
+
+model Payslip {
+  id           String     @id @default(cuid())
+  tenantId     String
+  tenant       Tenant     @relation(fields: [tenantId], references: [id])
+  payrollRunId String
+  payrollRun   PayrollRun @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+  employeeId   String
+  employee     Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  gross        Decimal    @db.Decimal(12, 2)
+  deductions   Decimal    @default(0) @db.Decimal(12, 2)
+  net          Decimal    @db.Decimal(12, 2)
+  currency     Currency   @default(AED)
+  status       String     @default("PENDING") // PENDING, PAID
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([payrollRunId, employeeId])
+  @@index([tenantId])
+  @@index([tenantId, employeeId])
+}
+
+// ============================================================================
+// ERP — ACCOUNTING (E-3)
+// ============================================================================
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+model Account {
+  id        String      @id @default(cuid())
+  tenantId  String
+  tenant    Tenant      @relation(fields: [tenantId], references: [id])
+  code      String
+  name      String
+  type      AccountType
+  isActive  Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  journalLines JournalLine[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@index([tenantId, type])
+}
+
+model JournalEntry {
+  id          String    @id @default(cuid())
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id])
+  entryNumber String // Auto: JE-0001
+  date        DateTime
+  memo        String?   @db.Text
+  status      String    @default("DRAFT") // DRAFT, POSTED
+  postedAt    DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  lines JournalLine[]
+
+  @@unique([tenantId, entryNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+}
+
+model JournalLine {
+  id             String       @id @default(cuid())
+  tenantId       String
+  journalEntryId String
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  accountId      String
+  account        Account      @relation(fields: [accountId], references: [id])
+  debit          Decimal      @default(0) @db.Decimal(14, 2)
+  credit         Decimal      @default(0) @db.Decimal(14, 2)
+  description    String?
+
+  @@index([tenantId])
+  @@index([journalEntryId])
+  @@index([accountId])
+}
+
+// ============================================================================
+// ERP — PROCUREMENT (E-4)
+// ============================================================================
+
+model Vendor {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  name      String
+  email     String?
+  phone     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  purchaseOrders PurchaseOrder[]
+
+  @@index([tenantId])
+  @@index([tenantId, isActive])
+}
+
+model PurchaseOrder {
+  id           String    @id @default(cuid())
+  tenantId     String
+  tenant       Tenant    @relation(fields: [tenantId], references: [id])
+  poNumber     String // Auto: PO-0001
+  vendorId     String
+  vendor       Vendor    @relation(fields: [vendorId], references: [id])
+  status       String    @default("DRAFT") // DRAFT, SUBMITTED, APPROVED, RECEIVED
+  currency     Currency  @default(AED)
+  totalAmount  Decimal   @default(0) @db.Decimal(14, 2)
+  notes        String?   @db.Text
+  approvedById String?
+  submittedAt  DateTime?
+  approvedAt   DateTime?
+  receivedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  lines POLine[]
+
+  @@unique([tenantId, poNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+}
+
+model POLine {
+  id              String        @id @default(cuid())
+  tenantId        String
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  description     String
+  quantity        Decimal       @db.Decimal(12, 2)
+  unitPrice       Decimal       @db.Decimal(12, 2)
+  lineTotal       Decimal       @db.Decimal(14, 2)
+
+  @@index([tenantId])
+  @@index([purchaseOrderId])
+}
+
+// ============================================================================
+// ERP — INVENTORY (E-5)
+// ============================================================================
+
+model Item {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  sku       String
+  name      String
+  quantity  Decimal  @default(0) @db.Decimal(14, 2)
+  unitCost  Decimal  @default(0) @db.Decimal(12, 2)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  movements StockMovement[]
+
+  @@unique([tenantId, sku])
+  @@index([tenantId])
+}
+
+model StockMovement {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  type      String // IN, OUT, ADJUST
+  quantity  Decimal  @db.Decimal(14, 2)
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([tenantId, itemId])
+}
+
+// ============================================================================
+// ERP — BUDGETING & COST CENTERS (E-6)
+// ============================================================================
+
+model CostCenter {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  code      String
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  budgets Budget[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+}
+
+model Budget {
+  id           String     @id @default(cuid())
+  tenantId     String
+  tenant       Tenant     @relation(fields: [tenantId], references: [id])
+  costCenterId String
+  costCenter   CostCenter @relation(fields: [costCenterId], references: [id], onDelete: Cascade)
+  periodLabel  String // e.g. "2026-Q2"
+  amount       Decimal    @db.Decimal(14, 2)
+  spent        Decimal    @default(0) @db.Decimal(14, 2)
+  currency     Currency   @default(AED)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([tenantId, costCenterId, periodLabel])
+  @@index([tenantId])
+}
+
+// ============================================================================
+// SAAS — PUBLIC API KEYS (S-5) + OUTBOUND WEBHOOKS (S-6)
+// ============================================================================
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  tenantId   String
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId     String // acts AS this user's RBAC permissions
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  keyHash    String    @unique // sha256 hex of the full key (prefix zpk_)
+  keyPrefix  String
+  scopes     String[]
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([tenantId])
+  @@index([keyHash])
+}
+
+model WebhookEndpoint {
+  id         String   @id @default(cuid())
+  tenantId   String
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  url        String
+  events     String[] // e.g. ["lead.created","invoice.paid"]
+  secret     String // HMAC signing secret
+  isActive   Boolean  @default(true)
+  lastStatus Int? // last delivery HTTP status
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([tenantId])
+  // Hot path: dispatchWebhook() filters active endpoints per tenant on every event.
+  @@index([tenantId, isActive])
 }

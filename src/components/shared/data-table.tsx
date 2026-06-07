@@ -11,12 +11,14 @@ import {
   getPaginationRowModel,
   SortingState,
   ColumnFiltersState,
+  RowSelectionState,
   useReactTable,
   VisibilityState,
 } from '@tanstack/react-table'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -33,6 +35,12 @@ interface DataTableProps<TData, TValue> {
   onRowClick?: (row: TData) => void
   toolbar?: React.ReactNode
   isLoading?: boolean
+  /** C-3: opt-in row selection + bulk action bar. */
+  enableSelection?: boolean
+  /** Stable row id (defaults to a row `id` field). Required for selection to survive re-renders. */
+  getRowId?: (row: TData) => string
+  /** Render bulk actions when ≥1 row is selected. Receives selected ids + a clear callback. */
+  renderBulkActions?: (selectedIds: string[], clear: () => void) => React.ReactNode
 }
 
 export function DataTable<TData, TValue>({
@@ -47,16 +55,47 @@ export function DataTable<TData, TValue>({
   onRowClick,
   toolbar,
   isLoading = false,
+  enableSelection = false,
+  getRowId,
+  renderBulkActions,
 }: DataTableProps<TData, TValue>) {
   const tc = useTranslations('common')
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [globalFilter, setGlobalFilter] = useState('')
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+
+  // C-3: prepend a checkbox column when selection is enabled.
+  const selectionColumn: ColumnDef<TData, TValue> = {
+    id: '__select',
+    header: ({ table }) => (
+      <Checkbox
+        checked={table.getIsAllPageRowsSelected()}
+        indeterminate={table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected()}
+        onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
+        aria-label="Select all"
+        onClick={(e) => e.stopPropagation()}
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(v) => row.toggleSelected(!!v)}
+        aria-label="Select row"
+        onClick={(e) => e.stopPropagation()}
+      />
+    ),
+    enableSorting: false,
+    size: 40,
+  }
+  const tableColumns = enableSelection ? [selectionColumn, ...columns] : columns
 
   const table = useReactTable({
     data,
-    columns,
+    columns: tableColumns,
+    ...(getRowId ? { getRowId: (row: TData) => getRowId(row) } : {}),
+    enableRowSelection: enableSelection,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -65,19 +104,32 @@ export function DataTable<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onGlobalFilterChange: setGlobalFilter,
+    onRowSelectionChange: setRowSelection,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       globalFilter,
+      rowSelection,
     },
     initialState: {
       pagination: { pageSize },
     },
   })
 
+  const selectedIds = Object.keys(rowSelection).filter((k) => rowSelection[k])
+
   return (
     <div className="space-y-4">
+      {/* C-3: bulk action bar */}
+      {enableSelection && selectedIds.length > 0 && renderBulkActions && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/40 px-4 py-2.5">
+          <span className="text-sm font-medium">{selectedIds.length} selected</span>
+          <div className="flex items-center gap-2">
+            {renderBulkActions(selectedIds, () => setRowSelection({}))}
+          </div>
+        </div>
+      )}
       {/* Toolbar */}
       {(showSearch || toolbar) && (
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -132,7 +184,7 @@ export function DataTable<TData, TValue>({
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
-                  {columns.map((_, j) => (
+                  {tableColumns.map((_, j) => (
                     <TableCell key={j}>
                       <div className="h-4 w-full animate-pulse rounded bg-gray-100 dark:bg-gray-800" />
                     </TableCell>
@@ -155,7 +207,7 @@ export function DataTable<TData, TValue>({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-32 text-center">
+                <TableCell colSpan={tableColumns.length} className="h-32 text-center">
                   <div className="flex flex-col items-center gap-2 text-muted-foreground">
                     <p className="text-sm">{emptyMessage}</p>
                   </div>

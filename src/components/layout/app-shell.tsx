@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { Sidebar } from './sidebar'
 import { Topbar } from './topbar'
 import { CommandPalette } from '@/components/shared/command-palette'
+import { useNotificationStream } from '@/components/notifications/use-notification-stream'
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -13,10 +14,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [searchOpen, setSearchOpen] = useState(false)
   const pathname = usePathname()
 
+  // C-9: live notification updates via SSE.
+  useNotificationStream()
+
   const handleSearchOpen = useCallback(() => setSearchOpen(true), [])
 
-  // Close mobile sidebar on route change
+  // Close mobile sidebar on route change — a genuine navigation side-effect.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMobileOpen(false)
   }, [pathname])
 

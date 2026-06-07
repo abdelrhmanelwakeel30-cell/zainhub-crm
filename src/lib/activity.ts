@@ -1,4 +1,5 @@
 import { prisma as _prisma } from '@/lib/prisma'
+import { log } from '@/lib/logger'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const prisma = _prisma as any
 
@@ -47,7 +48,7 @@ export function createActivity(params: CreateActivityParams): void {
       },
     })
     .catch((err: Error) => {
-      console.error('[Activity] Failed to log activity:', err.message)
+      log.error('[Activity] Failed to log activity', { err })
     })
 }
 

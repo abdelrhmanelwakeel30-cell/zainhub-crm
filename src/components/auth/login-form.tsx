@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -99,6 +100,13 @@ export function LoginForm() {
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Sign In
           </Button>
+
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+            New here?{' '}
+            <Link href="/signup" className="font-medium text-blue-600 hover:underline">
+              Create a workspace
+            </Link>
+          </p>
 
           {process.env.NODE_ENV !== 'production' && (
             <div className="text-center">

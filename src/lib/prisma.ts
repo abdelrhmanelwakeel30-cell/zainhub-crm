@@ -18,7 +18,7 @@ neonConfig.fetchConnectionCache = true
 }
 
 declare global {
-  // eslint-disable-next-line no-var
+   
   var __prisma: PrismaClientType | undefined
 }
 

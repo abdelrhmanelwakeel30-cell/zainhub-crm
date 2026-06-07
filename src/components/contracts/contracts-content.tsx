@@ -11,6 +11,8 @@ import { Plus, Download, FileText, CheckCircle, AlertTriangle } from 'lucide-rea
 
 export function ContractsContent() {
   const [showCreate, setShowCreate] = useState(false)
+  // Capture "now" once (lazy init) — keeps render pure (react-hooks/purity).
+  const [nowMs] = useState(() => Date.now())
 
   const { data: contractsResponse } = useQuery({
     queryKey: ['contracts'],
@@ -25,7 +27,7 @@ export function ContractsContent() {
   const active = contracts.filter((c: { status: string }) => c.status === 'ACTIVE')
   const expiringSoon = contracts.filter(
     (c: { endDate?: string }) =>
-      c.endDate && new Date(c.endDate) < new Date(Date.now() + 90 * 86400000)
+      c.endDate && new Date(c.endDate) < new Date(nowMs + 90 * 86400000)
   )
 
   return (

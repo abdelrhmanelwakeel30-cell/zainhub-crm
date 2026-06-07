@@ -25,6 +25,9 @@ export default defineConfig({
       // next-auth (and other deps) import the bare specifier 'next/server',
       // but Next 16 ships it as 'next/server.js'. Alias so Vitest resolves it.
       'next/server': path.resolve(__dirname, 'node_modules/next/server.js'),
+      // 'server-only' is a Next marker package with no runtime; stub it so unit
+      // tests can import server modules (e.g. agent-auth) and mock their deps.
+      'server-only': path.resolve(__dirname, 'src/test/stubs/empty.ts'),
     },
   },
 })

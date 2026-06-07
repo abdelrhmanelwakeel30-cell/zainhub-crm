@@ -44,6 +44,6 @@ export function zodFormResolver<TInput extends FieldValues>(
   schema: ZodType<any, any, any>,
 ): Resolver<TInput> {
   // The single, intentional cast — see file header for rationale.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   return zodResolver(schema) as unknown as Resolver<TInput>
 }
